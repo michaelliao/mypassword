@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.puppylab.mypassword</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0</version>
+		<relativePath>../parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>desktop</artifactId>
+	<version>${project.version}</version>
+
+	<properties>
+		<mainClass>org.puppylab.mypassword.ui.MainWindow</mainClass>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.puppylab.mypassword</groupId>
+			<artifactId>rpc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>${swt.artifactId}</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>mypassword-${project.artifactId}</finalName>
+		<plugins>
+			 
+		</plugins>
+	</build>
+</project>

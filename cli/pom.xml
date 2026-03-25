@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.puppylab.mypassword</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0</version>
+		<relativePath>../parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>cli</artifactId>
+	<version>${project.version}</version>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.puppylab.mypassword</groupId>
+			<artifactId>rpc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jline</groupId>
+			<artifactId>jline</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.athaydes.rawhttp</groupId>
+			<artifactId>rawhttp-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>mypassword-${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<!-- copy dependencies jar to target/modules -->
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/modules</outputDirectory>
+						</configuration>
+					</execution>
+					<!-- copy project build jar to target/modules -->
+					<execution>
+						<id>copy-self</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>${project.artifactId}</artifactId>
+									<version>${project.version}</version>
+									<type>${project.packaging}</type>
+									<destFileName>${project.build.finalName}.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.directory}/modules</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<!-- build custom runtime -->
+					<execution>
+						<id>jlink-custom-runtime</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${java.home}/bin/jlink</executable>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<arguments>
+								<argument>--add-modules</argument>
+								<argument>
+		java.base,java.net.http,java.logging,jdk.unsupported</argument>
+								<argument>--strip-debug</argument>
+								<argument>--no-header-files</argument>
+								<argument>--no-man-pages</argument>
+								<argument>--compress=2</argument>
+								<argument>--output</argument>
+								<argument>custom-runtime</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<!-- package -->
+					<execution>
+						<id>jpackage-executable</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${java.home}/bin/jpackage</executable>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<arguments>
+								<argument>--type</argument>
+								<argument>app-image</argument>
+								<argument>--runtime-image</argument>
+								<argument>custom-runtime</argument>
+
+								<argument>--dest</argument>
+								<argument>dist</argument>
+								<argument>--vendor</argument>
+								<argument>Crypto Michael</argument>
+								<argument>--name</argument>
+								<argument>${project.build.finalName}</argument>
+
+								<argument>--input</argument>
+								<argument>modules</argument>
+								<argument>--main-jar</argument>
+								<argument>${project.build.finalName}.jar</argument>
+								<argument>--main-class</argument>
+								<argument>org.puppylab.mypassword.cli.Main</argument>
+								<argument>--win-console</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	 </build>
+</project>
