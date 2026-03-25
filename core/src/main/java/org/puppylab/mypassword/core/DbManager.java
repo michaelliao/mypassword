@@ -194,12 +194,17 @@ public class DbManager implements AutoCloseable {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+        sb.append(" WHERE id = ?");
         String sql = sb.toString();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             for (int i = 0; i < values.length; i++) {
                 ps.setObject(i + 1, values[i]);
             }
+            // set last id arg:
+            ps.setObject(values.length, mapping.idField.get(obj));
             ps.executeUpdate();
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
