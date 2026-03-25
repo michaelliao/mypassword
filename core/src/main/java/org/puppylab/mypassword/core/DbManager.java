@@ -194,6 +194,7 @@ public class DbManager implements AutoCloseable {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+        sb.deleteCharAt(sb.length() - 1); // remove trailing comma
         sb.append(" WHERE id = ?");
         String sql = sb.toString();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -201,7 +202,7 @@ public class DbManager implements AutoCloseable {
                 ps.setObject(i + 1, values[i]);
             }
             // set last id arg:
-            ps.setObject(values.length, mapping.idField.get(obj));
+            ps.setObject(values.length + 1, mapping.idField.get(obj));
             ps.executeUpdate();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
@@ -253,7 +254,7 @@ public class DbManager implements AutoCloseable {
             for (int i = 0; i < args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-            ps.executeUpdate(sql);
+            ps.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
