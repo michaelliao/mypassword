@@ -62,7 +62,7 @@ public class RequestController {
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        List<Item> items = vaultManager.getLoginItems();
+        List<Item> items = vaultManager.getItems(ItemType.LOGIN);
         var response = new LoginItemsDataResponse();
         response.data = items.stream().map(li -> {
             LoginItemData lid = new LoginItemData();
@@ -119,7 +119,10 @@ public class RequestController {
         } catch (Exception e) {
             return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
         }
-        Item item = this.vaultManager.getLoginItem(id);
+        Item item = this.vaultManager.getItem(id, ItemType.LOGIN);
+        if (item == null) {
+            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
+        }
         var lid = new LoginItemData();
         byte[] data = decryptItemData(key, item);
         JsonUtils.fillJson(data, lid);
@@ -142,9 +145,12 @@ public class RequestController {
         } catch (Exception e) {
             return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
         }
+        Item item = this.vaultManager.getItem(id, ItemType.LOGIN);
+        if (item == null) {
+            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
+        }
         LoginFieldsData lfd = new LoginFieldsData();
         copy(request, lfd);
-        Item item = this.vaultManager.getLoginItem(id);
         encrypt(key, item, lfd);
         item.updated_at = System.currentTimeMillis();
         this.vaultManager.updateItem(item);

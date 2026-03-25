@@ -35,12 +35,12 @@ public class VaultManager {
     }
 
     // nullable:
-    public Item getLoginItem(long id) {
-        return this.dbManager.queryFirst(Item.class, "where id = ? and item_type = ?", id, ItemType.LOGIN.value);
+    public Item getItem(long id, ItemType type) {
+        return this.dbManager.queryFirst(Item.class, "where id = ? and item_type = ?", id, type.value);
     }
 
-    public List<Item> getLoginItems() {
-        return this.dbManager.queryForList(Item.class, "where item_type = ?", ItemType.LOGIN.value);
+    public List<Item> getItems(ItemType type) {
+        return this.dbManager.queryForList(Item.class, "where item_type = ?", type.value);
     }
 
     public void createItem(Item item) {
