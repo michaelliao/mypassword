@@ -12,9 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.puppylab.mypassword.core.entity.LoginItem;
+import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultVersion;
+import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.rpc.util.Base64Utils;
 
 public class DbManagerTest {
@@ -61,21 +62,22 @@ public class DbManagerTest {
     }
 
     @Test
-    void testInsertLoginItem() {
-        List<LoginItem> items = dbManager.queryForList(LoginItem.class, "");
+    void testInsertItems() {
+        List<Item> items = dbManager.queryForList(Item.class, "");
         assertTrue(items.isEmpty());
 
         for (int i = 1; i <= 10; i++) {
-            LoginItem li = new LoginItem();
-            li.id = IdUtils.nextId();
-            li.deleted = false;
-            li.b64_encrypted_data = "data-" + i;
-            li.b64_encrypted_data_iv = "iv-" + i;
-            li.updated_at = 1_000_000 + i;
-            dbManager.insert(li);
+            Item item = new Item();
+            item.item_type = ItemType.LOGIN.value;
+            item.id = IdUtils.nextId();
+            item.deleted = false;
+            item.b64_encrypted_data = "data-" + i;
+            item.b64_encrypted_data_iv = "iv-" + i;
+            item.updated_at = 1_000_000 + i;
+            dbManager.insert(item);
         }
 
-        items = dbManager.queryForList(LoginItem.class, "");
+        items = dbManager.queryForList(Item.class, "");
         assertEquals(10, items.size());
     }
 }

@@ -1,6 +1,6 @@
 package org.puppylab.mypassword.rpc.data;
 
-public abstract class AbstractLoginItem {
+public abstract class AbstractItem {
 
     public String b64_encrypted_data;
     public String b64_encrypted_data_iv;

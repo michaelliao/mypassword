@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.model;
 
+import org.puppylab.mypassword.rpc.data.ItemType;
+
 /**
  * Display-only projection of any vault item, used by ItemListView.
  * The controller builds this from the typed data objects (LoginItemData, etc.).

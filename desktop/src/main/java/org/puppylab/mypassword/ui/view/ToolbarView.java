@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
-import org.puppylab.mypassword.ui.model.ItemType;
+import org.puppylab.mypassword.rpc.data.ItemType;
 
 public class ToolbarView {
 

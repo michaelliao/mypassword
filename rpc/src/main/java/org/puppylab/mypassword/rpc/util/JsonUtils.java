@@ -37,4 +37,12 @@ public class JsonUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public static <T> void fillJson(byte[] data, T bean) {
+        try {
+            objectMapper.readerForUpdating(bean).readValue(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

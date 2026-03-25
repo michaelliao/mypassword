@@ -1,10 +1,10 @@
 package org.puppylab.mypassword.core.entity;
 
-import org.puppylab.mypassword.rpc.data.AbstractLoginItem;
+import org.puppylab.mypassword.rpc.data.AbstractItem;
 
 import jakarta.persistence.Id;
 
-public class LoginItemHistory extends AbstractLoginItem {
+public class ItemHistory extends AbstractItem {
 
     @Id
     public long hid;

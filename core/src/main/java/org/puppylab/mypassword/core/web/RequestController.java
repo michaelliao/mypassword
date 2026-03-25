@@ -12,10 +12,11 @@ import org.puppylab.mypassword.core.ErrorUtils;
 import org.puppylab.mypassword.core.IdUtils;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
-import org.puppylab.mypassword.core.entity.LoginItem;
+import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.rpc.data.LoginFieldsData;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
 import org.puppylab.mypassword.rpc.request.EmptyRequest;
@@ -61,11 +62,12 @@ public class RequestController {
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        List<LoginItem> items = vaultManager.getLoginItems();
+        List<Item> items = vaultManager.getLoginItems();
         var response = new LoginItemsDataResponse();
         response.data = items.stream().map(li -> {
             LoginItemData lid = new LoginItemData();
-            decrypt(key, li, lid);
+            byte[] data = decryptItemData(key, li);
+            JsonUtils.fillJson(data, lid);
             lid.id = li.id;
             lid.updated_at = li.updated_at;
             return lid;
@@ -87,18 +89,19 @@ public class RequestController {
         // copy to lfd for json serialization:
         LoginFieldsData lfd = new LoginFieldsData();
         copy(request, lfd);
-        LoginItem li = new LoginItem();
-        encrypt(key, li, lfd);
+        Item item = new Item();
+        encrypt(key, item, lfd);
         // prepare to insert into db:
-        li.id = IdUtils.nextId();
-        li.deleted = false;
-        li.updated_at = System.currentTimeMillis();
-        this.vaultManager.createLoginItem(li);
+        item.item_type = ItemType.LOGIN.value;
+        item.id = IdUtils.nextId();
+        item.deleted = false;
+        item.updated_at = System.currentTimeMillis();
+        this.vaultManager.createItem(item);
         // build response:
         LoginItemData lid = new LoginItemData();
         copy(lfd, lid);
-        lid.id = li.id;
-        lid.updated_at = li.updated_at;
+        lid.id = item.id;
+        lid.updated_at = item.updated_at;
         LoginItemDataResponse resp = new LoginItemDataResponse();
         resp.data = lid;
         return resp;
@@ -116,12 +119,12 @@ public class RequestController {
         } catch (Exception e) {
             return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
         }
-        LoginItem li = this.vaultManager.getLoginItem(id);
+        Item item = this.vaultManager.getLoginItem(id);
         var lid = new LoginItemData();
-        decrypt(key, li, lid);
-        // build response:
-        lid.id = li.id;
-        lid.updated_at = li.updated_at;
+        byte[] data = decryptItemData(key, item);
+        JsonUtils.fillJson(data, lid);
+        lid.id = item.id;
+        lid.updated_at = item.updated_at;
         var resp = new LoginItemDataResponse();
         resp.data = lid;
         return resp;
@@ -141,15 +144,15 @@ public class RequestController {
         }
         LoginFieldsData lfd = new LoginFieldsData();
         copy(request, lfd);
-        LoginItem li = this.vaultManager.getLoginItem(id);
-        encrypt(key, li, lfd);
-        li.updated_at = System.currentTimeMillis();
-        this.vaultManager.updateLoginItem(li);
+        Item item = this.vaultManager.getLoginItem(id);
+        encrypt(key, item, lfd);
+        item.updated_at = System.currentTimeMillis();
+        this.vaultManager.updateItem(item);
         // build response:
         LoginItemData lid = new LoginItemData();
         copy(lfd, lid);
-        lid.id = li.id;
-        lid.updated_at = li.updated_at;
+        lid.id = item.id;
+        lid.updated_at = item.updated_at;
         var resp = new LoginItemDataResponse();
         resp.data = lid;
         return resp;
@@ -241,21 +244,18 @@ public class RequestController {
         return str.strip();
     }
 
-    void encrypt(SecretKey key, LoginItem li, LoginFieldsData lfd) {
-        String jsonData = JsonUtils.toJson(lfd);
+    void encrypt(SecretKey key, Item item, Object fields) {
+        String jsonData = JsonUtils.toJson(fields);
         byte[] data = jsonData.getBytes(StandardCharsets.UTF_8);
         byte[] iv = EncryptUtils.generateIV();
         byte[] encrypted = EncryptUtils.encrypt(data, key, iv);
-        li.b64_encrypted_data = Base64Utils.b64(encrypted);
-        li.b64_encrypted_data_iv = Base64Utils.b64(iv);
+        item.b64_encrypted_data = Base64Utils.b64(encrypted);
+        item.b64_encrypted_data_iv = Base64Utils.b64(iv);
     }
 
-    // decrypt LoginItem to dest:
-    void decrypt(SecretKey key, LoginItem src, LoginFieldsData dest) {
-        byte[] encrypted = Base64Utils.b64(src.b64_encrypted_data);
-        byte[] iv = Base64Utils.b64(src.b64_encrypted_data_iv);
-        byte[] data = EncryptUtils.decrypt(encrypted, key, iv);
-        LoginFieldsData lfd = JsonUtils.fromJson(data, LoginFieldsData.class);
-        copy(lfd, dest);
+    byte[] decryptItemData(SecretKey key, Item item) {
+        byte[] encrypted = Base64Utils.b64(item.b64_encrypted_data);
+        byte[] iv = Base64Utils.b64(item.b64_encrypted_data_iv);
+        return EncryptUtils.decrypt(encrypted, key, iv);
     }
 }

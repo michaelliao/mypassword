@@ -5,9 +5,10 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
-import org.puppylab.mypassword.core.entity.LoginItem;
+import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.exception.EncryptException;
+import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.rpc.util.Base64Utils;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 
@@ -29,20 +30,25 @@ public class VaultManager {
     }
 
     // nullable:
-    public LoginItem getLoginItem(long id) {
-        return this.dbManager.queryFirst(LoginItem.class, "where id = ?", id);
+    public Item getItem(long id) {
+        return this.dbManager.queryFirst(Item.class, "where id = ?", id);
     }
 
-    public List<LoginItem> getLoginItems() {
-        return this.dbManager.queryForList(LoginItem.class, "");
+    // nullable:
+    public Item getLoginItem(long id) {
+        return this.dbManager.queryFirst(Item.class, "where id = ? and item_type = ?", id, ItemType.LOGIN.value);
     }
 
-    public void createLoginItem(LoginItem item) {
+    public List<Item> getLoginItems() {
+        return this.dbManager.queryForList(Item.class, "where item_type = ?", ItemType.LOGIN.value);
+    }
+
+    public void createItem(Item item) {
         this.dbManager.insert(item);
     }
 
-    public boolean deleteLoginItem(long id) {
-        LoginItem item = getLoginItem(id);
+    public boolean deleteItem(long id) {
+        Item item = getItem(id);
         if (item == null || item.deleted) {
             return false;
         }
@@ -52,12 +58,12 @@ public class VaultManager {
         return true;
     }
 
-    public void updateLoginItem(LoginItem item) {
+    public void updateItem(Item item) {
         this.dbManager.tx(() -> {
             this.dbManager.execute(
-                    "INSERT INTO LoginItemHistory (hid, rid, b64_encrypted_data, b64_encrypted_data_iv, updated_at) SELECT ("
+                    "INSERT INTO ItemHistory (hid, rid, b64_encrypted_data, b64_encrypted_data_iv, updated_at) SELECT ("
                             + IdUtils.nextId()
-                            + ", id, b64_encrypted_data, b64_encrypted_data_iv, updated_at FROM LoginItem where id = "
+                            + ", id, b64_encrypted_data, b64_encrypted_data_iv, updated_at FROM Item where id = "
                             + item.id);
             this.dbManager.update(item, "b64_encrypted_data", "b64_encrypted_data_iv", "updated_at");
         });

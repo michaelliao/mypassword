@@ -16,8 +16,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.ui.model.Category;
-import org.puppylab.mypassword.ui.model.ItemType;
 import org.puppylab.mypassword.ui.model.VaultItem;
 
 public class ItemListView {

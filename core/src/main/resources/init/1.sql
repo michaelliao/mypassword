@@ -30,20 +30,21 @@ CREATE TABLE RecoveryConfig (
     b64_encrypted_dek_iv TEXT NOT NULL        -- iv used above
 );
 
-CREATE TABLE LoginItem (
+CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id
-    deleted INTEGER NOT NULL,             -- in trash? 
+    deleted INTEGER NOT NULL,             -- in trash?
+    item_type INTEGER NOT NULL,           -- item type
     b64_encrypted_data TEXT NOT NULL,     -- encrypted json
     b64_encrypted_data_iv TEXT NOT NULL,  -- iv used above
     updated_at INTEGER                    -- updated at timestamp
 );
 
-CREATE TABLE LoginItemHistory (
+CREATE TABLE ItemHistory (
     hid INTEGER PRIMARY KEY,  -- history id
-    rid INTEGER,              -- ref id to LoginItem
+    rid INTEGER,              -- ref id to Item
     b64_encrypted_data TEXT NOT NULL,
     b64_encrypted_data_iv TEXT NOT NULL,
     updated_at INTEGER
 );
 
-CREATE INDEX idx_login_item_history ON LoginItemHistory (rid);
+CREATE INDEX idx_item_history ON ItemHistory (rid);
