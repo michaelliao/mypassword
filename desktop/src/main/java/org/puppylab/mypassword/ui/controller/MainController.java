@@ -1,6 +1,5 @@
 package org.puppylab.mypassword.ui.controller;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,10 +14,14 @@ import org.puppylab.mypassword.ui.model.AppState.Mode;
 import org.puppylab.mypassword.ui.model.Category;
 import org.puppylab.mypassword.ui.model.ItemType;
 import org.puppylab.mypassword.ui.model.VaultItem;
-import org.puppylab.mypassword.ui.view.DetailView;
-import org.puppylab.mypassword.ui.view.EditView;
 import org.puppylab.mypassword.ui.view.EmptyView;
+import org.puppylab.mypassword.ui.view.IdentityDetailView;
+import org.puppylab.mypassword.ui.view.IdentityEditView;
 import org.puppylab.mypassword.ui.view.ItemListView;
+import org.puppylab.mypassword.ui.view.LoginDetailView;
+import org.puppylab.mypassword.ui.view.LoginEditView;
+import org.puppylab.mypassword.ui.view.NoteDetailView;
+import org.puppylab.mypassword.ui.view.NoteEditView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
 
@@ -35,13 +38,21 @@ public class MainController {
     private final Composite   mainContent;
 
     // ── content layer ─────────────────────────────────────────────────
-    private final ToolbarView  toolbar;
-    private final ItemListView listView;
-    private final EmptyView    emptyView;
-    private final DetailView   detailView;
-    private final EditView     editView;
-    private final Composite    rightContainer;
-    private final StackLayout  rightStack;
+    private final ToolbarView        toolbar;
+    private final ItemListView       listView;
+    private final EmptyView          emptyView;
+    private final LoginDetailView    loginDetailView;
+    private final NoteDetailView     noteDetailView;
+    private final IdentityDetailView identityDetailView;
+    private final LoginEditView      loginEditView;
+    private final NoteEditView       noteEditView;
+    private final IdentityEditView   identityEditView;
+    private final Composite          rightContainer;
+    private final StackLayout        rightStack;
+
+    // active composites – set before switchMode(DETAIL/EDIT)
+    private Composite activeDetailComposite;
+    private Composite activeEditComposite;
 
     // ── per-type in-memory stores (keyed by id) ───────────────────────
     private final Map<Long, LoginItemData>    loginStore    = new LinkedHashMap<>();
@@ -49,37 +60,43 @@ public class MainController {
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
     public MainController(
-            UnlockView  unlockView,
-            Composite   topContainer,
-            StackLayout topStack,
-            Composite   mainContent,
-            ToolbarView  toolbar,
-            ItemListView listView,
-            EmptyView    emptyView,
-            DetailView   detailView,
-            EditView     editView,
-            Composite    rightContainer,
-            StackLayout  rightStack) {
-        this.unlockView     = unlockView;
-        this.topContainer   = topContainer;
-        this.topStack       = topStack;
-        this.mainContent    = mainContent;
-        this.toolbar        = toolbar;
-        this.listView       = listView;
-        this.emptyView      = emptyView;
-        this.detailView     = detailView;
-        this.editView       = editView;
-        this.rightContainer = rightContainer;
-        this.rightStack     = rightStack;
+            UnlockView       unlockView,
+            Composite        topContainer,
+            StackLayout      topStack,
+            Composite        mainContent,
+            ToolbarView      toolbar,
+            ItemListView     listView,
+            EmptyView        emptyView,
+            LoginDetailView  loginDetailView,
+            NoteDetailView   noteDetailView,
+            IdentityDetailView identityDetailView,
+            LoginEditView    loginEditView,
+            NoteEditView     noteEditView,
+            IdentityEditView identityEditView,
+            Composite        rightContainer,
+            StackLayout      rightStack) {
+        this.unlockView         = unlockView;
+        this.topContainer       = topContainer;
+        this.topStack           = topStack;
+        this.mainContent        = mainContent;
+        this.toolbar            = toolbar;
+        this.listView           = listView;
+        this.emptyView          = emptyView;
+        this.loginDetailView    = loginDetailView;
+        this.noteDetailView     = noteDetailView;
+        this.identityDetailView = identityDetailView;
+        this.loginEditView      = loginEditView;
+        this.noteEditView       = noteEditView;
+        this.identityEditView   = identityEditView;
+        this.rightContainer     = rightContainer;
+        this.rightStack         = rightStack;
     }
 
     public void init() {
-        // wire unlock view first; vault content is loaded only after unlock
         unlockView.setOnSubmit(this::onUnlockSubmit);
         topStack.topControl = unlockView.composite;
         topContainer.layout();
 
-        // wire content-layer listeners (safe to do before unlock)
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
         toolbar.setOnLock(this::onLock);
@@ -87,10 +104,18 @@ public class MainController {
         listView.setOnSelectionChanged(this::onSelectionChanged);
         listView.setOnCategoryChanged(this::onCategoryChanged);
 
-        detailView.setOnEdit(this::onEditCurrent);
+        loginDetailView.setOnEdit(this::onEditCurrent);
+        noteDetailView.setOnEdit(this::onEditCurrent);
+        identityDetailView.setOnEdit(this::onEditCurrent);
 
-        editView.setOnSave(this::onSave);
-        editView.setOnCancel(this::onCancel);
+        loginEditView.setOnSave(this::onSaveLogin);
+        loginEditView.setOnCancel(this::onCancel);
+
+        noteEditView.setOnSave(this::onSaveNote);
+        noteEditView.setOnCancel(this::onCancel);
+
+        identityEditView.setOnSave(this::onSaveIdentity);
+        identityEditView.setOnCancel(this::onCancel);
     }
 
     // ── unlock ────────────────────────────────────────────────────────
@@ -105,7 +130,6 @@ public class MainController {
         topStack.topControl = mainContent;
         topContainer.layout();
 
-        // load vault content now that the vault is "open"
         loadItems();
         switchMode(Mode.EMPTY);
     }
@@ -115,7 +139,11 @@ public class MainController {
     private void onAddNew(ItemType type) {
         listView.clearSelection();
         state.selectedItem = null;
-        editView.edit(null);
+        switch (type) {
+            case LOGIN    -> { loginEditView.edit(null);    activeEditComposite = loginEditView.composite; }
+            case NOTE     -> { noteEditView.edit(null);     activeEditComposite = noteEditView.composite; }
+            case IDENTITY -> { identityEditView.edit(null); activeEditComposite = identityEditView.composite; }
+        }
         switchMode(Mode.EDIT);
     }
 
@@ -152,37 +180,77 @@ public class MainController {
             return;
         }
         switch (item.type()) {
-            case LOGIN -> { LoginItemData d = loginStore.get(item.id()); if (d != null) detailView.show(d); }
-            case NOTE, IDENTITY -> { /* TODO: detail views for note / identity */ }
+            case LOGIN -> {
+                LoginItemData d = loginStore.get(item.id());
+                if (d != null) loginDetailView.show(d);
+                activeDetailComposite = loginDetailView.composite;
+            }
+            case NOTE -> {
+                NoteItemData d = noteStore.get(item.id());
+                if (d != null) noteDetailView.show(d);
+                activeDetailComposite = noteDetailView.composite;
+            }
+            case IDENTITY -> {
+                IdentityItemData d = identityStore.get(item.id());
+                if (d != null) identityDetailView.show(d);
+                activeDetailComposite = identityDetailView.composite;
+            }
         }
         switchMode(Mode.DETAIL);
     }
 
     private void onEditCurrent() {
         if (state.selectedItem == null) return;
-        if (state.selectedItem.type() == ItemType.LOGIN) {
-            editView.edit(loginStore.get(state.selectedItem.id()));
+        switch (state.selectedItem.type()) {
+            case LOGIN -> {
+                loginEditView.edit(loginStore.get(state.selectedItem.id()));
+                activeEditComposite = loginEditView.composite;
+            }
+            case NOTE -> {
+                noteEditView.edit(noteStore.get(state.selectedItem.id()));
+                activeEditComposite = noteEditView.composite;
+            }
+            case IDENTITY -> {
+                identityEditView.edit(identityStore.get(state.selectedItem.id()));
+                activeEditComposite = identityEditView.composite;
+            }
         }
         switchMode(Mode.EDIT);
     }
 
-    private void onSave(LoginItemData data) {
+    private void onSaveLogin(LoginItemData data) {
         boolean isNew = data.id == 0;
-        if (isNew) {
-            data.id = System.currentTimeMillis(); // TODO: replace with daemon-assigned id
-        }
-        // TODO: call daemon API to create / update
+        if (isNew) data.id = System.currentTimeMillis();
         loginStore.put(data.id, data);
+        VaultItem vaultItem = new VaultItem(data.id, ItemType.LOGIN,
+                data.title, notNull(data.username), false, false);
+        commitItem(vaultItem, isNew);
+        loginDetailView.show(data);
+        activeDetailComposite = loginDetailView.composite;
+        switchMode(Mode.DETAIL);
+    }
 
-        VaultItem vaultItem = toVaultItem(data);
-        if (isNew) {
-            state.allItems.add(vaultItem);
-        } else {
-            state.allItems.replaceAll(i -> i.id() == data.id ? vaultItem : i);
-        }
-        state.selectedItem = vaultItem;
-        listView.setAllItems(state.allItems);
-        detailView.show(data);
+    private void onSaveNote(NoteItemData data) {
+        boolean isNew = data.id == 0;
+        if (isNew) data.id = System.currentTimeMillis();
+        noteStore.put(data.id, data);
+        VaultItem vaultItem = new VaultItem(data.id, ItemType.NOTE,
+                data.title, "", false, false);
+        commitItem(vaultItem, isNew);
+        noteDetailView.show(data);
+        activeDetailComposite = noteDetailView.composite;
+        switchMode(Mode.DETAIL);
+    }
+
+    private void onSaveIdentity(IdentityItemData data) {
+        boolean isNew = data.id == 0;
+        if (isNew) data.id = System.currentTimeMillis();
+        identityStore.put(data.id, data);
+        VaultItem vaultItem = new VaultItem(data.id, ItemType.IDENTITY,
+                data.title, notNull(data.name), false, false);
+        commitItem(vaultItem, isNew);
+        identityDetailView.show(data);
+        activeDetailComposite = identityDetailView.composite;
         switchMode(Mode.DETAIL);
     }
 
@@ -191,6 +259,16 @@ public class MainController {
     }
 
     // ── helpers ───────────────────────────────────────────────────────
+
+    private void commitItem(VaultItem vaultItem, boolean isNew) {
+        if (isNew) {
+            state.allItems.add(vaultItem);
+        } else {
+            state.allItems.replaceAll(i -> i.id() == vaultItem.id() ? vaultItem : i);
+        }
+        state.selectedItem = vaultItem;
+        listView.setAllItems(state.allItems);
+    }
 
     private void loadItems() {
         // TODO: replace with daemon API calls
@@ -257,17 +335,12 @@ public class MainController {
         state.allItems.add(new VaultItem(id, ItemType.IDENTITY, title, name, fav, del));
     }
 
-    private VaultItem toVaultItem(LoginItemData d) {
-        return new VaultItem(d.id, ItemType.LOGIN, d.title,
-                d.username != null ? d.username : "", false, false);
-    }
-
     private void switchMode(Mode mode) {
         state.mode = mode;
         rightStack.topControl = switch (mode) {
             case EMPTY  -> emptyView.composite;
-            case DETAIL -> detailView.composite;
-            case EDIT   -> editView.composite;
+            case DETAIL -> activeDetailComposite;
+            case EDIT   -> activeEditComposite;
         };
         rightContainer.layout();
     }
@@ -275,4 +348,6 @@ public class MainController {
     private boolean contains(String text, String query) {
         return text != null && text.toLowerCase().contains(query);
     }
+
+    private String notNull(String s) { return s != null ? s : ""; }
 }

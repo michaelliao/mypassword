@@ -8,10 +8,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.ui.controller.MainController;
-import org.puppylab.mypassword.ui.view.DetailView;
-import org.puppylab.mypassword.ui.view.EditView;
 import org.puppylab.mypassword.ui.view.EmptyView;
+import org.puppylab.mypassword.ui.view.IdentityDetailView;
+import org.puppylab.mypassword.ui.view.IdentityEditView;
 import org.puppylab.mypassword.ui.view.ItemListView;
+import org.puppylab.mypassword.ui.view.LoginDetailView;
+import org.puppylab.mypassword.ui.view.LoginEditView;
+import org.puppylab.mypassword.ui.view.NoteDetailView;
+import org.puppylab.mypassword.ui.view.NoteEditView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
 
@@ -49,13 +53,19 @@ public class MainWindow {
         StackLayout rightStack = new StackLayout();
         rightContainer.setLayout(rightStack);
 
-        EmptyView  emptyView  = new EmptyView(rightContainer);
-        DetailView detailView = new DetailView(rightContainer);
-        EditView   editView   = new EditView(rightContainer);
+        EmptyView          emptyView          = new EmptyView(rightContainer);
+        LoginDetailView    loginDetailView    = new LoginDetailView(rightContainer);
+        NoteDetailView     noteDetailView     = new NoteDetailView(rightContainer);
+        IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
+        LoginEditView      loginEditView      = new LoginEditView(rightContainer);
+        NoteEditView       noteEditView       = new NoteEditView(rightContainer);
+        IdentityEditView   identityEditView   = new IdentityEditView(rightContainer);
 
         MainController controller = new MainController(
                 unlockView, topContainer, topStack, mainContent,
-                toolbar, listView, emptyView, detailView, editView,
+                toolbar, listView, emptyView,
+                loginDetailView, noteDetailView, identityDetailView,
+                loginEditView, noteEditView, identityEditView,
                 rightContainer, rightStack);
         controller.init();
 

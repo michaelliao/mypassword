@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
 
-public class EditView {
+public class LoginEditView {
 
     public final Composite composite;
 
@@ -27,9 +27,9 @@ public class EditView {
     private Consumer<LoginItemData> onSave;
     private Runnable                onCancel;
 
-    private long editingId = 0; // 0 = new item
+    private long editingId = 0;
 
-    public EditView(Composite parent) {
+    public LoginEditView(Composite parent) {
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
@@ -49,7 +49,7 @@ public class EditView {
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-        titleField    = createField(composite, "Title:", SWT.BORDER);
+        titleField    = createField(composite, "Title:",    SWT.BORDER);
         usernameField = createField(composite, "Username:", SWT.BORDER);
         passwordField = createField(composite, "Password:", SWT.BORDER | SWT.PASSWORD);
         websitesField = createField(composite, "Websites:", SWT.BORDER);
@@ -75,13 +75,8 @@ public class EditView {
         }
     }
 
-    public void setOnSave(Consumer<LoginItemData> listener) {
-        this.onSave = listener;
-    }
-
-    public void setOnCancel(Runnable listener) {
-        this.onCancel = listener;
-    }
+    public void setOnSave(Consumer<LoginItemData> listener)   { this.onSave   = listener; }
+    public void setOnCancel(Runnable listener)                 { this.onCancel = listener; }
 
     private LoginItemData collectData() {
         LoginItemData data = new LoginItemData();
@@ -130,7 +125,5 @@ public class EditView {
         return t;
     }
 
-    private String notNull(String s) {
-        return s != null ? s : "";
-    }
+    private String notNull(String s) { return s != null ? s : ""; }
 }

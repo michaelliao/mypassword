@@ -7,21 +7,19 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.puppylab.mypassword.rpc.data.LoginItemData;
+import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.rpc.data.NoteItemData;
 
-public class DetailView {
+public class NoteDetailView {
 
     public final Composite composite;
 
     private final Label titleValue;
-    private final Label usernameValue;
-    private final Label passwordValue;
-    private final Label websitesValue;
-    private final Label memoValue;
+    private final Text  contentValue;
 
     private Runnable onEdit;
 
-    public DetailView(Composite parent) {
+    public NoteDetailView(Composite parent) {
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
@@ -34,27 +32,32 @@ public class DetailView {
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-        titleValue    = createField(composite, "Title:");
-        usernameValue = createField(composite, "Username:");
-        passwordValue = createField(composite, "Password:");
-        websitesValue = createField(composite, "Websites:");
-        memoValue     = createField(composite, "Memo:");
+        titleValue = createLabelField(composite, "Title:");
+
+        // content label row
+        Composite contentRow = new Composite(composite, SWT.NONE);
+        contentRow.setLayout(new GridLayout(2, false));
+        contentRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        Label lbl = new Label(contentRow, SWT.NONE);
+        lbl.setText("Content:");
+        GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        contentValue = new Text(contentRow, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
+        contentValue.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     }
 
-    public void show(LoginItemData item) {
+    public void show(NoteItemData item) {
         titleValue.setText(notNull(item.title));
-        usernameValue.setText(notNull(item.username));
-        passwordValue.setText(item.password != null && !item.password.isEmpty() ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : "");
-        websitesValue.setText(item.websites != null ? String.join(", ", item.websites) : "");
-        memoValue.setText(notNull(item.memo));
+        contentValue.setText(notNull(item.content));
         composite.layout(true, true);
     }
 
-    public void setOnEdit(Runnable listener) {
-        this.onEdit = listener;
-    }
+    public void setOnEdit(Runnable listener) { this.onEdit = listener; }
 
-    private Label createField(Composite parent, String labelText) {
+    private Label createLabelField(Composite parent, String labelText) {
         Composite row = new Composite(parent, SWT.NONE);
         row.setLayout(new GridLayout(2, false));
         row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -70,7 +73,5 @@ public class DetailView {
         return value;
     }
 
-    private String notNull(String s) {
-        return s != null ? s : "";
-    }
+    private String notNull(String s) { return s != null ? s : ""; }
 }
