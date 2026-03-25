@@ -7,9 +7,9 @@ import java.util.Map;
 
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.puppylab.mypassword.rpc.data.IdentityItemData;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
-import org.puppylab.mypassword.rpc.data.IdentityItemData;
 import org.puppylab.mypassword.ui.model.AppState;
 import org.puppylab.mypassword.ui.model.AppState.Mode;
 import org.puppylab.mypassword.ui.model.Category;
@@ -20,11 +20,21 @@ import org.puppylab.mypassword.ui.view.EditView;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.ItemListView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
+import org.puppylab.mypassword.ui.view.UnlockView;
 
 public class MainController {
 
-    private final AppState     state = new AppState();
+    private static final String DUMMY_PASSWORD = "password";
 
+    private final AppState state = new AppState();
+
+    // ── unlock layer ──────────────────────────────────────────────────
+    private final UnlockView  unlockView;
+    private final Composite   topContainer;
+    private final StackLayout topStack;
+    private final Composite   mainContent;
+
+    // ── content layer ─────────────────────────────────────────────────
     private final ToolbarView  toolbar;
     private final ItemListView listView;
     private final EmptyView    emptyView;
@@ -33,14 +43,27 @@ public class MainController {
     private final Composite    rightContainer;
     private final StackLayout  rightStack;
 
-    // per-type in-memory stores (keyed by id)
+    // ── per-type in-memory stores (keyed by id) ───────────────────────
     private final Map<Long, LoginItemData>    loginStore    = new LinkedHashMap<>();
     private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
-    public MainController(ToolbarView toolbar, ItemListView listView,
-            EmptyView emptyView, DetailView detailView, EditView editView,
-            Composite rightContainer, StackLayout rightStack) {
+    public MainController(
+            UnlockView  unlockView,
+            Composite   topContainer,
+            StackLayout topStack,
+            Composite   mainContent,
+            ToolbarView  toolbar,
+            ItemListView listView,
+            EmptyView    emptyView,
+            DetailView   detailView,
+            EditView     editView,
+            Composite    rightContainer,
+            StackLayout  rightStack) {
+        this.unlockView     = unlockView;
+        this.topContainer   = topContainer;
+        this.topStack       = topStack;
+        this.mainContent    = mainContent;
         this.toolbar        = toolbar;
         this.listView       = listView;
         this.emptyView      = emptyView;
@@ -51,6 +74,12 @@ public class MainController {
     }
 
     public void init() {
+        // wire unlock view first; vault content is loaded only after unlock
+        unlockView.setOnSubmit(this::onUnlockSubmit);
+        topStack.topControl = unlockView.composite;
+        topContainer.layout();
+
+        // wire content-layer listeners (safe to do before unlock)
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
 
@@ -61,12 +90,26 @@ public class MainController {
 
         editView.setOnSave(this::onSave);
         editView.setOnCancel(this::onCancel);
+    }
 
+    // ── unlock ────────────────────────────────────────────────────────
+
+    private void onUnlockSubmit(String password) {
+        if (!DUMMY_PASSWORD.equals(password)) {
+            unlockView.showError("Incorrect password. Please try again.");
+            return;
+        }
+        state.unlocked = true;
+        unlockView.clearError();
+        topStack.topControl = mainContent;
+        topContainer.layout();
+
+        // load vault content now that the vault is "open"
         loadItems();
         switchMode(Mode.EMPTY);
     }
 
-    // ── event handlers ────────────────────────────────────────────────
+    // ── content-layer event handlers ──────────────────────────────────
 
     private void onAddNew() {
         listView.clearSelection();
@@ -97,8 +140,8 @@ public class MainController {
             return;
         }
         switch (item.type()) {
-            case LOGIN    -> { LoginItemData d = loginStore.get(item.id()); if (d != null) detailView.show(d); }
-            case NOTE, IDENTITY -> { /* detail views for these types: TODO */ }
+            case LOGIN -> { LoginItemData d = loginStore.get(item.id()); if (d != null) detailView.show(d); }
+            case NOTE, IDENTITY -> { /* TODO: detail views for note / identity */ }
         }
         switchMode(Mode.DETAIL);
     }
@@ -139,7 +182,6 @@ public class MainController {
 
     private void loadItems() {
         // TODO: replace with daemon API calls
-        // 20 logins — every 5th is a favorite, every 5th (offset 2) is deleted
         addLogin(1,  "Google",          "michael@gmail.com",      true,  false);
         addLogin(2,  "GitHub",          "michael-liao",           false, false);
         addLogin(3,  "Amazon",          "michael@gmail.com",      false, false);
@@ -161,48 +203,46 @@ public class MainController {
         addLogin(19, "Digital Ocean",   "michael@gmail.com",      false, false);
         addLogin(20, "Old Forum",       "michael1990",            false, true);
 
-        // 10 notes — every 5th is a favorite, every 5th (offset 2) is deleted
-        addNote(21, "Wi-Fi Password",         "Router: TP-Link AX3000...",      true,  false);
-        addNote(22, "Server SSH Keys",        "prod-01: ssh michael@...",        false, false);
-        addNote(23, "Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-...",       false, true);
-        addNote(24, "API Keys",               "Stripe live key: sk_live_...",    false, false);
-        addNote(25, "Software Licenses",      "JetBrains: ABCD-EFGH-...",        false, false);
-        addNote(26, "Home Alarm Code",        "Front door: 4 digits...",         true,  false);
-        addNote(27, "Bank Account Details",   "IBAN: GB29 NWBK...",              false, false);
-        addNote(28, "Travel SIM PINs",        "UK SIM PIN: 1234...",             false, true);
-        addNote(29, "Emergency Contacts",     "Police: 110, Fire: 119...",       false, false);
-        addNote(30, "Old Passwords Archive",  "pre-2020 list...",                false, false);
+        addNote(21, "Wi-Fi Password",         "Router: TP-Link AX3000...",     true,  false);
+        addNote(22, "Server SSH Keys",        "prod-01: ssh michael@...",       false, false);
+        addNote(23, "Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-...",      false, true);
+        addNote(24, "API Keys",               "Stripe live key: sk_live_...",   false, false);
+        addNote(25, "Software Licenses",      "JetBrains: ABCD-EFGH-...",       false, false);
+        addNote(26, "Home Alarm Code",        "Front door: 4 digits...",        true,  false);
+        addNote(27, "Bank Account Details",   "IBAN: GB29 NWBK...",             false, false);
+        addNote(28, "Travel SIM PINs",        "UK SIM PIN: 1234...",            false, true);
+        addNote(29, "Emergency Contacts",     "Police: 110, Fire: 119...",      false, false);
+        addNote(30, "Old Passwords Archive",  "pre-2020 list...",               false, false);
 
-        // 5 identities — 1st is favorite, 3rd is deleted
-        addIdentity(31, "Personal Passport",  "Michael Liao",  "E12345678",  true,  false);
-        addIdentity(32, "Work ID",            "Michael Liao",  "",           false, false);
-        addIdentity(33, "Old Passport",       "Michael Liao",  "D98765432",  false, true);
-        addIdentity(34, "Driver License",     "Michael Liao",  "",           false, false);
-        addIdentity(35, "National ID",        "Michael Liao",  "",           false, false);
+        addIdentity(31, "Personal Passport", "Michael Liao", "E12345678", true,  false);
+        addIdentity(32, "Work ID",           "Michael Liao", "",          false, false);
+        addIdentity(33, "Old Passport",      "Michael Liao", "D98765432", false, true);
+        addIdentity(34, "Driver License",    "Michael Liao", "",          false, false);
+        addIdentity(35, "National ID",       "Michael Liao", "",          false, false);
 
         listView.setAllItems(state.allItems);
     }
 
-    private void addLogin(long id, String title, String username, boolean favorite, boolean deleted) {
+    private void addLogin(long id, String title, String username, boolean fav, boolean del) {
         LoginItemData d = new LoginItemData();
         d.id = id; d.title = title; d.username = username;
         loginStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.LOGIN, title, username, favorite, deleted));
+        state.allItems.add(new VaultItem(id, ItemType.LOGIN, title, username, fav, del));
     }
 
-    private void addNote(long id, String title, String content, boolean favorite, boolean deleted) {
+    private void addNote(long id, String title, String content, boolean fav, boolean del) {
         NoteItemData d = new NoteItemData();
         d.id = id; d.title = title; d.content = content;
         noteStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.NOTE, title, "", favorite, deleted));
+        state.allItems.add(new VaultItem(id, ItemType.NOTE, title, "", fav, del));
     }
 
-    private void addIdentity(long id, String title, String name, String passportNumber,
-            boolean favorite, boolean deleted) {
+    private void addIdentity(long id, String title, String name, String passport,
+            boolean fav, boolean del) {
         IdentityItemData d = new IdentityItemData();
-        d.id = id; d.title = title; d.name = name; d.passport_number = passportNumber;
+        d.id = id; d.title = title; d.name = name; d.passport_number = passport;
         identityStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.IDENTITY, title, name, favorite, deleted));
+        state.allItems.add(new VaultItem(id, ItemType.IDENTITY, title, name, fav, del));
     }
 
     private VaultItem toVaultItem(LoginItemData d) {

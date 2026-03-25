@@ -9,6 +9,7 @@ public class AppState {
         EMPTY, DETAIL, EDIT
     }
 
+    public boolean         unlocked     = false;
     public List<VaultItem> allItems     = new ArrayList<>();
     public VaultItem       selectedItem = null;
     public Category        category     = Category.ALL;
