@@ -242,6 +242,18 @@ public class DbManager implements AutoCloseable {
         }
     }
 
+    public void execute(String sql, Object... args) {
+        logger.info("executing SQL: {}", sql);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (int i = 0; i < args.length; i++) {
+                ps.setObject(i + 1, args[i]);
+            }
+            ps.executeUpdate(sql);
+        } catch (SQLException e) {
+            throw new DataAccessException(e);
+        }
+    }
+
     @Override
     public void close() {
         try {

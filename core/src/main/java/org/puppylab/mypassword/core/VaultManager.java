@@ -61,10 +61,10 @@ public class VaultManager {
     public void updateItem(Item item) {
         this.dbManager.tx(() -> {
             this.dbManager.execute(
-                    "INSERT INTO ItemHistory (hid, rid, b64_encrypted_data, b64_encrypted_data_iv, updated_at) SELECT ("
+                    "INSERT INTO ItemHistory (hid, rid, b64_encrypted_data, b64_encrypted_data_iv, updated_at) SELECT "
                             + IdUtils.nextId()
-                            + ", id, b64_encrypted_data, b64_encrypted_data_iv, updated_at FROM Item where id = "
-                            + item.id);
+                            + ", id, b64_encrypted_data, b64_encrypted_data_iv, updated_at FROM Item where id = ?",
+                    item.id);
             this.dbManager.update(item, "b64_encrypted_data", "b64_encrypted_data_iv", "updated_at");
         });
     }
