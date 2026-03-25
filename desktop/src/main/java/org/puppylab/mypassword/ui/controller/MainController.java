@@ -82,6 +82,7 @@ public class MainController {
         // wire content-layer listeners (safe to do before unlock)
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
+        toolbar.setOnLock(this::onLock);
 
         listView.setOnSelectionChanged(this::onSelectionChanged);
         listView.setOnCategoryChanged(this::onCategoryChanged);
@@ -111,11 +112,22 @@ public class MainController {
 
     // ── content-layer event handlers ──────────────────────────────────
 
-    private void onAddNew() {
+    private void onAddNew(ItemType type) {
         listView.clearSelection();
         state.selectedItem = null;
         editView.edit(null);
         switchMode(Mode.EDIT);
+    }
+
+    private void onLock() {
+        state.unlocked = false;
+        state.allItems.clear();
+        state.selectedItem = null;
+        loginStore.clear();
+        noteStore.clear();
+        identityStore.clear();
+        topStack.topControl = unlockView.composite;
+        topContainer.layout();
     }
 
     private void onSearch(String query) {
