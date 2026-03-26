@@ -95,7 +95,7 @@ public class MainController {
     public void init() {
         unlockView.setOnSubmit(this::onUnlockSubmit);
         topStack.topControl = unlockView.composite;
-        topContainer.layout();
+        topContainer.layout(true, true);
 
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
@@ -128,7 +128,7 @@ public class MainController {
         state.unlocked = true;
         unlockView.clearError();
         topStack.topControl = mainContent;
-        topContainer.layout();
+        topContainer.layout(true, true);
 
         loadItems();
         switchMode(Mode.EMPTY);
@@ -155,7 +155,7 @@ public class MainController {
         noteStore.clear();
         identityStore.clear();
         topStack.topControl = unlockView.composite;
-        topContainer.layout();
+        topContainer.layout(true, true);
     }
 
     private void onSearch(String query) {
@@ -342,7 +342,7 @@ public class MainController {
             case DETAIL -> activeDetailComposite;
             case EDIT   -> activeEditComposite;
         };
-        rightContainer.layout();
+        rightContainer.layout(true, true);
     }
 
     private boolean contains(String text, String query) {

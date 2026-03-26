@@ -10,7 +10,6 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
 
 public class NoteDetailView {
@@ -19,8 +18,8 @@ public class NoteDetailView {
 
     private final ScrolledComposite sc;
     private final Composite         content;
-    private final Label titleValue;
-    private final Text  contentValue;
+    private final Label             titleValue;
+    private final Label             contentValue;
 
     private Runnable onEdit;
 
@@ -33,7 +32,10 @@ public class NoteDetailView {
         actions.setLayout(new RowLayout());
         Button btnEdit = new Button(actions, SWT.PUSH);
         btnEdit.setText(" Edit ");
-        btnEdit.addListener(SWT.Selection, e -> { if (onEdit != null) onEdit.run(); });
+        btnEdit.addListener(SWT.Selection, e -> {
+            if (onEdit != null)
+                onEdit.run();
+        });
 
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -41,29 +43,20 @@ public class NoteDetailView {
         // ── scrollable field area ─────────────────────────────────────
         sc = new ScrolledComposite(composite, SWT.V_SCROLL);
         sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        sc.setLayout(new FillLayout(SWT.VERTICAL));
         sc.setExpandHorizontal(true);
         sc.setExpandVertical(true);
+        sc.setLayout(new FillLayout(SWT.VERTICAL));
 
         content = new Composite(sc, SWT.NONE);
-        content.setLayout(new GridLayout(2, false));
+        content.setLayout(new GridLayout(1, false));
 
-        titleValue = createLabelField(content, "Title:");
-
-        Label lbl = new Label(content, SWT.NONE);
-        lbl.setText("Content:");
-        lbl.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-
-        contentValue = new Text(content, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
-        GridData td = new GridData(SWT.FILL, SWT.TOP, true, false);
-        td.heightHint = 200;
-        contentValue.setLayoutData(td);
+        titleValue = createField(content, "Title:");
+        contentValue = createField(content, "Content:");
 
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
             int w = sc.getClientArea().width;
-            content.layout(true, true);
             sc.setMinSize(content.computeSize(w, SWT.DEFAULT));
         }));
     }
@@ -75,19 +68,27 @@ public class NoteDetailView {
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
 
-    public void setOnEdit(Runnable listener) { this.onEdit = listener; }
+    public void setOnEdit(Runnable listener) {
+        this.onEdit = listener;
+    }
 
-    private Label createLabelField(Composite parent, String labelText) {
-        Label lbl = new Label(parent, SWT.NONE);
+    private Label createField(Composite parent, String labelText) {
+        Composite row = new Composite(parent, SWT.NONE);
+        row.setLayout(new GridLayout(2, false));
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        Label lbl = new Label(row, SWT.NONE);
         lbl.setText(labelText);
         GridData ld = new GridData();
         ld.widthHint = 80;
         lbl.setLayoutData(ld);
 
-        Label value = new Label(parent, SWT.WRAP);
+        Label value = new Label(row, SWT.WRAP);
         value.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         return value;
     }
 
-    private String notNull(String s) { return s != null ? s : ""; }
+    private String notNull(String s) {
+        return s != null ? s : "";
+    }
 }

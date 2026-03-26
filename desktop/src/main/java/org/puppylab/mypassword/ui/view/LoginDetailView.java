@@ -51,7 +51,7 @@ public class LoginDetailView {
         sc.setLayout(new FillLayout(SWT.VERTICAL));
 
         content = new Composite(sc, SWT.NONE);
-        content.setLayout(new FillLayout(SWT.VERTICAL));
+        content.setLayout(new GridLayout(1, false));
 
         titleValue = createField(content, "Title:", 80);
         usernameValue = createField(content, "Username:", 80);

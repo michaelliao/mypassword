@@ -18,13 +18,13 @@ public class IdentityDetailView {
 
     private final ScrolledComposite sc;
     private final Composite         content;
-    private final Label titleValue;
-    private final Label nameValue;
-    private final Label passportValue;
-    private final Label identityNumberValue;
-    private final Label taxNumberValue;
-    private final Label telephonesValue;
-    private final Label mobilesValue;
+    private final Label             titleValue;
+    private final Label             nameValue;
+    private final Label             passportValue;
+    private final Label             identityNumberValue;
+    private final Label             taxNumberValue;
+    private final Label             telephonesValue;
+    private final Label             mobilesValue;
 
     private Runnable onEdit;
 
@@ -37,7 +37,10 @@ public class IdentityDetailView {
         actions.setLayout(new RowLayout());
         Button btnEdit = new Button(actions, SWT.PUSH);
         btnEdit.setText(" Edit ");
-        btnEdit.addListener(SWT.Selection, e -> { if (onEdit != null) onEdit.run(); });
+        btnEdit.addListener(SWT.Selection, e -> {
+            if (onEdit != null)
+                onEdit.run();
+        });
 
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -45,20 +48,20 @@ public class IdentityDetailView {
         // ── scrollable field area ─────────────────────────────────────
         sc = new ScrolledComposite(composite, SWT.V_SCROLL);
         sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        sc.setLayout(new FillLayout(SWT.VERTICAL));
         sc.setExpandHorizontal(true);
         sc.setExpandVertical(true);
+        sc.setLayout(new FillLayout(SWT.VERTICAL));
 
         content = new Composite(sc, SWT.NONE);
-        content.setLayout(new FillLayout(SWT.VERTICAL));
+        content.setLayout(new GridLayout(1, false));
 
-        titleValue          = createField(content, "Title:");
-        nameValue           = createField(content, "Name:");
-        passportValue       = createField(content, "Passport:");
+        titleValue = createField(content, "Title:");
+        nameValue = createField(content, "Name:");
+        passportValue = createField(content, "Passport:");
         identityNumberValue = createField(content, "ID Number:");
-        taxNumberValue      = createField(content, "Tax Number:");
-        telephonesValue     = createField(content, "Telephones:");
-        mobilesValue        = createField(content, "Mobiles:");
+        taxNumberValue = createField(content, "Tax Number:");
+        telephonesValue = createField(content, "Telephones:");
+        mobilesValue = createField(content, "Mobiles:");
 
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -81,7 +84,9 @@ public class IdentityDetailView {
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
 
-    public void setOnEdit(Runnable listener) { this.onEdit = listener; }
+    public void setOnEdit(Runnable listener) {
+        this.onEdit = listener;
+    }
 
     private Label createField(Composite parent, String labelText) {
         Composite row = new Composite(parent, SWT.NONE);
@@ -99,5 +104,7 @@ public class IdentityDetailView {
         return value;
     }
 
-    private String notNull(String s) { return s != null ? s : ""; }
+    private String notNull(String s) {
+        return s != null ? s : "";
+    }
 }
