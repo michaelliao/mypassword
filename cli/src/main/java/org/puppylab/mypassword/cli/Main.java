@@ -28,6 +28,7 @@ import org.puppylab.mypassword.rpc.request.OAuth;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.LoginItemDataResponse;
+import org.puppylab.mypassword.rpc.response.LoginItemsDataResponse;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 import org.puppylab.mypassword.rpc.util.JsonUtils;
 
@@ -118,6 +119,17 @@ public class Main {
             return;
         }
         switch (action) {
+        case "list" -> {
+            request("/logins/list", null, LoginItemsDataResponse.class);
+        }
+        case "get" -> {
+            String id = next(args);
+            if (id == null) {
+                error("Invalid command: login get <id>");
+                return;
+            }
+            request("/logins/" + id + "/get", null, LoginItemDataResponse.class);
+        }
         case "create" -> {
             LoginItemRequest request = parse(args);
             if (request == null) {
@@ -191,15 +203,18 @@ public class Main {
         info("MyPassword Command Line Interface, version %s, commit %s.", version, commit);
         info("""
                 Command:
-                  h, help                             Print help.
-                  q, quit, exit                       Exit command line.
-                  i, info                             Display vault info.
-                  vault init <password>               Initialize vault by provide a password.
-                  vault unlock <password>             Unlock vault.
-                  vault lock                          Lock vault.
-                  vault password <old-pwd> <new-pwd>  Change the vault password.
-
-                A""");
+                  h, help                              Print help.
+                  q, quit, exit                        Exit command line.
+                  i, info                              Display vault info.
+                  vault init <password>                Initialize vault by provide a password.
+                  vault unlock <password>              Unlock vault.
+                  vault lock                           Lock vault.
+                  vault password <old-pwd> <new-pwd>   Change the vault password.
+                  login list                           List login items.
+                  login get <id>                       Get login item by id.
+                  login create title=x username=y ...  Create login item.
+                  login
+                """);
     }
 
     <T extends BaseResponse> T request(String path, BaseRequest req, Class<T> respClass) {
