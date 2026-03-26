@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
+import org.puppylab.mypassword.ui.util.StringUtils;
 
 public class NoteEditView extends AbstractEditView<NoteItemData> {
 
@@ -18,21 +19,21 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
 
     @Override
     protected void createFields() {
-        titleField = createField(content, "Title:", SWT.BORDER);
-        contentField = createAreaField(content, "Content:");
+        titleField = createField("Title:", SWT.BORDER);
+        contentField = createAreaField("Content:");
     }
 
     /** Populate form for editing an existing item, or pass null for a new item. */
     @Override
-    protected void doEdit(NoteItemData item) {
+    protected void setData(NoteItemData item) {
         if (item == null) {
             editingId = 0;
             titleField.setText("");
             contentField.setText("");
         } else {
             editingId = item.id;
-            titleField.setText(notNull(item.title));
-            contentField.setText(notNull(item.content));
+            titleField.setText(StringUtils.normalize(item.title));
+            contentField.setText(StringUtils.normalize(item.content));
         }
     }
 
@@ -43,9 +44,5 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
         data.title = titleField.getText().strip();
         data.content = contentField.getText();
         return data;
-    }
-
-    private String notNull(String s) {
-        return s != null ? s : "";
     }
 }

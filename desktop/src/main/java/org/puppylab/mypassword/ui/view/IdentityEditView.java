@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
+import org.puppylab.mypassword.ui.util.StringUtils;
 
 public class IdentityEditView extends AbstractEditView<IdentityItemData> {
 
@@ -23,20 +24,20 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
 
     @Override
     protected void createFields() {
-        titleField = createField(content, "Title:", SWT.BORDER);
-        nameField = createField(content, "Name:", SWT.BORDER);
-        passportField = createField(content, "Passport:", SWT.BORDER);
-        identityNumberField = createField(content, "ID Number:", SWT.BORDER);
-        taxNumberField = createField(content, "Tax Number:", SWT.BORDER);
-        telephonesField = createField(content, "Telephones:", SWT.BORDER);
-        mobilesField = createField(content, "Mobiles:", SWT.BORDER);
+        titleField = createField("Title:", SWT.BORDER);
+        nameField = createField("Name:", SWT.BORDER);
+        passportField = createField("Passport:", SWT.BORDER);
+        identityNumberField = createField("ID Number:", SWT.BORDER);
+        taxNumberField = createField("Tax Number:", SWT.BORDER);
+        telephonesField = createField("Telephones:", SWT.BORDER);
+        mobilesField = createField("Mobiles:", SWT.BORDER);
     }
 
     /**
      * Populate form for editing an existing identity, or pass null for a new one.
      */
     @Override
-    protected void doEdit(IdentityItemData item) {
+    protected void setData(IdentityItemData item) {
         if (item == null) {
             editingId = 0;
             titleField.setText("");
@@ -48,11 +49,11 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
             mobilesField.setText("");
         } else {
             editingId = item.id;
-            titleField.setText(notNull(item.title));
-            nameField.setText(notNull(item.name));
-            passportField.setText(notNull(item.passport_number));
-            identityNumberField.setText(notNull(item.identity_number));
-            taxNumberField.setText(notNull(item.tax_number));
+            titleField.setText(StringUtils.normalize(item.title));
+            nameField.setText(StringUtils.normalize(item.name));
+            passportField.setText(StringUtils.normalize(item.passport_number));
+            identityNumberField.setText(StringUtils.normalize(item.identity_number));
+            taxNumberField.setText(StringUtils.normalize(item.tax_number));
             telephonesField.setText(item.telephones != null ? String.join(", ", item.telephones) : "");
             mobilesField.setText(item.mobiles != null ? String.join(", ", item.mobiles) : "");
         }
@@ -70,9 +71,5 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
         data.telephones = splitCSV(telephonesField.getText());
         data.mobiles = splitCSV(mobilesField.getText());
         return data;
-    }
-
-    private String notNull(String s) {
-        return s != null ? s : "";
     }
 }

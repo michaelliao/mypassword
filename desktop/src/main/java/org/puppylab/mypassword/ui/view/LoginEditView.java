@@ -7,6 +7,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
+import org.puppylab.mypassword.ui.util.StringUtils;
 
 public class LoginEditView extends AbstractEditView<LoginItemData> {
 
@@ -24,16 +25,16 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
 
     @Override
     protected void createFields() {
-        titleField = createField(content, "Title:", SWT.BORDER);
-        usernameField = createField(content, "Username:", SWT.BORDER);
-        passwordField = createField(content, "Password:", SWT.BORDER | SWT.PASSWORD);
-        websitesField = createField(content, "Websites:", SWT.BORDER);
-        memoField = createAreaField(content, "Memo:");
+        titleField = createField("Title:", SWT.BORDER);
+        usernameField = createField("Username:", SWT.BORDER);
+        passwordField = createField("Password:", SWT.BORDER | SWT.PASSWORD);
+        websitesField = createField("Websites:", SWT.BORDER);
+        memoField = createAreaField("Memo:");
     }
 
     /** Populate form for editing an existing item, or pass null for a new item. */
     @Override
-    protected void doEdit(LoginItemData item) {
+    protected void setData(LoginItemData item) {
         if (item == null) {
             editingId = 0;
             titleField.setText("");
@@ -43,11 +44,11 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             memoField.setText("");
         } else {
             editingId = item.id;
-            titleField.setText(notNull(item.title));
-            usernameField.setText(notNull(item.username));
-            passwordField.setText(notNull(item.password));
+            titleField.setText(StringUtils.normalize(item.title));
+            usernameField.setText(StringUtils.normalize(item.username));
+            passwordField.setText(StringUtils.normalize(item.password));
             websitesField.setText(item.websites != null ? String.join(", ", item.websites) : "");
-            memoField.setText(notNull(item.memo));
+            memoField.setText(StringUtils.normalize(item.memo));
         }
     }
 
@@ -63,9 +64,5 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
                 : Arrays.stream(ws.split(",")).map(String::strip).filter(s -> !s.isEmpty()).toList();
         data.memo = memoField.getText();
         return data;
-    }
-
-    private String notNull(String s) {
-        return s != null ? s : "";
     }
 }

@@ -82,12 +82,12 @@ public abstract class AbstractEditView<T> {
      * Populate form for editing an existing identity, or pass null for a new one.
      */
     public void edit(T item) {
-        doEdit(item);
+        setData(item);
         content.layout(true, true);
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
 
-    protected abstract void doEdit(T item);
+    protected abstract void setData(T item);
 
     public void setOnSave(Consumer<T> listener) {
         this.onSave = listener;
@@ -99,7 +99,8 @@ public abstract class AbstractEditView<T> {
 
     protected abstract T collectData();
 
-    protected Text createField(Composite parent, String labelText, int textStyle) {
+    protected Text createField(String labelText, int textStyle) {
+        Composite parent = this.content;
         Composite row = new Composite(parent, SWT.NONE);
         row.setLayout(new GridLayout(2, false));
         row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -115,7 +116,8 @@ public abstract class AbstractEditView<T> {
         return t;
     }
 
-    protected Text createAreaField(Composite parent, String labelText) {
+    protected Text createAreaField(String labelText) {
+        Composite parent = this.content;
         Composite row = new Composite(parent, SWT.NONE);
         row.setLayout(new GridLayout(2, false));
         row.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
