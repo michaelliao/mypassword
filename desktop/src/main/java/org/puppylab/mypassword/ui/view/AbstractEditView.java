@@ -18,10 +18,12 @@ import org.eclipse.swt.widgets.Text;
 
 public abstract class AbstractEditView<T> {
 
+    static final int LABEL_WIDTH = 80;
+
     public final Composite composite;
 
-    private final ScrolledComposite sc;
-    private final Composite         content;
+    final ScrolledComposite sc;
+    final Composite         content;
 
     private Consumer<T> onSave;
     private Runnable    onCancel;
@@ -38,7 +40,7 @@ public abstract class AbstractEditView<T> {
 
         Button btnSave = new Button(actions, SWT.PUSH);
         btnSave.setText(" Save ");
-        btnSave.addListener(SWT.Selection, e -> {
+        btnSave.addListener(SWT.Selection, _ -> {
             if (onSave != null) {
                 onSave.accept(collectData());
             }
@@ -46,7 +48,7 @@ public abstract class AbstractEditView<T> {
 
         Button btnCancel = new Button(actions, SWT.PUSH);
         btnCancel.setText(" Cancel ");
-        btnCancel.addListener(SWT.Selection, e -> {
+        btnCancel.addListener(SWT.Selection, _ -> {
             if (onCancel != null) {
                 onCancel.run();
             }
@@ -69,7 +71,7 @@ public abstract class AbstractEditView<T> {
 
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-        sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
+        sc.addControlListener(ControlListener.controlResizedAdapter(_ -> {
             int w = sc.getClientArea().width;
             content.layout(true, true);
             sc.setMinSize(content.computeSize(w, SWT.DEFAULT));
@@ -108,7 +110,7 @@ public abstract class AbstractEditView<T> {
         Label lbl = new Label(row, SWT.NONE);
         lbl.setText(labelText);
         GridData ld = new GridData();
-        ld.widthHint = 80;
+        ld.widthHint = LABEL_WIDTH;
         lbl.setLayoutData(ld);
 
         Text t = new Text(row, textStyle);
@@ -125,7 +127,7 @@ public abstract class AbstractEditView<T> {
         Label lbl = new Label(row, SWT.NONE);
         lbl.setText(labelText);
         GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
-        ld.widthHint = 80;
+        ld.widthHint = LABEL_WIDTH;
         lbl.setLayoutData(ld);
 
         Text t = new Text(row, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
