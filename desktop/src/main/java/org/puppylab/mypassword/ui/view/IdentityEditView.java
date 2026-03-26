@@ -13,8 +13,9 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
     private Text taxNumberField;
     private Text passportField;
     private Text identityNumberField;
-    private Text telephonesField;
-    private Text mobilesField;
+
+    private MultiText telephonesMultiFields;
+    private MultiText mobilesMultiFields;
 
     private long editingId = 0;
 
@@ -29,8 +30,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
         passportField = createField("Passport:", SWT.BORDER);
         identityNumberField = createField("ID Number:", SWT.BORDER);
         taxNumberField = createField("Tax Number:", SWT.BORDER);
-        telephonesField = createField("Telephones:", SWT.BORDER);
-        mobilesField = createField("Mobiles:", SWT.BORDER);
+        telephonesMultiFields = createMultiTextFields("Telephones:");
+        mobilesMultiFields = createMultiTextFields("Mobiles:");
     }
 
     /**
@@ -38,6 +39,10 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
      */
     @Override
     protected void setData(IdentityItemData item) {
+        // Dispose all existing telephones/mobiles rows
+        telephonesMultiFields.disposeFields();
+        mobilesMultiFields.disposeFields();
+
         if (item == null) {
             editingId = 0;
             titleField.setText("");
@@ -45,8 +50,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
             passportField.setText("");
             identityNumberField.setText("");
             taxNumberField.setText("");
-            telephonesField.setText("");
-            mobilesField.setText("");
+            addMultiTextRow(telephonesMultiFields, "", false);
+            addMultiTextRow(mobilesMultiFields, "", false);
         } else {
             editingId = item.id;
             titleField.setText(StringUtils.normalize(item.title));
@@ -54,8 +59,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
             passportField.setText(StringUtils.normalize(item.passport_number));
             identityNumberField.setText(StringUtils.normalize(item.identity_number));
             taxNumberField.setText(StringUtils.normalize(item.tax_number));
-            telephonesField.setText(item.telephones != null ? String.join(", ", item.telephones) : "");
-            mobilesField.setText(item.mobiles != null ? String.join(", ", item.mobiles) : "");
+            setMultiTextValues(telephonesMultiFields, item.telephones);
+            setMultiTextValues(mobilesMultiFields, item.mobiles);
         }
     }
 
@@ -68,8 +73,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
         data.passport_number = passportField.getText().strip();
         data.identity_number = identityNumberField.getText().strip();
         data.tax_number = taxNumberField.getText().strip();
-        data.telephones = splitCSV(telephonesField.getText());
-        data.mobiles = splitCSV(mobilesField.getText());
+        data.telephones = telephonesMultiFields.collectData();
+        data.mobiles = mobilesMultiFields.collectData();
         return data;
     }
 }

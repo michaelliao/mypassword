@@ -1,6 +1,6 @@
 package org.puppylab.mypassword.ui.view;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -137,10 +137,91 @@ public abstract class AbstractEditView<T> {
         return t;
     }
 
-    protected List<String> splitCSV(String value) {
-        String v = value == null ? "" : value.strip();
-        if (v.isEmpty())
-            return List.of();
-        return Arrays.stream(v.split(",")).map(String::strip).filter(s -> !s.isEmpty()).toList();
+    protected MultiText createMultiTextFields(String labelText) {
+        // outer row matches the visual style of createField() rows
+        Composite row = new Composite(content, SWT.NONE);
+        row.setLayout(new GridLayout(2, false));
+        row.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Label lbl = new Label(row, SWT.NONE);
+        lbl.setText(labelText);
+        GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        Composite right = new Composite(row, SWT.NONE);
+        GridLayout rl = new GridLayout(1, false);
+        rl.marginHeight = 0;
+        rl.marginWidth = 0;
+        rl.verticalSpacing = 4;
+        right.setLayout(rl);
+        right.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        List<Text> websiteFields = new ArrayList<>();
+        Composite websitesContainer = new Composite(right, SWT.NONE);
+        GridLayout wl = new GridLayout(1, false);
+        wl.marginHeight = 0;
+        wl.marginWidth = 0;
+        wl.verticalSpacing = 3;
+        websitesContainer.setLayout(wl);
+        websitesContainer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Button addWebsiteBtn = new Button(right, SWT.PUSH);
+        MultiText multiText = new MultiText(websitesContainer, websiteFields, addWebsiteBtn);
+
+        addWebsiteBtn.setText("+ Add more");
+        addWebsiteBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+        addWebsiteBtn.addListener(SWT.Selection, _ -> addMultiTextRow(multiText, "", true));
+        return multiText;
+    }
+
+    /** Add one text row. Pass doRelayout=false when bulk-populating. */
+    protected void addMultiTextRow(MultiText multiText, String value, boolean doRelayout) {
+        Composite row = new Composite(multiText.container(), SWT.NONE);
+        GridLayout rl = new GridLayout(2, false);
+        rl.marginHeight = 0;
+        rl.marginWidth = 0;
+        row.setLayout(rl);
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        Text t = new Text(row, SWT.BORDER);
+        t.setText(value);
+        t.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        multiText.fields().add(t);
+
+        Button removeBtn = new Button(row, SWT.PUSH);
+        removeBtn.setText(" × ");
+        removeBtn.addListener(SWT.Selection, _ -> {
+            multiText.fields().remove(t);
+            row.dispose();
+            updateMultiTextAddButton(multiText);
+            relayoutMultiText(multiText);
+        });
+
+        updateMultiTextAddButton(multiText);
+        if (doRelayout) {
+            relayoutMultiText(multiText);
+        }
+    }
+
+    protected void updateMultiTextAddButton(MultiText multiText) {
+        if (multiText.addBtn() != null && !multiText.addBtn().isDisposed()) {
+            multiText.addBtn().setEnabled(multiText.fields().size() < 10);
+        }
+    }
+
+    protected void relayoutMultiText(MultiText multiText) {
+        multiText.container().layout(true, true);
+        content.layout(true, true);
+        sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
+    }
+
+    protected void setMultiTextValues(MultiText multiText, List<String> values) {
+        if (values != null && !values.isEmpty()) {
+            for (String value : values)
+                addMultiTextRow(multiText, value, false);
+        } else {
+            addMultiTextRow(multiText, "", false);
+        }
     }
 }
