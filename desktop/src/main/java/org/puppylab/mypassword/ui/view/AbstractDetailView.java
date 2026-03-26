@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlListener;
@@ -9,14 +11,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 public abstract class AbstractDetailView<T> {
 
     public final Composite composite;
 
-    private final ScrolledComposite sc;
-    private final Composite         content;
+    final ScrolledComposite sc;
+    final Composite         content;
 
     private Runnable onEdit;
 
@@ -87,5 +90,41 @@ public abstract class AbstractDetailView<T> {
         Label value = new Label(row, SWT.WRAP);
         value.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         return value;
+    }
+
+    /**
+     * Creates a 2-column row whose right cell is a container for multiple value
+     * labels. Pass the returned composite to {@link #setMultiValueField}.
+     */
+    protected Composite createMultiValueField(String labelText) {
+        Composite row = new Composite(content, SWT.NONE);
+        row.setLayout(new GridLayout(2, false));
+        row.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Label lbl = new Label(row, SWT.NONE);
+        lbl.setText(labelText);
+        GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        Composite valuesContainer = new Composite(row, SWT.NONE);
+        GridLayout vl = new GridLayout(1, false);
+        vl.marginHeight = 0;
+        vl.marginWidth = 0;
+        vl.verticalSpacing = 2;
+        valuesContainer.setLayout(vl);
+        valuesContainer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        return valuesContainer;
+    }
+
+    /** Replace the labels inside a multi-value container created by {@link #createMultiValueField}. */
+    protected void setMultiValueField(Composite valuesContainer, List<String> values) {
+        for (Control c : valuesContainer.getChildren()) c.dispose();
+        List<String> items = (values != null && !values.isEmpty()) ? values : List.of("");
+        for (String v : items) {
+            Label lbl = new Label(valuesContainer, SWT.WRAP);
+            lbl.setText(v);
+            lbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        }
     }
 }
