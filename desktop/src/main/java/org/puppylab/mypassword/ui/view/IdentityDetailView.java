@@ -7,13 +7,13 @@ import org.puppylab.mypassword.ui.util.StringUtils;
 
 public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
-    private Label titleValue;
-    private Label nameValue;
-    private Label passportValue;
-    private Label identityNumberValue;
-    private Label taxNumberValue;
-    private Label telephonesValue;
-    private Label mobilesValue;
+    private Label      titleValue;
+    private Label      nameValue;
+    private Label      passportValue;
+    private Label      identityNumberValue;
+    private Label      taxNumberValue;
+    private MultiLabel telephonesValue;
+    private MultiLabel mobilesValue;
 
     public IdentityDetailView(Composite parent) {
         super(parent);
@@ -26,8 +26,8 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
         passportValue = createField("Passport:");
         identityNumberValue = createField("ID Number:");
         taxNumberValue = createField("Tax Number:");
-        telephonesValue = createField("Telephones:");
-        mobilesValue = createField("Mobiles:");
+        telephonesValue = createMultiValueField("Telephones:");
+        mobilesValue = createMultiValueField("Mobiles:");
     }
 
     @Override
@@ -37,7 +37,7 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
         passportValue.setText(StringUtils.normalize(item.passport_number));
         identityNumberValue.setText(StringUtils.normalize(item.identity_number));
         taxNumberValue.setText(StringUtils.normalize(item.tax_number));
-        telephonesValue.setText(item.telephones != null ? String.join(", ", item.telephones) : "");
-        mobilesValue.setText(item.mobiles != null ? String.join(", ", item.mobiles) : "");
+        telephonesValue.setValues(item.telephones);
+        mobilesValue.setValues(item.mobiles);
     }
 }

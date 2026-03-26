@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.ui.view;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -96,7 +97,7 @@ public abstract class AbstractDetailView<T> {
      * Creates a 2-column row whose right cell is a container for multiple value
      * labels. Pass the returned composite to {@link #setMultiValueField}.
      */
-    protected Composite createMultiValueField(String labelText) {
+    protected MultiLabel createMultiValueField(String labelText) {
         Composite row = new Composite(content, SWT.NONE);
         row.setLayout(new GridLayout(2, false));
         row.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -114,12 +115,16 @@ public abstract class AbstractDetailView<T> {
         vl.verticalSpacing = 2;
         valuesContainer.setLayout(vl);
         valuesContainer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        return valuesContainer;
+        return new MultiLabel(valuesContainer, new ArrayList<>());
     }
 
-    /** Replace the labels inside a multi-value container created by {@link #createMultiValueField}. */
+    /**
+     * Replace the labels inside a multi-value container created by
+     * {@link #createMultiValueField}.
+     */
     protected void setMultiValueField(Composite valuesContainer, List<String> values) {
-        for (Control c : valuesContainer.getChildren()) c.dispose();
+        for (Control c : valuesContainer.getChildren())
+            c.dispose();
         List<String> items = (values != null && !values.isEmpty()) ? values : List.of("");
         for (String v : items) {
             Label lbl = new Label(valuesContainer, SWT.WRAP);
