@@ -20,8 +20,8 @@ public abstract class AbstractEditView<T> {
 
     public final Composite composite;
 
-    protected final ScrolledComposite sc;
-    protected final Composite         content;
+    private final ScrolledComposite sc;
+    private final Composite         content;
 
     private Consumer<T> onSave;
     private Runnable    onCancel;
