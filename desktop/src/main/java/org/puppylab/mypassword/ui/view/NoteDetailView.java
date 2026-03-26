@@ -1,6 +1,9 @@
 package org.puppylab.mypassword.ui.view;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -14,6 +17,8 @@ public class NoteDetailView {
 
     public final Composite composite;
 
+    private final ScrolledComposite sc;
+    private final Composite         content;
     private final Label titleValue;
     private final Text  contentValue;
 
@@ -23,6 +28,7 @@ public class NoteDetailView {
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
+        // ── fixed action bar ──────────────────────────────────────────
         Composite actions = new Composite(composite, SWT.NONE);
         actions.setLayout(new RowLayout());
         Button btnEdit = new Button(actions, SWT.PUSH);
@@ -32,43 +38,53 @@ public class NoteDetailView {
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-        titleValue = createLabelField(composite, "Title:");
+        // ── scrollable field area ─────────────────────────────────────
+        sc = new ScrolledComposite(composite, SWT.V_SCROLL);
+        sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        sc.setLayout(new FillLayout(SWT.VERTICAL));
+        sc.setExpandHorizontal(true);
+        sc.setExpandVertical(true);
 
-        // content label row
-        Composite contentRow = new Composite(composite, SWT.NONE);
-        contentRow.setLayout(new GridLayout(2, false));
-        contentRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        content = new Composite(sc, SWT.NONE);
+        content.setLayout(new GridLayout(2, false));
 
-        Label lbl = new Label(contentRow, SWT.NONE);
+        titleValue = createLabelField(content, "Title:");
+
+        Label lbl = new Label(content, SWT.NONE);
         lbl.setText("Content:");
-        GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
-        ld.widthHint = 80;
-        lbl.setLayoutData(ld);
+        lbl.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 
-        contentValue = new Text(contentRow, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
-        contentValue.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        contentValue = new Text(content, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
+        GridData td = new GridData(SWT.FILL, SWT.TOP, true, false);
+        td.heightHint = 200;
+        contentValue.setLayoutData(td);
+
+        sc.setContent(content);
+        sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
+            int w = sc.getClientArea().width;
+            content.layout(true, true);
+            sc.setMinSize(content.computeSize(w, SWT.DEFAULT));
+        }));
     }
 
     public void show(NoteItemData item) {
         titleValue.setText(notNull(item.title));
         contentValue.setText(notNull(item.content));
-        composite.layout(true, true);
+        content.layout(true, true);
+        sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
 
     public void setOnEdit(Runnable listener) { this.onEdit = listener; }
 
     private Label createLabelField(Composite parent, String labelText) {
-        Composite row = new Composite(parent, SWT.NONE);
-        row.setLayout(new GridLayout(2, false));
-        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        Label lbl = new Label(row, SWT.NONE);
+        Label lbl = new Label(parent, SWT.NONE);
         lbl.setText(labelText);
         GridData ld = new GridData();
         ld.widthHint = 80;
         lbl.setLayoutData(ld);
 
-        Label value = new Label(row, SWT.NONE);
+        Label value = new Label(parent, SWT.WRAP);
         value.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         return value;
     }

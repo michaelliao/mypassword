@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -18,6 +21,8 @@ public class IdentityEditView {
 
     public final Composite composite;
 
+    private final ScrolledComposite sc;
+    private final Composite         content;
     private final Text titleField;
     private final Text nameField;
     private final Text taxNumberField;
@@ -35,6 +40,7 @@ public class IdentityEditView {
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
+        // ── fixed action bar ──────────────────────────────────────────
         Composite actions = new Composite(composite, SWT.NONE);
         RowLayout rl = new RowLayout();
         rl.spacing = 10;
@@ -51,18 +57,35 @@ public class IdentityEditView {
         new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
                 .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-        titleField          = createField(composite, "Title:");
-        nameField           = createField(composite, "Name:");
-        passportField       = createField(composite, "Passport:");
-        identityNumberField = createField(composite, "ID Number:");
-        taxNumberField      = createField(composite, "Tax Number:");
-        telephonesField     = createField(composite, "Telephones:");
-        mobilesField        = createField(composite, "Mobiles:");
+        // ── scrollable field area ─────────────────────────────────────
+        sc = new ScrolledComposite(composite, SWT.V_SCROLL);
+        sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        sc.setLayout(new FillLayout(SWT.VERTICAL));
+        sc.setExpandHorizontal(true);
+        sc.setExpandVertical(true);
 
-        // hint label for multi-value fields
-        Label hint = new Label(composite, SWT.NONE);
+        content = new Composite(sc, SWT.NONE);
+        content.setLayout(new GridLayout(1, false));
+
+        titleField          = createField(content, "Title:");
+        nameField           = createField(content, "Name:");
+        passportField       = createField(content, "Passport:");
+        identityNumberField = createField(content, "ID Number:");
+        taxNumberField      = createField(content, "Tax Number:");
+        telephonesField     = createField(content, "Telephones:");
+        mobilesField        = createField(content, "Mobiles:");
+
+        Label hint = new Label(content, SWT.NONE);
         hint.setText("  * Separate multiple phone numbers with commas");
-        hint.setForeground(composite.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+        hint.setForeground(content.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+
+        sc.setContent(content);
+        sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
+            int w = sc.getClientArea().width;
+            content.layout(true, true);
+            sc.setMinSize(content.computeSize(w, SWT.DEFAULT));
+        }));
     }
 
     /** Populate form for editing an existing identity, or pass null for a new one. */
@@ -86,6 +109,8 @@ public class IdentityEditView {
             telephonesField.setText(item.telephones != null ? String.join(", ", item.telephones) : "");
             mobilesField.setText(item.mobiles != null ? String.join(", ", item.mobiles) : "");
         }
+        content.layout(true, true);
+        sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
 
     public void setOnSave(Consumer<IdentityItemData> listener) { this.onSave   = listener; }
