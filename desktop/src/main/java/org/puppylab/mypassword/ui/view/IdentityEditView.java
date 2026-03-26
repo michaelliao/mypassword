@@ -62,6 +62,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
             setMultiTextValues(telephonesMultiFields, item.telephones);
             setMultiTextValues(mobilesMultiFields, item.mobiles);
         }
+        updateMultiTextAddButton(telephonesMultiFields);
+        updateMultiTextAddButton(mobilesMultiFields);
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Text;
 public record MultiText(Composite container, List<Text> fields, Button addBtn) {
 
     public List<String> collectData() {
-        return fields().stream().map(t -> t.getText().strip()).filter(s -> !s.isEmpty()).toList();
+        return fields().stream().map(t -> t.getText().strip()).filter(s -> !s.isEmpty()).distinct().toList();
     }
 
     public void disposeFields() {
