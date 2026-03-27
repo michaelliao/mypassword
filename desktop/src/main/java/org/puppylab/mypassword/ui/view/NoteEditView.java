@@ -3,8 +3,9 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.rpc.data.NoteFieldsData;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
-import org.puppylab.mypassword.ui.util.StringUtils;
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
 public class NoteEditView extends AbstractEditView<NoteItemData> {
 
@@ -32,8 +33,8 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
             contentField.setText("");
         } else {
             editingId = item.id;
-            titleField.setText(StringUtils.normalize(item.title));
-            contentField.setText(StringUtils.normalize(item.content));
+            titleField.setText(StringUtils.normalize(item.data.title));
+            contentField.setText(StringUtils.normalize(item.data.content));
         }
     }
 
@@ -41,8 +42,9 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
     protected NoteItemData collectData() {
         NoteItemData data = new NoteItemData();
         data.id = editingId;
-        data.title = titleField.getText().strip();
-        data.content = contentField.getText();
+        data.data = new NoteFieldsData();
+        data.data.title = titleField.getText().strip();
+        data.data.content = contentField.getText();
         return data;
     }
 }

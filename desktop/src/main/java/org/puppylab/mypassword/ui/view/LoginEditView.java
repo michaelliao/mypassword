@@ -3,8 +3,9 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.rpc.data.LoginFieldsData;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
-import org.puppylab.mypassword.ui.util.StringUtils;
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
 public class LoginEditView extends AbstractEditView<LoginItemData> {
 
@@ -44,11 +45,11 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             memoField.setText("");
         } else {
             editingId = item.id;
-            titleField.setText(StringUtils.normalize(item.title));
-            usernameField.setText(StringUtils.normalize(item.username));
-            passwordField.setText(StringUtils.normalize(item.password));
-            setMultiTextValues(websitesMultiFields, item.websites);
-            memoField.setText(StringUtils.normalize(item.memo));
+            titleField.setText(StringUtils.normalize(item.data.title));
+            usernameField.setText(StringUtils.normalize(item.data.username));
+            passwordField.setText(StringUtils.normalize(item.data.password));
+            setMultiTextValues(websitesMultiFields, item.data.websites);
+            memoField.setText(StringUtils.normalize(item.data.memo));
         }
         updateMultiTextAddButton(websitesMultiFields);
     }
@@ -57,11 +58,12 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     protected LoginItemData collectData() {
         LoginItemData data = new LoginItemData();
         data.id = editingId;
-        data.title = titleField.getText().strip();
-        data.username = usernameField.getText().strip();
-        data.password = passwordField.getText();
-        data.websites = websitesMultiFields.collectData();
-        data.memo = memoField.getText();
+        data.data = new LoginFieldsData();
+        data.data.title = titleField.getText().strip();
+        data.data.username = usernameField.getText().strip();
+        data.data.password = passwordField.getText();
+        data.data.websites = websitesMultiFields.collectData();
+        data.data.memo = memoField.getText();
         return data;
     }
 }

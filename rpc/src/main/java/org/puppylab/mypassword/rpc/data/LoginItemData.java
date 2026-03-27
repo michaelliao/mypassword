@@ -1,8 +1,23 @@
 package org.puppylab.mypassword.rpc.data;
 
-public class LoginItemData extends LoginFieldsData {
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
-    public long id;
-    public long updated_at;
+public class LoginItemData extends AbstractItemData {
 
+    public LoginFieldsData data;
+
+    @Override
+    public AbstractFields fields() {
+        return data;
+    }
+
+    @Override
+    public String title() {
+        return data == null ? "" : data.title;
+    }
+
+    @Override
+    public String subtitle() {
+        return StringUtils.normalize(data == null ? null : data.username);
+    }
 }

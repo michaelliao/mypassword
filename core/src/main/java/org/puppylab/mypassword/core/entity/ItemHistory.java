@@ -1,13 +1,16 @@
 package org.puppylab.mypassword.core.entity;
 
-import org.puppylab.mypassword.rpc.data.AbstractItem;
-
 import jakarta.persistence.Id;
 
-public class ItemHistory extends AbstractItem {
+public class ItemHistory {
 
     @Id
-    public long hid;
-    public long rid;
+    public long hid; // history id
+    public long rid; // reference id
+
+    public long updated_at;
+
+    public String b64_encrypted_data;
+    public String b64_encrypted_data_iv;
 
 }

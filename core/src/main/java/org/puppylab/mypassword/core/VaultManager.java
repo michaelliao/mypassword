@@ -8,7 +8,6 @@ import javax.crypto.SecretKey;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.exception.EncryptException;
-import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.rpc.util.Base64Utils;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 
@@ -34,13 +33,8 @@ public class VaultManager {
         return this.dbManager.queryFirst(Item.class, "where id = ?", id);
     }
 
-    // nullable:
-    public Item getItem(long id, ItemType type) {
-        return this.dbManager.queryFirst(Item.class, "where id = ? and item_type = ?", id, type.value);
-    }
-
-    public List<Item> getItems(ItemType type) {
-        return this.dbManager.queryForList(Item.class, "where item_type = ?", type.value);
+    public List<Item> getItems() {
+        return this.dbManager.queryForList(Item.class, "");
     }
 
     public void createItem(Item item) {

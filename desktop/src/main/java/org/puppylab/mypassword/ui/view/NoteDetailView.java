@@ -3,7 +3,7 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
-import org.puppylab.mypassword.ui.util.StringUtils;
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
 public class NoteDetailView extends AbstractDetailView<NoteItemData> {
 
@@ -22,7 +22,7 @@ public class NoteDetailView extends AbstractDetailView<NoteItemData> {
 
     @Override
     protected void setData(NoteItemData item) {
-        titleValue.setText(StringUtils.normalize(item.title));
-        contentValue.setText(StringUtils.normalize(item.content));
+        titleValue.setText(StringUtils.normalize(item.data.title));
+        contentValue.setText(StringUtils.normalize(item.data.content));
     }
 }

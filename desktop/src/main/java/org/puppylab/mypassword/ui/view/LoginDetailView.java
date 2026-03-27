@@ -3,7 +3,7 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
-import org.puppylab.mypassword.ui.util.StringUtils;
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
 public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
@@ -28,12 +28,12 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
     @Override
     protected void setData(LoginItemData item) {
-        titleValue.setText(StringUtils.normalize(item.title));
-        usernameValue.setText(StringUtils.normalize(item.username));
-        passwordValue.setText(
-                item.password != null && !item.password.isEmpty() ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
-                        : "");
-        websitesContainer.setValues(item.websites);
-        memoValue.setText(StringUtils.normalize(item.memo));
+        titleValue.setText(StringUtils.normalize(item.data.title));
+        usernameValue.setText(StringUtils.normalize(item.data.username));
+        passwordValue.setText(item.data.password != null && !item.data.password.isEmpty()
+                ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                : "");
+        websitesContainer.setValues(item.data.websites);
+        memoValue.setText(StringUtils.normalize(item.data.memo));
     }
 }

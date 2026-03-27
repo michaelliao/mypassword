@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.ui.util;
+package org.puppylab.mypassword.rpc.util;
 
 public class StringUtils {
 

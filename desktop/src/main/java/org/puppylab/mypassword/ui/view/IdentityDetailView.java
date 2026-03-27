@@ -3,11 +3,10 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
-import org.puppylab.mypassword.ui.util.StringUtils;
+import org.puppylab.mypassword.rpc.util.StringUtils;
 
 public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
-    private Label      titleValue;
     private Label      nameValue;
     private Label      passportValue;
     private Label      identityNumberValue;
@@ -21,7 +20,6 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
     @Override
     protected void createFields() {
-        titleValue = createField("Title:");
         nameValue = createField("Name:");
         passportValue = createField("Passport:");
         identityNumberValue = createField("ID Number:");
@@ -32,12 +30,11 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
     @Override
     protected void setData(IdentityItemData item) {
-        titleValue.setText(StringUtils.normalize(item.title));
-        nameValue.setText(StringUtils.normalize(item.name));
-        passportValue.setText(StringUtils.normalize(item.passport_number));
-        identityNumberValue.setText(StringUtils.normalize(item.identity_number));
-        taxNumberValue.setText(StringUtils.normalize(item.tax_number));
-        telephonesValue.setValues(item.telephones);
-        mobilesValue.setValues(item.mobiles);
+        nameValue.setText(StringUtils.normalize(item.data.name));
+        passportValue.setText(StringUtils.normalize(item.data.passport_number));
+        identityNumberValue.setText(StringUtils.normalize(item.data.identity_number));
+        taxNumberValue.setText(StringUtils.normalize(item.data.tax_number));
+        telephonesValue.setValues(item.data.telephones);
+        mobilesValue.setValues(item.data.mobiles);
     }
 }

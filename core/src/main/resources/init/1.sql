@@ -32,6 +32,7 @@ CREATE TABLE RecoveryConfig (
 
 CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id
+    favorite INTEGER NOT NULL,             -- in favorite?
     deleted INTEGER NOT NULL,             -- in trash?
     item_type INTEGER NOT NULL,           -- item type
     b64_encrypted_data TEXT NOT NULL,     -- encrypted json

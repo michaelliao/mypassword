@@ -68,10 +68,10 @@ public class DbManagerTest {
 
         for (int i = 1; i <= 10; i++) {
             Item item = new Item();
-            item.item_type = ItemType.LOGIN.value;
+            item.item_type = ItemType.LOGIN;
             item.id = IdUtils.nextId();
             item.deleted = false;
-            item.b64_encrypted_data = "data-" + i;
+            item.b64_encrypted_data = "{ \"title\": \"data-" + i + "\" }";
             item.b64_encrypted_data_iv = "iv-" + i;
             item.updated_at = 1_000_000 + i;
             dbManager.insert(item);

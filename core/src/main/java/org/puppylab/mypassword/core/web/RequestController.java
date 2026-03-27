@@ -13,18 +13,24 @@ import org.puppylab.mypassword.core.IdUtils;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.entity.Item;
+import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.data.AbstractFields;
+import org.puppylab.mypassword.rpc.data.AbstractItemData;
+import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
+import org.puppylab.mypassword.rpc.data.IdentityItemData;
 import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.rpc.data.LoginFieldsData;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
-import org.puppylab.mypassword.rpc.request.EmptyRequest;
-import org.puppylab.mypassword.rpc.request.LoginItemRequest;
+import org.puppylab.mypassword.rpc.data.NoteFieldsData;
+import org.puppylab.mypassword.rpc.data.NoteItemData;
+import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
-import org.puppylab.mypassword.rpc.response.LoginItemDataResponse;
-import org.puppylab.mypassword.rpc.response.LoginItemsDataResponse;
+import org.puppylab.mypassword.rpc.response.ItemResponse;
+import org.puppylab.mypassword.rpc.response.ItemsDataResponse;
 import org.puppylab.mypassword.rpc.util.Base64Utils;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 import org.puppylab.mypassword.rpc.util.JsonUtils;
@@ -52,63 +58,81 @@ public class RequestController {
      * Return BaseResponse or subclass.
      */
     @Post("/info")
-    public BaseResponse info(EmptyRequest request) {
+    public BaseResponse info(BaseRequest request) {
         return info();
     }
 
-    @Post("/logins/list")
-    public BaseResponse loginList(BaseRequest request) {
+    /**
+     * Get all items.
+     */
+    @Post("/items/list")
+    public BaseResponse list(BaseRequest request) {
         SecretKey key = Session.current().getKey();
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        List<Item> items = vaultManager.getItems(ItemType.LOGIN);
-        var response = new LoginItemsDataResponse();
-        response.data = items.stream().map(li -> {
-            LoginItemData lid = new LoginItemData();
-            byte[] data = decryptItemData(key, li);
-            JsonUtils.fillJson(data, lid);
-            lid.id = li.id;
-            lid.updated_at = li.updated_at;
-            return lid;
-        }).toList();
+        List<Item> items = vaultManager.getItems();
+        var response = new ItemsDataResponse();
+        response.items = items.stream().map(item -> toItemData(key, item)).toList();
         return response;
     }
 
-    @Post("/logins/create")
-    public BaseResponse loginCreate(LoginItemRequest request) {
+    @Post("/items/create")
+    public BaseResponse create(ItemRequest request) {
         SecretKey key = Session.current().getKey();
         if (key == null) {
-            return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
+            throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        // check title:
-        String title = normalize(request.title);
-        if (title.isEmpty()) {
-            return ErrorUtils.error(ErrorCode.BAD_FIELD, "Invalid field: title.");
+        AbstractItemData itemData = request.item;
+        // check:
+        if (itemData.fields() == null) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Missing fields.");
         }
-        // copy to lfd for json serialization:
-        LoginFieldsData lfd = new LoginFieldsData();
-        copy(request, lfd);
+        String errField = itemData.fields().check();
+        if (errField != null) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
+        }
+        // prepare entity:
         Item item = new Item();
-        encrypt(key, item, lfd);
-        // prepare to insert into db:
-        item.item_type = ItemType.LOGIN.value;
         item.id = IdUtils.nextId();
+        item.item_type = itemData.item_type;
         item.deleted = false;
+        item.favorite = false;
         item.updated_at = System.currentTimeMillis();
+        // encrypt fields and set to item:
+        encrypt(key, item, itemData.fields());
+        // insert into db:
         this.vaultManager.createItem(item);
         // build response:
-        LoginItemData lid = new LoginItemData();
-        copy(lfd, lid);
-        lid.id = item.id;
-        lid.updated_at = item.updated_at;
-        LoginItemDataResponse resp = new LoginItemDataResponse();
-        resp.data = lid;
-        return resp;
+        var response = new ItemResponse();
+        response.item = toItemData(key, item);
+        return response;
     }
 
-    @Post("/logins/{id}/get")
-    public BaseResponse loginGet(EmptyRequest request, String... args) {
+    @Post("/items/{id}/get")
+    public BaseResponse itemGet(BaseRequest request, String... args) {
+        SecretKey key = Session.current().getKey();
+        if (key == null) {
+            throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
+        }
+        long id;
+        try {
+            id = Long.parseLong(args[0]);
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found.");
+        }
+        Item item = this.vaultManager.getItem(id);
+        if (item == null) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found.");
+        }
+        // build response:
+        var response = new ItemResponse();
+        response.item = toItemData(key, item);
+        return response;
+    }
+
+    @Post("/items/{id}/update")
+    public BaseResponse loginUpdate(ItemRequest request, String... args) {
         SecretKey key = Session.current().getKey();
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
@@ -119,49 +143,23 @@ public class RequestController {
         } catch (Exception e) {
             return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
         }
-        Item item = this.vaultManager.getItem(id, ItemType.LOGIN);
+        Item item = this.vaultManager.getItem(id);
         if (item == null) {
             return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
         }
-        var lid = new LoginItemData();
-        byte[] data = decryptItemData(key, item);
-        JsonUtils.fillJson(data, lid);
-        lid.id = item.id;
-        lid.updated_at = item.updated_at;
-        var resp = new LoginItemDataResponse();
-        resp.data = lid;
-        return resp;
-    }
+        // decrypt item fields:
+        AbstractItemData itemData = toItemData(key, item);
 
-    @Post("/logins/{id}/update")
-    public BaseResponse loginUpdate(LoginItemRequest request, String... args) {
-        SecretKey key = Session.current().getKey();
-        if (key == null) {
-            return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
-        }
-        long id;
-        try {
-            id = Long.parseLong(args[0]);
-        } catch (Exception e) {
-            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
-        }
-        Item item = this.vaultManager.getItem(id, ItemType.LOGIN);
-        if (item == null) {
-            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
-        }
+        // set fields:
         LoginFieldsData lfd = new LoginFieldsData();
-        copy(request, lfd);
+        // FIXME: copy(request, lfd);
         encrypt(key, item, lfd);
         item.updated_at = System.currentTimeMillis();
         this.vaultManager.updateItem(item);
         // build response:
-        LoginItemData lid = new LoginItemData();
-        copy(lfd, lid);
-        lid.id = item.id;
-        lid.updated_at = item.updated_at;
-        var resp = new LoginItemDataResponse();
-        resp.data = lid;
-        return resp;
+        var response = new ItemResponse();
+        response.item = toItemData(key, item);
+        return response;
     }
 
     @Post("/vault/init")
@@ -179,7 +177,7 @@ public class RequestController {
     }
 
     @Post("/vault/lock")
-    public BaseResponse vaultLock(EmptyRequest request) {
+    public BaseResponse vaultLock(BaseRequest request) {
         if (!vaultManager.isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
@@ -250,7 +248,45 @@ public class RequestController {
         return str.strip();
     }
 
-    void encrypt(SecretKey key, Item item, Object fields) {
+    /**
+     * Convert db entity Item to LoginItemData, NoteItemData or IdentityItemData by
+     * item_type.
+     */
+    AbstractItemData toItemData(SecretKey key, Item item) {
+        byte[] d_data = decryptItemData(key, item);
+        AbstractItemData itemData = switch (item.item_type) {
+        case ItemType.LOGIN -> {
+            var data = new LoginItemData();
+            // decrypt crypto fields:
+            data.data = JsonUtils.fromJson(d_data, LoginFieldsData.class);
+            yield data;
+        }
+        case ItemType.NOTE -> {
+            var data = new NoteItemData();
+            // decrypt crypto fields:
+            data.data = JsonUtils.fromJson(d_data, NoteFieldsData.class);
+            yield data;
+        }
+        case ItemType.IDENTITY -> {
+            var data = new IdentityItemData();
+            // decrypt crypto fields:
+            data.data = JsonUtils.fromJson(d_data, IdentityFieldsData.class);
+            yield data;
+        }
+        default -> {
+            throw new IllegalArgumentException("Invalid item type: " + item.item_type);
+        }
+        };
+        // copy plain fields:
+        itemData.id = item.id;
+        itemData.item_type = item.item_type;
+        itemData.deleted = item.deleted;
+        itemData.favorite = item.favorite;
+        itemData.updated_at = item.updated_at;
+        return itemData;
+    }
+
+    void encrypt(SecretKey key, Item item, AbstractFields fields) {
         String jsonData = JsonUtils.toJson(fields);
         byte[] data = jsonData.getBytes(StandardCharsets.UTF_8);
         byte[] iv = EncryptUtils.generateIV();

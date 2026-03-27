@@ -1,16 +1,8 @@
 package org.puppylab.mypassword.rpc.data;
 
-public enum ItemType {
+public interface ItemType {
 
-    LOGIN(1),
-
-    NOTE(2),
-
-    IDENTITY(3);
-
-    public final int value;
-
-    private ItemType(int value) {
-        this.value = value;
-    }
+    static int LOGIN    = 1;
+    static int NOTE     = 2;
+    static int IDENTITY = 3;
 }

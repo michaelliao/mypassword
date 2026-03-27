@@ -2,14 +2,21 @@ package org.puppylab.mypassword.rpc.data;
 
 import java.util.List;
 
-public class IdentityFieldsData {
+public class IdentityFieldsData extends AbstractFields {
 
-    public String       title;
     public String       name;
-    public String       tax_number;
     public String       passport_number;
     public String       identity_number;
-    public List<String> telephones;
+    public String       tax_number;
     public List<String> mobiles;
+    public List<String> telephones;
+
+    @Override
+    public String check() {
+        if (name == null || name.isBlank()) {
+            return "name";
+        }
+        return null;
+    }
 
 }

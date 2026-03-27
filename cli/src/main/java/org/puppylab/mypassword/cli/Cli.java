@@ -22,13 +22,14 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
-import org.puppylab.mypassword.rpc.request.EmptyRequest;
-import org.puppylab.mypassword.rpc.request.LoginItemRequest;
+import org.puppylab.mypassword.rpc.data.LoginFieldsData;
+import org.puppylab.mypassword.rpc.data.LoginItemData;
+import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.OAuth;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
-import org.puppylab.mypassword.rpc.response.LoginItemDataResponse;
-import org.puppylab.mypassword.rpc.response.LoginItemsDataResponse;
+import org.puppylab.mypassword.rpc.response.ItemResponse;
+import org.puppylab.mypassword.rpc.response.ItemsDataResponse;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 import org.puppylab.mypassword.rpc.util.JsonUtils;
 
@@ -36,7 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import rawhttp.core.RawHttp;
 
-public class Main {
+public class Cli {
 
     HttpClient   client     = HttpClient.newBuilder().build();
     Path         socketPath = FileUtils.getSocketFile();
@@ -107,37 +108,37 @@ public class Main {
         case "i", "info" -> request("/info", null, InfoResponse.class);
         case "vault" -> vault(args);
         case "oauth" -> oauth(args);
-        case "login" -> login(args);
+        case "item" -> item(args);
         default -> error("Unrecognized command: " + command);
         }
     }
 
-    void login(List<String> args) {
+    void item(List<String> args) {
         String action = next(args, true);
         if (action == null) {
-            error("Invalid command: login <list|get|create|update|delete> <args>");
+            error("Invalid command: item <list|get|create|update|delete> <args>");
             return;
         }
         switch (action) {
         case "list" -> {
-            request("/logins/list", null, LoginItemsDataResponse.class);
+            request("/items/list", null, ItemsDataResponse.class);
         }
         case "get" -> {
             String id = next(args);
             if (id == null) {
-                error("Invalid command: login get <id>");
+                error("Invalid command: item get <id>");
                 return;
             }
-            request("/logins/" + id + "/get", null, LoginItemDataResponse.class);
+            request("/items/" + id + "/get", null, ItemResponse.class);
         }
         case "create" -> {
-            LoginItemRequest request = parse(args);
+            ItemRequest request = parse(args);
             if (request == null) {
                 return;
             }
-            request("/logins/create", request, LoginItemDataResponse.class);
+            request("/items/create", request, ItemResponse.class);
         }
-        default -> error("Invalid command: login <list|get|create|update|delete> <args>");
+        default -> error("Invalid command: item <list|get|create|update|delete> <args>");
         }
     }
 
@@ -203,30 +204,30 @@ public class Main {
         info("MyPassword Command Line Interface, version %s, commit %s.", version, commit);
         info("""
                 Command:
-                  h, help                              Print help.
-                  q, quit, exit                        Exit command line.
-                  i, info                              Display vault info.
-                  vault init <password>                Initialize vault by provide a password.
-                  vault unlock <password>              Unlock vault.
-                  vault lock                           Lock vault.
-                  vault password <old-pwd> <new-pwd>   Change the vault password.
-                  login list                           List login items.
-                  login get <id>                       Get login item by id.
-                  login create title=x username=y ...  Create login item.
-                  login
+                  h, help                             Print help.
+                  q, quit, exit                       Exit command line.
+                  i, info                             Display vault info.
+                  vault init <password>               Initialize vault by provide a password.
+                  vault unlock <password>             Unlock vault.
+                  vault lock                          Lock vault.
+                  vault password <old-pwd> <new-pwd>  Change the vault password.
+                  item list                           List login items.
+                  item get <id>                       Get login item by id.
+                  item create title=x username=y ...  Create login item.
+                  item
                 """);
     }
 
     <T extends BaseResponse> T request(String path, BaseRequest req, Class<T> respClass) {
         try {
             if (req == null) {
-                req = new EmptyRequest();
+                req = new BaseRequest();
             }
             String json = this.mapper.writeValueAsString(req);
             byte[] jsonRequest = json.getBytes(StandardCharsets.UTF_8);
             // hidden password if any:
             hiddenPassword(req);
-            info("Request:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(req));
+            info("Request: " + path + "\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(req));
             String header = "POST " + path
                     + " HTTP/1.1\r\nHost: localhost\r\nUser-Agent: MyPassword-Cli\r\nConnection: Keep-Alive\r\nContent-Length: "
                     + jsonRequest.length + "\r\n\r\n";
@@ -294,9 +295,9 @@ public class Main {
         t.printStackTrace();
     }
 
-    LoginItemRequest parse(List<String> args) {
-        var lid = new LoginItemRequest();
-        lid.title = "Unnamed";
+    ItemRequest parse(List<String> args) {
+        var fs = new LoginFieldsData();
+        fs.title = "Unnamed";
         for (String arg : args) {
             // key=value
             int pos = arg.indexOf('=');
@@ -307,18 +308,22 @@ public class Main {
             String key = arg.substring(0, pos);
             String value = arg.substring(pos + 1);
             switch (key.toLowerCase()) {
-            case "ga" -> lid.ga = value;
-            case "memo" -> lid.memo = value;
-            case "password" -> lid.password = value;
-            case "title" -> lid.title = value;
-            case "username" -> lid.username = value;
-            case "websites" -> lid.websites = List.of(value.split(","));
+            case "ga" -> fs.ga = value;
+            case "memo" -> fs.memo = value;
+            case "password" -> fs.password = value;
+            case "title" -> fs.title = value;
+            case "username" -> fs.username = value;
+            case "websites" -> fs.websites = List.of(value.split(","));
             default -> {
                 error("Invalid key-value: " + arg);
                 return null;
             }
             }
         }
+        var itemData = new LoginItemData();
+        itemData.data = fs;
+        var lid = new ItemRequest();
+        lid.item = itemData;
         return lid;
     }
 
@@ -351,7 +356,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Main main = new Main();
+        Cli main = new Cli();
         main.interactive();
     }
 }

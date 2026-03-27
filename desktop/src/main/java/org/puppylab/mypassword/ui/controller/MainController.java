@@ -6,14 +6,17 @@ import java.util.Map;
 
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.puppylab.mypassword.rpc.data.AbstractItemData;
+import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
 import org.puppylab.mypassword.rpc.data.ItemType;
+import org.puppylab.mypassword.rpc.data.LoginFieldsData;
 import org.puppylab.mypassword.rpc.data.LoginItemData;
+import org.puppylab.mypassword.rpc.data.NoteFieldsData;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
 import org.puppylab.mypassword.ui.model.AppState;
 import org.puppylab.mypassword.ui.model.AppState.Mode;
 import org.puppylab.mypassword.ui.model.Category;
-import org.puppylab.mypassword.ui.model.VaultItem;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.IdentityDetailView;
 import org.puppylab.mypassword.ui.view.IdentityEditView;
@@ -59,37 +62,26 @@ public class MainController {
     private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
-    public MainController(
-            UnlockView       unlockView,
-            Composite        topContainer,
-            StackLayout      topStack,
-            Composite        mainContent,
-            ToolbarView      toolbar,
-            ItemListView     listView,
-            EmptyView        emptyView,
-            LoginDetailView  loginDetailView,
-            NoteDetailView   noteDetailView,
-            IdentityDetailView identityDetailView,
-            LoginEditView    loginEditView,
-            NoteEditView     noteEditView,
-            IdentityEditView identityEditView,
-            Composite        rightContainer,
-            StackLayout      rightStack) {
-        this.unlockView         = unlockView;
-        this.topContainer       = topContainer;
-        this.topStack           = topStack;
-        this.mainContent        = mainContent;
-        this.toolbar            = toolbar;
-        this.listView           = listView;
-        this.emptyView          = emptyView;
-        this.loginDetailView    = loginDetailView;
-        this.noteDetailView     = noteDetailView;
+    public MainController(UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
+            ToolbarView toolbar, ItemListView listView, EmptyView emptyView, LoginDetailView loginDetailView,
+            NoteDetailView noteDetailView, IdentityDetailView identityDetailView, LoginEditView loginEditView,
+            NoteEditView noteEditView, IdentityEditView identityEditView, Composite rightContainer,
+            StackLayout rightStack) {
+        this.unlockView = unlockView;
+        this.topContainer = topContainer;
+        this.topStack = topStack;
+        this.mainContent = mainContent;
+        this.toolbar = toolbar;
+        this.listView = listView;
+        this.emptyView = emptyView;
+        this.loginDetailView = loginDetailView;
+        this.noteDetailView = noteDetailView;
         this.identityDetailView = identityDetailView;
-        this.loginEditView      = loginEditView;
-        this.noteEditView       = noteEditView;
-        this.identityEditView   = identityEditView;
-        this.rightContainer     = rightContainer;
-        this.rightStack         = rightStack;
+        this.loginEditView = loginEditView;
+        this.noteEditView = noteEditView;
+        this.identityEditView = identityEditView;
+        this.rightContainer = rightContainer;
+        this.rightStack = rightStack;
     }
 
     public void init() {
@@ -136,13 +128,25 @@ public class MainController {
 
     // ── content-layer event handlers ──────────────────────────────────
 
-    private void onAddNew(ItemType type) {
+    private void onAddNew(int type) {
         listView.clearSelection();
         state.selectedItem = null;
         switch (type) {
-            case LOGIN    -> { loginEditView.edit(null);    activeEditComposite = loginEditView.composite; }
-            case NOTE     -> { noteEditView.edit(null);     activeEditComposite = noteEditView.composite; }
-            case IDENTITY -> { identityEditView.edit(null); activeEditComposite = identityEditView.composite; }
+        case ItemType.LOGIN -> {
+            loginEditView.edit(null);
+            activeEditComposite = loginEditView.composite;
+        }
+        case ItemType.NOTE -> {
+            noteEditView.edit(null);
+            activeEditComposite = noteEditView.composite;
+        }
+        case ItemType.IDENTITY -> {
+            identityEditView.edit(null);
+            activeEditComposite = identityEditView.composite;
+        }
+        default -> {
+            // FIXME: popup error message dialog:
+        }
         }
         switchMode(Mode.EDIT);
     }
@@ -160,71 +164,77 @@ public class MainController {
 
     private void onSearch(String query) {
         String q = query == null ? "" : query.strip().toLowerCase();
-        List<VaultItem> source = q.isEmpty() ? state.allItems
-                : state.allItems.stream()
-                        .filter(i -> contains(i.title(), q) || contains(i.subtitle(), q))
-                        .toList();
+        List<AbstractItemData> source = q.isEmpty() ? state.allItems
+                : state.allItems.stream().filter(i -> contains("todo: title", q)).toList();
         listView.setAllItems(source);
     }
 
     private void onCategoryChanged(Category category) {
-        state.category     = category;
+        state.category = category;
         state.selectedItem = null;
         switchMode(Mode.EMPTY);
     }
 
-    private void onSelectionChanged(VaultItem item) {
+    private void onSelectionChanged(AbstractItemData item) {
         state.selectedItem = item;
         if (item == null) {
             switchMode(Mode.EMPTY);
             return;
         }
-        switch (item.type()) {
-            case LOGIN -> {
-                LoginItemData d = loginStore.get(item.id());
-                if (d != null) loginDetailView.show(d);
-                activeDetailComposite = loginDetailView.composite;
-            }
-            case NOTE -> {
-                NoteItemData d = noteStore.get(item.id());
-                if (d != null) noteDetailView.show(d);
-                activeDetailComposite = noteDetailView.composite;
-            }
-            case IDENTITY -> {
-                IdentityItemData d = identityStore.get(item.id());
-                if (d != null) identityDetailView.show(d);
-                activeDetailComposite = identityDetailView.composite;
-            }
+        switch (item.item_type) {
+        case ItemType.LOGIN -> {
+            LoginItemData d = loginStore.get(item.id);
+            if (d != null)
+                loginDetailView.show(d);
+            activeDetailComposite = loginDetailView.composite;
+        }
+        case ItemType.NOTE -> {
+            NoteItemData d = noteStore.get(item.id);
+            if (d != null)
+                noteDetailView.show(d);
+            activeDetailComposite = noteDetailView.composite;
+        }
+        case ItemType.IDENTITY -> {
+            IdentityItemData d = identityStore.get(item.id);
+            if (d != null)
+                identityDetailView.show(d);
+            activeDetailComposite = identityDetailView.composite;
+        }
+        default -> {
+            // FIXME: display error view
+        }
         }
         switchMode(Mode.DETAIL);
     }
 
     private void onEditCurrent() {
-        if (state.selectedItem == null) return;
-        switch (state.selectedItem.type()) {
-            case LOGIN -> {
-                loginEditView.edit(loginStore.get(state.selectedItem.id()));
-                activeEditComposite = loginEditView.composite;
-            }
-            case NOTE -> {
-                noteEditView.edit(noteStore.get(state.selectedItem.id()));
-                activeEditComposite = noteEditView.composite;
-            }
-            case IDENTITY -> {
-                identityEditView.edit(identityStore.get(state.selectedItem.id()));
-                activeEditComposite = identityEditView.composite;
-            }
+        if (state.selectedItem == null)
+            return;
+        switch (state.selectedItem.item_type) {
+        case ItemType.LOGIN -> {
+            loginEditView.edit(loginStore.get(state.selectedItem.id));
+            activeEditComposite = loginEditView.composite;
+        }
+        case ItemType.NOTE -> {
+            noteEditView.edit(noteStore.get(state.selectedItem.id));
+            activeEditComposite = noteEditView.composite;
+        }
+        case ItemType.IDENTITY -> {
+            identityEditView.edit(identityStore.get(state.selectedItem.id));
+            activeEditComposite = identityEditView.composite;
+        }
         }
         switchMode(Mode.EDIT);
     }
 
     private void onSaveLogin(LoginItemData data) {
         boolean isNew = data.id == 0;
-        if (isNew) data.id = System.currentTimeMillis();
+        if (isNew)
+            data.id = System.currentTimeMillis();
         loginStore.put(data.id, data);
-        VaultItem vaultItem = new VaultItem(data.id, ItemType.LOGIN,
-                data.title, notNull(data.username), false, false);
-        commitItem(vaultItem, isNew);
+        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.LOGIN,
+        // data.title, notNull(data.username), false, false);
+        // FIXME: commitItem(vaultItem, isNew);
         loginDetailView.show(data);
         activeDetailComposite = loginDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -232,11 +242,12 @@ public class MainController {
 
     private void onSaveNote(NoteItemData data) {
         boolean isNew = data.id == 0;
-        if (isNew) data.id = System.currentTimeMillis();
+        if (isNew)
+            data.id = System.currentTimeMillis();
         noteStore.put(data.id, data);
-        VaultItem vaultItem = new VaultItem(data.id, ItemType.NOTE,
-                data.title, "", false, false);
-        commitItem(vaultItem, isNew);
+        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.NOTE,
+        // data.title, "", false, false);
+        // FIXME: commitItem(vaultItem, isNew);
         noteDetailView.show(data);
         activeDetailComposite = noteDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -244,11 +255,12 @@ public class MainController {
 
     private void onSaveIdentity(IdentityItemData data) {
         boolean isNew = data.id == 0;
-        if (isNew) data.id = System.currentTimeMillis();
+        if (isNew)
+            data.id = System.currentTimeMillis();
         identityStore.put(data.id, data);
-        VaultItem vaultItem = new VaultItem(data.id, ItemType.IDENTITY,
-                data.title, notNull(data.name), false, false);
-        commitItem(vaultItem, isNew);
+        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.IDENTITY,
+        // data.title, notNull(data.name), false, false);
+        // FIXME: commitItem(vaultItem, isNew);
         identityDetailView.show(data);
         activeDetailComposite = identityDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -260,11 +272,11 @@ public class MainController {
 
     // ── helpers ───────────────────────────────────────────────────────
 
-    private void commitItem(VaultItem vaultItem, boolean isNew) {
+    private void commitItem(AbstractItemData vaultItem, boolean isNew) {
         if (isNew) {
             state.allItems.add(vaultItem);
         } else {
-            state.allItems.replaceAll(i -> i.id() == vaultItem.id() ? vaultItem : i);
+            state.allItems.replaceAll(i -> i.id == vaultItem.id ? vaultItem : i);
         }
         state.selectedItem = vaultItem;
         listView.setAllItems(state.allItems);
@@ -272,75 +284,95 @@ public class MainController {
 
     private void loadItems() {
         // TODO: replace with daemon API calls
-        addLogin(1,  "Google",          "michael@gmail.com",      true,  false);
-        addLogin(2,  "GitHub",          "michael-liao",           false, false);
-        addLogin(3,  "Amazon",          "michael@gmail.com",      false, false);
-        addLogin(4,  "Netflix",         "michael@gmail.com",      false, false);
-        addLogin(5,  "Twitter / X",     "michael_liao",           false, true);
-        addLogin(6,  "LinkedIn",        "michael.liao@work.com",  true,  false);
-        addLogin(7,  "Dropbox",         "michael@gmail.com",      false, false);
-        addLogin(8,  "Apple ID",        "michael@icloud.com",     false, false);
-        addLogin(9,  "Microsoft",       "michael@outlook.com",    false, false);
-        addLogin(10, "Steam",           "michael_games",          false, true);
-        addLogin(11, "Spotify",         "michael@gmail.com",      true,  false);
-        addLogin(12, "PayPal",          "michael@gmail.com",      false, false);
-        addLogin(13, "Slack",           "michael.liao@work.com",  false, false);
-        addLogin(14, "Notion",          "michael.liao@work.com",  false, false);
-        addLogin(15, "Adobe",           "michael@gmail.com",      false, true);
-        addLogin(16, "1Password",       "michael@gmail.com",      true,  false);
-        addLogin(17, "Figma",           "michael.liao@work.com",  false, false);
-        addLogin(18, "Cloudflare",      "michael@gmail.com",      false, false);
-        addLogin(19, "Digital Ocean",   "michael@gmail.com",      false, false);
-        addLogin(20, "Old Forum",       "michael1990",            false, true);
+        addLogin(1, "Google", "michael@gmail.com", true, false);
+        addLogin(2, "GitHub", "michael-liao", false, false);
+        addLogin(3, "Amazon", "michael@gmail.com", false, false);
+        addLogin(4, "Netflix", "michael@gmail.com", false, false);
+        addLogin(5, "Twitter / X", "michael_liao", false, true);
+        addLogin(6, "LinkedIn", "michael.liao@work.com", true, false);
+        addLogin(7, "Dropbox", "michael@gmail.com", false, false);
+        addLogin(8, "Apple ID", "michael@icloud.com", false, false);
+        addLogin(9, "Microsoft", "michael@outlook.com", false, false);
+        addLogin(10, "Steam", "michael_games", false, true);
+        addLogin(11, "Spotify", "michael@gmail.com", true, false);
+        addLogin(12, "PayPal", "michael@gmail.com", false, false);
+        addLogin(13, "Slack", "michael.liao@work.com", false, false);
+        addLogin(14, "Notion", "michael.liao@work.com", false, false);
+        addLogin(15, "Adobe", "michael@gmail.com", false, true);
+        addLogin(16, "1Password", "michael@gmail.com", true, false);
+        addLogin(17, "Figma", "michael.liao@work.com", false, false);
+        addLogin(18, "Cloudflare", "michael@gmail.com", false, false);
+        addLogin(19, "Digital Ocean", "michael@gmail.com", false, false);
+        addLogin(20, "Old Forum", "michael1990", false, true);
 
-        addNote(21, "Wi-Fi Password",         "Router: TP-Link AX3000...",     true,  false);
-        addNote(22, "Server SSH Keys",        "prod-01: ssh michael@...",       false, false);
-        addNote(23, "Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-...",      false, true);
-        addNote(24, "API Keys",               "Stripe live key: sk_live_...",   false, false);
-        addNote(25, "Software Licenses",      "JetBrains: ABCD-EFGH-...",       false, false);
-        addNote(26, "Home Alarm Code",        "Front door: 4 digits...",        true,  false);
-        addNote(27, "Bank Account Details",   "IBAN: GB29 NWBK...",             false, false);
-        addNote(28, "Travel SIM PINs",        "UK SIM PIN: 1234...",            false, true);
-        addNote(29, "Emergency Contacts",     "Police: 110, Fire: 119...",      false, false);
-        addNote(30, "Old Passwords Archive",  "pre-2020 list...",               false, false);
+        addNote(21, "Wi-Fi Password", "Router: TP-Link AX3000...", true, false);
+        addNote(22, "Server SSH Keys", "prod-01: ssh michael@...", false, false);
+        addNote(23, "Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-...", false, true);
+        addNote(24, "API Keys", "Stripe live key: sk_live_...", false, false);
+        addNote(25, "Software Licenses", "JetBrains: ABCD-EFGH-...", false, false);
+        addNote(26, "Home Alarm Code", "Front door: 4 digits...", true, false);
+        addNote(27, "Bank Account Details", "IBAN: GB29 NWBK...", false, false);
+        addNote(28, "Travel SIM PINs", "UK SIM PIN: 1234...", false, true);
+        addNote(29, "Emergency Contacts", "Police: 110, Fire: 119...", false, false);
+        addNote(30, "Old Passwords Archive", "pre-2020 list...", false, false);
 
-        addIdentity(31, "Personal Passport", "Michael Liao", "E12345678", true,  false);
-        addIdentity(32, "Work ID",           "Michael Liao", "",          false, false);
-        addIdentity(33, "Old Passport",      "Michael Liao", "D98765432", false, true);
-        addIdentity(34, "Driver License",    "Michael Liao", "",          false, false);
-        addIdentity(35, "National ID",       "Michael Liao", "",          false, false);
+        addIdentity(31, "Personal Passport", "Michael Liao", "E12345678", true, false);
+        addIdentity(32, "Work ID", "Michael Liao", "", false, false);
+        addIdentity(33, "Old Passport", "Michael Liao", "D98765432", false, true);
+        addIdentity(34, "Driver License", "Michael Liao", "", false, false);
+        addIdentity(35, "National ID", "Michael Liao", "", false, false);
 
         listView.setAllItems(state.allItems);
     }
 
     private void addLogin(long id, String title, String username, boolean fav, boolean del) {
         LoginItemData d = new LoginItemData();
-        d.id = id; d.title = title; d.username = username;
+        d.item_type = ItemType.LOGIN;
+        d.id = id;
+        d.favorite = fav;
+        d.deleted = del;
+        d.data = new LoginFieldsData();
+        d.data.title = title;
+        d.data.username = username;
+        d.data.password = "it is a secret - " + id;
+        d.data.websites = List.of("https://google.com", "https://gmail.com");
         loginStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.LOGIN, title, username, fav, del));
+        state.allItems.add(d);
     }
 
     private void addNote(long id, String title, String content, boolean fav, boolean del) {
         NoteItemData d = new NoteItemData();
-        d.id = id; d.title = title; d.content = content;
+        d.item_type = ItemType.LOGIN;
+        d.id = id;
+        d.favorite = fav;
+        d.deleted = del;
+        d.data = new NoteFieldsData();
+        d.data.title = title;
+        d.data.content = content;
         noteStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.NOTE, title, "", fav, del));
+        state.allItems.add(d);
     }
 
-    private void addIdentity(long id, String title, String name, String passport,
-            boolean fav, boolean del) {
+    private void addIdentity(long id, String title, String name, String passport, boolean fav, boolean del) {
         IdentityItemData d = new IdentityItemData();
-        d.id = id; d.title = title; d.name = name; d.passport_number = passport;
+        d.item_type = ItemType.IDENTITY;
+        d.id = id;
+        d.favorite = fav;
+        d.deleted = del;
+        d.data = new IdentityFieldsData();
+        d.data.name = name;
+        d.data.passport_number = passport;
+        d.data.mobiles = List.of("+1 23456789");
         identityStore.put(id, d);
-        state.allItems.add(new VaultItem(id, ItemType.IDENTITY, title, name, fav, del));
+        state.allItems.add(d);
     }
 
     private void switchMode(Mode mode) {
         state.mode = mode;
         rightStack.topControl = switch (mode) {
-            case EMPTY  -> emptyView.composite;
-            case DETAIL -> activeDetailComposite;
-            case EDIT   -> activeEditComposite;
+        case EMPTY -> emptyView.composite;
+        case DETAIL -> activeDetailComposite;
+        case EDIT -> activeEditComposite;
         };
         rightContainer.layout(true, true);
     }
@@ -349,5 +381,7 @@ public class MainController {
         return text != null && text.toLowerCase().contains(query);
     }
 
-    private String notNull(String s) { return s != null ? s : ""; }
+    private String notNull(String s) {
+        return s != null ? s : "";
+    }
 }
