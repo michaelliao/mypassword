@@ -165,7 +165,7 @@ public class MainController {
     private void onSearch(String query) {
         String q = query == null ? "" : query.strip().toLowerCase();
         List<AbstractItemData> source = q.isEmpty() ? state.allItems
-                : state.allItems.stream().filter(i -> contains("todo: title", q)).toList();
+                : state.allItems.stream().filter(i -> contains(i.title(), q)).toList();
         listView.setAllItems(source);
     }
 
@@ -232,9 +232,7 @@ public class MainController {
         if (isNew)
             data.id = System.currentTimeMillis();
         loginStore.put(data.id, data);
-        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.LOGIN,
-        // data.title, notNull(data.username), false, false);
-        // FIXME: commitItem(vaultItem, isNew);
+        commitItem(data, isNew);
         loginDetailView.show(data);
         activeDetailComposite = loginDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -245,9 +243,7 @@ public class MainController {
         if (isNew)
             data.id = System.currentTimeMillis();
         noteStore.put(data.id, data);
-        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.NOTE,
-        // data.title, "", false, false);
-        // FIXME: commitItem(vaultItem, isNew);
+        commitItem(data, isNew);
         noteDetailView.show(data);
         activeDetailComposite = noteDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -258,9 +254,7 @@ public class MainController {
         if (isNew)
             data.id = System.currentTimeMillis();
         identityStore.put(data.id, data);
-        // FIXME: VaultItem vaultItem = new VaultItem(data.id, ItemType.IDENTITY,
-        // data.title, notNull(data.name), false, false);
-        // FIXME: commitItem(vaultItem, isNew);
+        commitItem(data, isNew);
         identityDetailView.show(data);
         activeDetailComposite = identityDetailView.composite;
         switchMode(Mode.DETAIL);
@@ -273,13 +267,15 @@ public class MainController {
     // ── helpers ───────────────────────────────────────────────────────
 
     private void commitItem(AbstractItemData vaultItem, boolean isNew) {
+        state.selectedItem = vaultItem;
         if (isNew) {
             state.allItems.add(vaultItem);
+            listView.setAllItems(state.allItems);
+            listView.selectItem(vaultItem.id);
         } else {
             state.allItems.replaceAll(i -> i.id == vaultItem.id ? vaultItem : i);
+            listView.updateItem(vaultItem);
         }
-        state.selectedItem = vaultItem;
-        listView.setAllItems(state.allItems);
     }
 
     private void loadItems() {
@@ -342,7 +338,7 @@ public class MainController {
 
     private void addNote(long id, String title, String content, boolean fav, boolean del) {
         NoteItemData d = new NoteItemData();
-        d.item_type = ItemType.LOGIN;
+        d.item_type = ItemType.NOTE;
         d.id = id;
         d.favorite = fav;
         d.deleted = del;

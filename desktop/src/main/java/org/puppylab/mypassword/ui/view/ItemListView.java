@@ -88,6 +88,28 @@ public class ItemListView {
         itemTable.deselectAll();
     }
 
+    public void selectItem(long id) {
+        TableItem[] items = itemTable.getItems();
+        for (int i = 0; i < items.length; i++) {
+            AbstractItemData d = (AbstractItemData) items[i].getData();
+            if (d != null && d.id == id) {
+                itemTable.setSelection(i);
+                return;
+            }
+        }
+    }
+
+    public void updateItem(AbstractItemData item) {
+        for (TableItem ti : itemTable.getItems()) {
+            AbstractItemData d = (AbstractItemData) ti.getData();
+            if (d != null && d.id == item.id) {
+                ti.setData(item);
+                itemTable.redraw();
+                return;
+            }
+        }
+    }
+
     public void setOnSelectionChanged(Consumer<AbstractItemData> listener) {
         this.onSelectionChanged = listener;
     }
