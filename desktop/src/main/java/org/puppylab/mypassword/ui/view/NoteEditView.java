@@ -12,7 +12,7 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
     private Text titleField;
     private Text contentField;
 
-    private long editingId = 0;
+    private NoteItemData editingItem = null;
 
     public NoteEditView(Composite parent) {
         super(parent);
@@ -27,12 +27,11 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
     /** Populate form for editing an existing item, or pass null for a new item. */
     @Override
     protected void setData(NoteItemData item) {
+        editingItem = item;
         if (item == null) {
-            editingId = 0;
             titleField.setText("");
             contentField.setText("");
         } else {
-            editingId = item.id;
             titleField.setText(StringUtils.normalize(item.data.title));
             contentField.setText(StringUtils.normalize(item.data.content));
         }
@@ -40,8 +39,7 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
 
     @Override
     protected NoteItemData collectData() {
-        NoteItemData data = new NoteItemData();
-        data.id = editingId;
+        NoteItemData data = editingItem != null ? editingItem : new NoteItemData();
         data.data = new NoteFieldsData();
         data.data.title = titleField.getText().strip();
         data.data.content = contentField.getText();

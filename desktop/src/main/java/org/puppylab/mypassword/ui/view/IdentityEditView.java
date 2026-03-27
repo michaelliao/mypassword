@@ -17,7 +17,7 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
     private MultiText telephonesMultiFields;
     private MultiText mobilesMultiFields;
 
-    private long editingId = 0;
+    private IdentityItemData editingItem = null;
 
     public IdentityEditView(Composite parent) {
         super(parent);
@@ -42,8 +42,8 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
         telephonesMultiFields.disposeFields();
         mobilesMultiFields.disposeFields();
 
+        editingItem = item;
         if (item == null) {
-            editingId = 0;
             nameField.setText("");
             passportField.setText("");
             identityNumberField.setText("");
@@ -51,7 +51,6 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
             addMultiTextRow(telephonesMultiFields, "", false);
             addMultiTextRow(mobilesMultiFields, "", false);
         } else {
-            editingId = item.id;
             nameField.setText(StringUtils.normalize(item.data.name));
             passportField.setText(StringUtils.normalize(item.data.passport_number));
             identityNumberField.setText(StringUtils.normalize(item.data.identity_number));
@@ -65,8 +64,7 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
 
     @Override
     protected IdentityItemData collectData() {
-        IdentityItemData data = new IdentityItemData();
-        data.id = editingId;
+        IdentityItemData data = editingItem != null ? editingItem : new IdentityItemData();
         data.data = new IdentityFieldsData();
         data.data.name = nameField.getText().strip();
         data.data.passport_number = passportField.getText().strip();

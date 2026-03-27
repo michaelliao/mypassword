@@ -16,7 +16,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
 
     private MultiText websitesMultiFields;
 
-    private long editingId = 0;
+    private LoginItemData editingItem = null;
 
     public LoginEditView(Composite parent) {
         super(parent);
@@ -36,15 +36,14 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         // Dispose all existing website rows
         websitesMultiFields.disposeFields();
 
+        editingItem = item;
         if (item == null) {
-            editingId = 0;
             titleField.setText("");
             usernameField.setText("");
             passwordField.setText("");
             addMultiTextRow(websitesMultiFields, "", false);
             memoField.setText("");
         } else {
-            editingId = item.id;
             titleField.setText(StringUtils.normalize(item.data.title));
             usernameField.setText(StringUtils.normalize(item.data.username));
             passwordField.setText(StringUtils.normalize(item.data.password));
@@ -56,8 +55,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
 
     @Override
     protected LoginItemData collectData() {
-        LoginItemData data = new LoginItemData();
-        data.id = editingId;
+        LoginItemData data = editingItem != null ? editingItem : new LoginItemData();
         data.data = new LoginFieldsData();
         data.data.title = titleField.getText().strip();
         data.data.username = usernameField.getText().strip();
