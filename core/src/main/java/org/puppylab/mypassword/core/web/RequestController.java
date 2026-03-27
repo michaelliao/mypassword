@@ -30,7 +30,7 @@ import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
-import org.puppylab.mypassword.rpc.response.ItemsDataResponse;
+import org.puppylab.mypassword.rpc.response.ItemsResponse;
 import org.puppylab.mypassword.rpc.util.Base64Utils;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 import org.puppylab.mypassword.rpc.util.JsonUtils;
@@ -72,7 +72,7 @@ public class RequestController {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
         List<Item> items = vaultManager.getItems();
-        var response = new ItemsDataResponse();
+        var response = new ItemsResponse();
         response.items = items.stream().map(item -> toItemData(key, item)).toList();
         return response;
     }

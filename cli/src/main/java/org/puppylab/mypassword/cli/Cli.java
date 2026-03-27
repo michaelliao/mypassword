@@ -29,7 +29,7 @@ import org.puppylab.mypassword.rpc.request.OAuth;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
-import org.puppylab.mypassword.rpc.response.ItemsDataResponse;
+import org.puppylab.mypassword.rpc.response.ItemsResponse;
 import org.puppylab.mypassword.rpc.util.FileUtils;
 import org.puppylab.mypassword.rpc.util.JsonUtils;
 
@@ -121,7 +121,7 @@ public class Cli {
         }
         switch (action) {
         case "list" -> {
-            request("/items/list", null, ItemsDataResponse.class);
+            request("/items/list", null, ItemsResponse.class);
         }
         case "get" -> {
             String id = next(args);
