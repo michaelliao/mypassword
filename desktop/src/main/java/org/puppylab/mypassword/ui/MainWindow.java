@@ -28,12 +28,17 @@ public class MainWindow {
     }
 
     public void open() {
-        // ── main thread: owns the SWT Display ─────────────────────────────
-        Display display = new Display();
-
         // ── shared services ───────────────────────────────────────────────
         VaultManager vaultManager = new VaultManager();
-        Daemon daemon = new Daemon(vaultManager, display);
+        Daemon daemon = new Daemon(vaultManager);
+
+        // ── bind port — exit if another instance is already running ──────────
+        if (!daemon.listen()) {
+            System.exit(1);
+        }
+
+        // ── main thread: owns the SWT Display ─────────────────────────────
+        Display display = new Display();
 
         // ── start HTTP acceptor on a background daemon thread ─────────────
         Thread acceptor = new Thread(daemon::start, "http-acceptor");
@@ -74,21 +79,17 @@ public class MainWindow {
         StackLayout rightStack = new StackLayout();
         rightContainer.setLayout(rightStack);
 
-        EmptyView          emptyView          = new EmptyView(rightContainer);
-        LoginDetailView    loginDetailView    = new LoginDetailView(rightContainer);
-        NoteDetailView     noteDetailView     = new NoteDetailView(rightContainer);
+        EmptyView emptyView = new EmptyView(rightContainer);
+        LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
+        NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
-        LoginEditView      loginEditView      = new LoginEditView(rightContainer);
-        NoteEditView       noteEditView       = new NoteEditView(rightContainer);
-        IdentityEditView   identityEditView   = new IdentityEditView(rightContainer);
+        LoginEditView loginEditView = new LoginEditView(rightContainer);
+        NoteEditView noteEditView = new NoteEditView(rightContainer);
+        IdentityEditView identityEditView = new IdentityEditView(rightContainer);
 
-        MainController controller = new MainController(
-                vaultManager,
-                unlockView, topContainer, topStack, mainContent,
-                toolbar, listView, emptyView,
-                loginDetailView, noteDetailView, identityDetailView,
-                loginEditView, noteEditView, identityEditView,
-                rightContainer, rightStack);
+        MainController controller = new MainController(vaultManager, unlockView, topContainer, topStack, mainContent,
+                toolbar, listView, emptyView, loginDetailView, noteDetailView, identityDetailView, loginEditView,
+                noteEditView, identityEditView, rightContainer, rightStack);
         controller.init();
 
         // ── SWT event loop (main thread stays here) ────────────────────────
