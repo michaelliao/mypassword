@@ -44,6 +44,15 @@ public class DbManager implements AutoCloseable {
         String jdbcUrl = "jdbc:sqlite:" + dbFile.toUri().getPath();
         logger.info("open db at: {}", jdbcUrl);
         boolean shouldInitDb = !Files.isRegularFile(dbFile);
+        if (!shouldInitDb) {
+            Path backup = dbFile.resolveSibling(dbFile.getFileName() + ".bak");
+            try {
+                Files.copy(dbFile, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                logger.info("db backed up to: {}", backup);
+            } catch (IOException e) {
+                logger.warn("db backup failed: {}", backup, e);
+            }
+        }
         try {
             this.connection = DriverManager.getConnection(jdbcUrl);
             this.connection.setAutoCommit(true);
