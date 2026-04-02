@@ -72,14 +72,7 @@ public class DbManager implements AutoCloseable {
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // close db on JVM exit:
-            if (connection != null) {
-                logger.info("close db...");
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    logger.error("close db failed.", e);
-                }
-            }
+            close();
         }));
     }
 
@@ -265,11 +258,14 @@ public class DbManager implements AutoCloseable {
     }
 
     @Override
-    public void close() {
-        try {
-            this.connection.close();
-        } catch (SQLException e) {
-            logger.error("failed close db.", e);
+    public synchronized void close() {
+        if (this.connection != null) {
+            try {
+                this.connection.close();
+                this.connection = null;
+            } catch (SQLException e) {
+                logger.error("failed close db.", e);
+            }
         }
     }
 
