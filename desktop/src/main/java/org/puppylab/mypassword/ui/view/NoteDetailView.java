@@ -3,7 +3,7 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
-import org.puppylab.mypassword.rpc.util.StringUtils;
+import org.puppylab.mypassword.util.StringUtils;
 
 public class NoteDetailView extends AbstractDetailView<NoteItemData> {
 

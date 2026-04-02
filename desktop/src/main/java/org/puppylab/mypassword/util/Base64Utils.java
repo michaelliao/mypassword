@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.rpc.util;
+package org.puppylab.mypassword.util;
 
 import java.util.Base64;
 import java.util.Base64.Decoder;

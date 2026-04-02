@@ -2,7 +2,7 @@ package org.puppylab.mypassword.core;
 
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
-import org.puppylab.mypassword.rpc.util.JsonUtils;
+import org.puppylab.mypassword.util.JsonUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 

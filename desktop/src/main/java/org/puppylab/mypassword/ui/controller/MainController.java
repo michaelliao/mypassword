@@ -16,6 +16,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import javax.crypto.SecretKey;
+
+import org.puppylab.mypassword.core.Session;
+import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.rpc.data.AbstractItemData;
 import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
@@ -40,9 +44,8 @@ import org.puppylab.mypassword.ui.view.UnlockView;
 
 public class MainController {
 
-    private static final String DUMMY_PASSWORD = "password";
-
-    private final AppState state = new AppState();
+    private final AppState     state        = new AppState();
+    private final VaultManager vaultManager;
 
     // ── unlock layer ──────────────────────────────────────────────────
     private final UnlockView  unlockView;
@@ -72,11 +75,13 @@ public class MainController {
     private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
-    public MainController(UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
+    public MainController(VaultManager vaultManager,
+            UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
             ToolbarView toolbar, ItemListView listView, EmptyView emptyView, LoginDetailView loginDetailView,
             NoteDetailView noteDetailView, IdentityDetailView identityDetailView, LoginEditView loginEditView,
             NoteEditView noteEditView, IdentityEditView identityEditView, Composite rightContainer,
             StackLayout rightStack) {
+        this.vaultManager = vaultManager;
         this.unlockView = unlockView;
         this.topContainer = topContainer;
         this.topStack = topStack;
@@ -123,10 +128,12 @@ public class MainController {
     // ── unlock ────────────────────────────────────────────────────────
 
     private void onUnlockSubmit(String password) {
-        if (!DUMMY_PASSWORD.equals(password)) {
+        SecretKey dek = vaultManager.unlockVault(password.toCharArray());
+        if (dek == null) {
             unlockView.showError("Incorrect password. Please try again.");
             return;
         }
+        Session.current().setKey(dek);
         state.unlocked = true;
         unlockView.clearError();
         topStack.topControl = mainContent;
@@ -162,6 +169,7 @@ public class MainController {
     }
 
     private void onLock() {
+        Session.current().lock();
         state.unlocked = false;
         state.allItems.clear();
         state.selectedItem = null;

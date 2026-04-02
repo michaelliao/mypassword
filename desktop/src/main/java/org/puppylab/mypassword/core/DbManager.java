@@ -38,22 +38,15 @@ public class DbManager implements AutoCloseable {
     final Logger                 logger      = LoggerFactory.getLogger(getClass());
     final Map<Class<?>, Mapping> ormMappings = new HashMap<>();
 
-    Connection connection;
+    Connection connection = null;
 
     public DbManager(Path dbFile) {
         String jdbcUrl = "jdbc:sqlite:" + dbFile.toUri().getPath();
-        logger.info("set jdbc url: {}", jdbcUrl);
+        logger.info("open db at: {}", jdbcUrl);
         boolean shouldInitDb = !Files.isRegularFile(dbFile);
         try {
             this.connection = DriverManager.getConnection(jdbcUrl);
             this.connection.setAutoCommit(true);
-        } catch (SQLException e) {
-            throw new DataAccessException(e);
-        }
-        // 优化 SQLite 性能
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute("PRAGMA journal_mode=WAL;");
-            stmt.execute("PRAGMA synchronous=NORMAL;");
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
@@ -77,6 +70,17 @@ public class DbManager implements AutoCloseable {
                 }
             });
         }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // close db on JVM exit:
+            if (connection != null) {
+                logger.info("close db...");
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.error("close db failed.", e);
+                }
+            }
+        }));
     }
 
     public VaultVersion queryVaultVersion() {

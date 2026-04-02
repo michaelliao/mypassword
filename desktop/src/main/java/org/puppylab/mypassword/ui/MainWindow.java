@@ -7,6 +7,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.IdentityDetailView;
@@ -21,19 +23,33 @@ import org.puppylab.mypassword.ui.view.UnlockView;
 
 public class MainWindow {
 
-    // Start entry:
     public static void main(String[] args) {
         new MainWindow().open();
     }
 
     public void open() {
+        // ── main thread: owns the SWT Display ─────────────────────────────
         Display display = new Display();
+
+        // ── shared services ───────────────────────────────────────────────
+        VaultManager vaultManager = new VaultManager();
+        Daemon daemon = new Daemon(vaultManager, display);
+
+        // ── start HTTP acceptor on a background daemon thread ─────────────
+        Thread acceptor = new Thread(daemon::start, "http-acceptor");
+        acceptor.setDaemon(true);
+        acceptor.start();
+
+        // ── SWT shell ──────────────────────────────────────────────────────
         Shell shell = new Shell(display);
         shell.setText("MyPassword");
         shell.setSize(800, 600);
         shell.setLayout(new GridLayout(1, false));
 
-        // ── top-level stack: unlock vs. main content ──────────────────
+        // Stop the HTTP service when the window closes
+        shell.addListener(SWT.Dispose, e -> daemon.stop());
+
+        // ── top-level stack: unlock vs. main content ───────────────────────
         Composite topContainer = new Composite(shell, SWT.NONE);
         topContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         StackLayout topStack = new StackLayout();
@@ -41,7 +57,7 @@ public class MainWindow {
 
         UnlockView unlockView = new UnlockView(topContainer);
 
-        // ── main content (shown after unlock) ─────────────────────────
+        // ── main content (shown after unlock) ─────────────────────────────
         Composite mainContent = new Composite(topContainer, SWT.NONE);
         mainContent.setLayout(new GridLayout(1, false));
 
@@ -58,19 +74,24 @@ public class MainWindow {
         StackLayout rightStack = new StackLayout();
         rightContainer.setLayout(rightStack);
 
-        EmptyView emptyView = new EmptyView(rightContainer);
-        LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
-        NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
+        EmptyView          emptyView          = new EmptyView(rightContainer);
+        LoginDetailView    loginDetailView    = new LoginDetailView(rightContainer);
+        NoteDetailView     noteDetailView     = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
-        LoginEditView loginEditView = new LoginEditView(rightContainer);
-        NoteEditView noteEditView = new NoteEditView(rightContainer);
-        IdentityEditView identityEditView = new IdentityEditView(rightContainer);
+        LoginEditView      loginEditView      = new LoginEditView(rightContainer);
+        NoteEditView       noteEditView       = new NoteEditView(rightContainer);
+        IdentityEditView   identityEditView   = new IdentityEditView(rightContainer);
 
-        MainController controller = new MainController(unlockView, topContainer, topStack, mainContent, toolbar,
-                listView, emptyView, loginDetailView, noteDetailView, identityDetailView, loginEditView, noteEditView,
-                identityEditView, rightContainer, rightStack);
+        MainController controller = new MainController(
+                vaultManager,
+                unlockView, topContainer, topStack, mainContent,
+                toolbar, listView, emptyView,
+                loginDetailView, noteDetailView, identityDetailView,
+                loginEditView, noteEditView, identityEditView,
+                rightContainer, rightStack);
         controller.init();
 
+        // ── SWT event loop (main thread stays here) ────────────────────────
         shell.open();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())

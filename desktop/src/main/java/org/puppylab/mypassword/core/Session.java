@@ -5,39 +5,33 @@ import java.time.Duration;
 import javax.crypto.SecretKey;
 
 /**
- * ThreadLocal based session for holding data encryption key.
+ * Singleton session holding the in-memory Data Encryption Key.
+ *
+ * Thread-safe: all methods are synchronized. The desktop app has exactly one
+ * vault and one user, so a single shared instance is correct. Any thread
+ * (SWT main thread or HTTP handler pool) that unlocks/locks the vault
+ * immediately affects all other threads.
  */
 public class Session {
 
-    private static ThreadLocal<Session> threadlocal = new ThreadLocal<>();
+    private static final Session INSTANCE = new Session();
 
-    private final long INACTIVE_TIME;
+    private final long INACTIVE_TIME = Duration.ofMinutes(10).toMillis();
 
     private SecretKey dek            = null;
     private long      lastActiveTime = 0;
 
-    public static void init() {
-        var session = new Session();
-        threadlocal.set(session);
-    }
+    private Session() {}
 
     public static Session current() {
-        return threadlocal.get();
+        return INSTANCE;
     }
 
-    public static void remove() {
-        threadlocal.remove();
-    }
-
-    private Session() {
-        INACTIVE_TIME = Duration.ofMinutes(10).toMillis();
-    }
-
-    public void recordActivity() {
+    public synchronized void recordActivity() {
         this.lastActiveTime = System.currentTimeMillis();
     }
 
-    public boolean isLocked() {
+    public synchronized boolean isLocked() {
         if (dek == null) {
             return true;
         }
@@ -48,16 +42,18 @@ public class Session {
         return false;
     }
 
-    public void lock() {
+    public synchronized void lock() {
         this.dek = null;
     }
 
-    public void setKey(SecretKey key) {
+    public synchronized void setKey(SecretKey key) {
         this.dek = key;
-        recordActivity();
+        if (key != null) {
+            recordActivity();
+        }
     }
 
-    public SecretKey getKey() {
+    public synchronized SecretKey getKey() {
         if (isLocked()) {
             return null;
         }

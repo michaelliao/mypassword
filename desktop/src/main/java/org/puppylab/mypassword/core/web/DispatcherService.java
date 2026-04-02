@@ -10,7 +10,7 @@ import org.puppylab.mypassword.core.ErrorUtils;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
-import org.puppylab.mypassword.rpc.util.JsonUtils;
+import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -5,7 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.NoteFieldsData;
 import org.puppylab.mypassword.rpc.data.NoteItemData;
-import org.puppylab.mypassword.rpc.util.StringUtils;
+import org.puppylab.mypassword.util.StringUtils;
 
 public class NoteEditView extends AbstractEditView<NoteItemData> {
 

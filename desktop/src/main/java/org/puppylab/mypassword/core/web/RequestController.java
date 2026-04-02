@@ -31,9 +31,9 @@ import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
-import org.puppylab.mypassword.rpc.util.Base64Utils;
-import org.puppylab.mypassword.rpc.util.FileUtils;
-import org.puppylab.mypassword.rpc.util.JsonUtils;
+import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.FileUtils;
+import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

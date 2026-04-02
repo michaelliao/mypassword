@@ -1,6 +1,6 @@
 package org.puppylab.mypassword.rpc.data;
 
-import org.puppylab.mypassword.rpc.util.StringUtils;
+import org.puppylab.mypassword.util.StringUtils;
 
 public class IdentityItemData extends AbstractItemData {
 

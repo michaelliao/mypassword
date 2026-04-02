@@ -8,8 +8,8 @@ import javax.crypto.SecretKey;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.exception.EncryptException;
-import org.puppylab.mypassword.rpc.util.Base64Utils;
-import org.puppylab.mypassword.rpc.util.FileUtils;
+import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.FileUtils;
 
 public class VaultManager {
 

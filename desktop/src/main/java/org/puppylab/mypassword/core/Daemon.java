@@ -3,158 +3,187 @@ package org.puppylab.mypassword.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.StandardProtocolFamily;
-import java.net.UnixDomainSocketAddress;
-import java.nio.channels.Channels;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import org.eclipse.swt.widgets.Display;
 import org.puppylab.mypassword.core.web.DispatcherService;
 import org.puppylab.mypassword.core.web.RequestController;
 import org.puppylab.mypassword.rpc.ErrorCode;
-import org.puppylab.mypassword.rpc.util.FileUtils;
-import org.puppylab.mypassword.rpc.util.JsonUtils;
+import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import rawhttp.core.RawHttp;
 import rawhttp.core.RawHttpRequest;
 import rawhttp.core.body.BodyReader;
 import rawhttp.core.errors.InvalidHttpRequest;
 
 /**
- * Core service.
+ * HTTP service on 127.0.0.1:27432 for the Chrome extension.
+ *
+ * Thread model:
+ *   - start() blocks on accept() — run on a dedicated daemon thread.
+ *   - Each accepted connection is handed to a fixed thread pool.
+ *   - If the vault is locked and a UI prompt is needed, use
+ *     display.syncExec() from the handler thread.
  */
 public class Daemon {
 
-    final Logger       logger = LoggerFactory.getLogger(getClass());
-    final ObjectMapper mapper = JsonUtils.getObjectMapper();
+    public static final int PORT = 27432;
 
-    String              badRequestError   = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
-    ServerSocketChannel serverChannel     = null;
-    VaultManager        vaultManager      = null;
-    DispatcherService   dispatcherService = null;
-    RequestController   requestController = null;
+    private static final String CORS_HEADERS =
+            "Access-Control-Allow-Origin: *\r\n" +
+            "Access-Control-Allow-Methods: POST, OPTIONS\r\n" +
+            "Access-Control-Allow-Headers: Content-Type\r\n";
 
-    volatile boolean running = true;
+    private static final int POOL_SIZE = 4;
 
-    public static void main(String[] args) {
-        new Daemon().start();
+    final Logger       logger           = LoggerFactory.getLogger(getClass());
+    final ObjectMapper mapper           = JsonUtils.getObjectMapper();
+    final String       badRequestError  = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
+
+    private final Display           display;
+    private final VaultManager      vaultManager;
+    private final DispatcherService dispatcherService;
+
+    private ServerSocket    serverSocket;
+    private ExecutorService pool;
+    private volatile boolean running = true;
+
+    public Daemon(VaultManager vaultManager, Display display) {
+        this.vaultManager = vaultManager;
+        this.display = display;
+        this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
     }
 
-    void start() {
-        Path sock = FileUtils.getSocketFile();
-        if (Files.exists(sock)) {
-            try (var _ = SocketChannel.open(UnixDomainSocketAddress.of(sock))) {
-                logger.error("Daemon is already running.");
-                System.exit(1);
-                return;
-            } catch (IOException e) {
-                try {
-                    Files.deleteIfExists(sock);
-                } catch (IOException ioe) {
-                    logger.error("Try remove sock failed.");
-                    System.exit(1);
-                    return;
-                }
-            }
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(this::cleanup, "Shutdown-Hook"));
-
-        logger.info("try start daemon...");
+    /** Blocking accept loop — call from a dedicated background thread. */
+    public void start() {
+        pool = Executors.newFixedThreadPool(POOL_SIZE, r -> {
+            Thread t = new Thread(r, "http-handler");
+            t.setDaemon(true);
+            return t;
+        });
         try {
-            serverChannel = ServerSocketChannel.open(StandardProtocolFamily.UNIX);
-            serverChannel.bind(UnixDomainSocketAddress.of(sock));
-            logger.info("daemon started at: {}", sock);
-
-            // open db:
-            this.vaultManager = new VaultManager();
-            this.requestController = new RequestController(this.vaultManager);
-            this.dispatcherService = new DispatcherService(this.requestController);
+            serverSocket = new ServerSocket();
+            serverSocket.setReuseAddress(true);
+            serverSocket.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), PORT));
+            logger.info("HTTP service listening on 127.0.0.1:{}", PORT);
 
             while (running) {
-                final SocketChannel clientChannel = serverChannel.accept();
-                Thread t = new Thread(() -> {
-                    Session.init();
-                    try (clientChannel) {
-                        handleConnection(clientChannel);
-                    } catch (InvalidHttpRequest e) {
-                        logger.warn("Could not read request.");
-                    } catch (Exception e) {
-                        logger.error("Connection error", e);
-                    } finally {
-                        Session.remove();
-                    }
-                    logger.info("Connection closed.");
-                });
-                t.start();
+                Socket conn = serverSocket.accept();
+                pool.submit(() -> handleConnection(conn));
             }
+        } catch (SocketException e) {
+            if (running) logger.error("Socket error", e);
         } catch (Exception e) {
-            logger.error("Error", e);
+            logger.error("HTTP service error", e);
         }
     }
 
-    void handleConnection(SocketChannel channel) throws IOException {
-        final RawHttp rawHttp = new RawHttp();
-        channel.configureBlocking(true);
-        try (InputStream input = Channels.newInputStream(channel);
-                OutputStream output = Channels.newOutputStream(channel)) {
-            while (running && channel.isOpen()) {
-                RawHttpRequest request = rawHttp.parseRequest(input);
-
-                // 2. 提取 Header 中的关键信息
-                String path = request.getUri().getPath();
-                String userAgent = request.getHeaders().getFirst("User-Agent").orElse("Unknown");
-
-                // 3. 根据 Content-Length 精准读取 Body
-                Optional<? extends BodyReader> body = request.getBody();
-                String jsonBody = "{}";
-                if (body.isPresent()) {
-                    jsonBody = body.get().decodeBodyToString(StandardCharsets.UTF_8);
-                }
-                logger.info("request: {}: {}", path, jsonBody);
-                // 4. 处理业务逻辑
-                String responseJson = dispatcherService.process(path, jsonBody);
-                logger.info("response: {}", responseJson);
-
-                // 5. 构造 HTTP 格式的响应回写
-                byte[] responseBody = responseJson.getBytes(StandardCharsets.UTF_8);
-                String responseHeader = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
-                        + responseBody.length + "\r\n\r\n";
-                output.write(responseHeader.getBytes(StandardCharsets.UTF_8));
-                output.write(responseBody);
-                output.flush();
-            }
-        }
-    }
-
-    String normalize(String s) {
-        if (s == null) {
-            return "";
-        }
-        return s.strip().toLowerCase();
-    }
-
-    void cleanup() {
-        logger.info("cleanup: closing database and deleting socket...");
+    /** Called by MainWindow when the SWT shell is disposed. */
+    public void stop() {
         running = false;
         try {
-            if (serverChannel != null && serverChannel.isOpen()) {
-                serverChannel.close();
-                serverChannel = null;
-            }
+            if (serverSocket != null) serverSocket.close();
         } catch (IOException e) {
+            // ignore — we're shutting down
         }
-        if (vaultManager != null) {
-            vaultManager.close();
-            vaultManager = null;
+        if (pool != null) pool.shutdownNow();
+        vaultManager.close();
+    }
+
+    // ── per-connection handler (runs on pool thread) ──────────────────────
+
+    void handleConnection(Socket socket) {
+        final RawHttp rawHttp = new RawHttp();
+        try (socket;
+             InputStream  input  = socket.getInputStream();
+             OutputStream output = socket.getOutputStream()) {
+
+            while (running && !socket.isClosed()) {
+                RawHttpRequest request;
+                try {
+                    request = rawHttp.parseRequest(input);
+                } catch (InvalidHttpRequest e) {
+                    writeRaw(output, badResponse(400, badRequestError));
+                    break;
+                } catch (IOException e) {
+                    break; // client closed the connection
+                }
+
+                String method = request.getMethod();
+                String path   = request.getUri().getPath();
+
+                // CORS preflight
+                if ("OPTIONS".equalsIgnoreCase(method)) {
+                    writeRaw(output, preflightResponse());
+                    continue;
+                }
+
+                Optional<? extends BodyReader> body = request.getBody();
+                String jsonBody = body.isPresent()
+                        ? body.get().decodeBodyToString(StandardCharsets.UTF_8)
+                        : "{}";
+
+                logger.info(">> {} {}", method, path);
+                String responseJson = dispatcherService.process(path, jsonBody);
+                logger.info("<< {}", responseJson);
+
+                writeRaw(output, okResponse(responseJson));
+            }
+        } catch (Exception e) {
+            logger.error("Connection error", e);
         }
+    }
+
+    // ── response builders ─────────────────────────────────────────────────
+
+    private byte[] preflightResponse() {
+        String header = "HTTP/1.1 204 No Content\r\n" +
+                CORS_HEADERS +
+                "Content-Length: 0\r\n\r\n";
+        return header.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] okResponse(String json) {
+        byte[] body = json.getBytes(StandardCharsets.UTF_8);
+        String header = "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: application/json\r\n" +
+                "Content-Length: " + body.length + "\r\n" +
+                CORS_HEADERS +
+                "\r\n";
+        byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+        byte[] result = new byte[headerBytes.length + body.length];
+        System.arraycopy(headerBytes, 0, result, 0, headerBytes.length);
+        System.arraycopy(body,        0, result, headerBytes.length, body.length);
+        return result;
+    }
+
+    private byte[] badResponse(int status, String json) {
+        byte[] body = json.getBytes(StandardCharsets.UTF_8);
+        String header = "HTTP/1.1 " + status + " Error\r\n" +
+                "Content-Type: application/json\r\n" +
+                "Content-Length: " + body.length + "\r\n" +
+                CORS_HEADERS +
+                "\r\n";
+        byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+        byte[] result = new byte[headerBytes.length + body.length];
+        System.arraycopy(headerBytes, 0, result, 0, headerBytes.length);
+        System.arraycopy(body,        0, result, headerBytes.length, body.length);
+        return result;
+    }
+
+    private void writeRaw(OutputStream out, byte[] data) throws IOException {
+        out.write(data);
+        out.flush();
     }
 }

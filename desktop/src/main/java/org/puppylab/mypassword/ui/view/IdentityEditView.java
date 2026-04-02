@@ -5,7 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
-import org.puppylab.mypassword.rpc.util.StringUtils;
+import org.puppylab.mypassword.util.StringUtils;
 
 public class IdentityEditView extends AbstractEditView<IdentityItemData> {
 
