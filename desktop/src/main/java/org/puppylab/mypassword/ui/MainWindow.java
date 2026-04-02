@@ -36,15 +36,21 @@ public class MainWindow {
             System.exit(1);
         }
 
+        // ── main thread: owns the SWT Display ─────────────────────────────
+        Display display = new Display();
+
         VaultManager vaultManager = new VaultManager();
         daemon.setVaultManager(vaultManager);
 
         if (!vaultManager.isInitialized()) {
-            // TODO: popup password input dialog to init vault
+            Shell initShell = new Shell(display);
+            boolean initialized = new InitVaultDialog(initShell).open(vaultManager);
+            initShell.dispose();
+            if (!initialized) {
+                display.dispose();
+                System.exit(0);
+            }
         }
-
-        // ── main thread: owns the SWT Display ─────────────────────────────
-        Display display = new Display();
 
         // ── start HTTP acceptor on a background daemon thread ─────────────
         Thread acceptor = new Thread(daemon::start, "http-acceptor");
