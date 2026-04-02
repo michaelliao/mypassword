@@ -29,12 +29,18 @@ public class MainWindow {
 
     public void open() {
         // ── shared services ───────────────────────────────────────────────
-        VaultManager vaultManager = new VaultManager();
-        Daemon daemon = new Daemon(vaultManager);
+        Daemon daemon = new Daemon();
 
         // ── bind port — exit if another instance is already running ──────────
         if (!daemon.listen()) {
             System.exit(1);
+        }
+
+        VaultManager vaultManager = new VaultManager();
+        daemon.setVaultManager(vaultManager);
+
+        if (!vaultManager.isInitialized()) {
+            // TODO: popup password input dialog to init vault
         }
 
         // ── main thread: owns the SWT Display ─────────────────────────────

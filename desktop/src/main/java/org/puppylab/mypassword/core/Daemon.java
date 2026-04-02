@@ -48,16 +48,19 @@ public class Daemon {
     final ObjectMapper mapper          = JsonUtils.getObjectMapper();
     final String       badRequestError = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
 
-    private final VaultManager      vaultManager;
+    private VaultManager            vaultManager;
     private final DispatcherService dispatcherService;
 
     private ServerSocket     serverSocket;
     private ExecutorService  pool;
     private volatile boolean running = true;
 
-    public Daemon(VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
+    public Daemon() {
         this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
+    }
+
+    public void setVaultManager(VaultManager vaultManager) {
+        this.vaultManager = vaultManager;
     }
 
     /**
