@@ -6,7 +6,7 @@
 	<groupId>org.puppylab</groupId>
 	<artifactId>mypassword</artifactId>
 	<version>1.0</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 
 	<properties>
 		<mainClass>org.puppylab.mypassword.ui.MainWindow</mainClass>
