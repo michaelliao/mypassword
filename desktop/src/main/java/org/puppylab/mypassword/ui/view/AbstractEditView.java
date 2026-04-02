@@ -91,6 +91,11 @@ public abstract class AbstractEditView<T> {
 
     protected abstract void setData(T item);
 
+    public void triggerSave() {
+        if (onSave != null)
+            onSave.accept(collectData());
+    }
+
     public void setOnSave(Consumer<T> listener) {
         this.onSave = listener;
     }

@@ -3,37 +3,170 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.puppylab.mypassword</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0</version>
-		<relativePath>../parent/pom.xml</relativePath>
-	</parent>
-
-	<artifactId>desktop</artifactId>
-	<version>${project.version}</version>
+	<groupId>org.puppylab</groupId>
+	<artifactId>mypassword</artifactId>
+	<version>1.0</version>
+	<packaging>pom</packaging>
 
 	<properties>
 		<mainClass>org.puppylab.mypassword.ui.MainWindow</mainClass>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.version>1.0</project.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
+		<maven.compiler.release>25</maven.compiler.release>
+		<java.version>25</java.version>
+
+		<!-- artifact version -->
+		<jackson.version>2.21.1</jackson.version>
+		<jline.version>3.30.8</jline.version>
+		<junit.version>5.14.3</junit.version>
+		<persistence.version>3.2.0</persistence.version>
+		<logback.version>1.5.32</logback.version>
+		<rawhttp.version>2.6.0</rawhttp.version>
+		<slf4j.version>2.0.17</slf4j.version>
+		<sqlite.version>3.51.2.0</sqlite.version>
+		<swt.version>3.133.0</swt.version>
+
+		<!-- plugin version -->
+		<maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+		<exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
+		<maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
+		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+		<jpackage-maven-plugin.version>0.1.5</jpackage-maven-plugin.version>
 	</properties>
+
+	<profiles>
+		<profile>
+			<id>win64</id>
+			<activation>
+				<os>
+					<family>windows</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<os.type>windows-amd64</os.type>
+				<jpackage.type>app-image</jpackage.type>
+				<path.sep>;</path.sep>
+				<swt.artifactId>org.eclipse.swt.win32.win32.x86_64</swt.artifactId>
+			</properties>
+		</profile>
+		<profile>
+			<id>macos-arm64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<properties>
+				<os.type>mac-aarch64</os.type>
+				<jpackage.type>dmg</jpackage.type>
+				<path.sep>:</path.sep>
+				<swt.artifactId>org.eclipse.swt.cocoa.macosx.aarch64</swt.artifactId>
+			</properties>
+		</profile>
+		<profile>
+			<id>linux64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<name>linux</name>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<os.type>linux-amd64</os.type>
+				<jpackage.type>app-image</jpackage.type>
+				<path.sep>:</path.sep>
+				<swt.artifactId>org.eclipse.swt.gtk.linux.x86_64</swt.artifactId>
+			</properties>
+		</profile>
+	</profiles>
+
 
 	<dependencies>
 		<dependency>
-			<groupId>org.puppylab.mypassword</groupId>
-			<artifactId>rpc</artifactId>
-			<version>${project.version}</version>
+			<groupId>com.athaydes.rawhttp</groupId>
+			<artifactId>rawhttp-core</artifactId>
+			<version>${rawhttp.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jline</groupId>
+			<artifactId>jline</artifactId>
+			<version>${jline.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>${sqlite.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
+			<version>${persistence.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>${swt.artifactId}</artifactId>
 			<version>${swt.version}</version>
 		</dependency>
+
+		<!-- test dependency -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<finalName>mypassword-${project.artifactId}</finalName>
 		<plugins>
-			 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>${exec-maven-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>com.github.akman</groupId>
+				<artifactId>jpackage-maven-plugin</artifactId>
+				<version>${jpackage-maven-plugin.version}</version>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -21,6 +21,11 @@ import org.puppylab.mypassword.ui.view.UnlockView;
 
 public class MainWindow {
 
+    // Start entry:
+    public static void main(String[] args) {
+        new MainWindow().open();
+    }
+
     public void open() {
         Display display = new Display();
         Shell shell = new Shell(display);
@@ -29,9 +34,9 @@ public class MainWindow {
         shell.setLayout(new GridLayout(1, false));
 
         // ── top-level stack: unlock vs. main content ──────────────────
-        Composite   topContainer = new Composite(shell, SWT.NONE);
+        Composite topContainer = new Composite(shell, SWT.NONE);
         topContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        StackLayout topStack     = new StackLayout();
+        StackLayout topStack = new StackLayout();
         topContainer.setLayout(topStack);
 
         UnlockView unlockView = new UnlockView(topContainer);
@@ -53,20 +58,17 @@ public class MainWindow {
         StackLayout rightStack = new StackLayout();
         rightContainer.setLayout(rightStack);
 
-        EmptyView          emptyView          = new EmptyView(rightContainer);
-        LoginDetailView    loginDetailView    = new LoginDetailView(rightContainer);
-        NoteDetailView     noteDetailView     = new NoteDetailView(rightContainer);
+        EmptyView emptyView = new EmptyView(rightContainer);
+        LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
+        NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
-        LoginEditView      loginEditView      = new LoginEditView(rightContainer);
-        NoteEditView       noteEditView       = new NoteEditView(rightContainer);
-        IdentityEditView   identityEditView   = new IdentityEditView(rightContainer);
+        LoginEditView loginEditView = new LoginEditView(rightContainer);
+        NoteEditView noteEditView = new NoteEditView(rightContainer);
+        IdentityEditView identityEditView = new IdentityEditView(rightContainer);
 
-        MainController controller = new MainController(
-                unlockView, topContainer, topStack, mainContent,
-                toolbar, listView, emptyView,
-                loginDetailView, noteDetailView, identityDetailView,
-                loginEditView, noteEditView, identityEditView,
-                rightContainer, rightStack);
+        MainController controller = new MainController(unlockView, topContainer, topStack, mainContent, toolbar,
+                listView, emptyView, loginDetailView, noteDetailView, identityDetailView, loginEditView, noteEditView,
+                identityEditView, rightContainer, rightStack);
         controller.init();
 
         shell.open();
@@ -75,9 +77,5 @@ public class MainWindow {
                 display.sleep();
         }
         display.dispose();
-    }
-
-    public static void main(String[] args) {
-        new MainWindow().open();
     }
 }

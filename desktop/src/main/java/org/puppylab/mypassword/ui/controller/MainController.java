@@ -4,8 +4,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.rpc.data.AbstractItemData;
 import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
 import org.puppylab.mypassword.rpc.data.IdentityItemData;
@@ -170,12 +180,22 @@ public class MainController {
     }
 
     private void onCategoryChanged(Category category) {
+        if (state.mode == Mode.EDIT) {
+            int r = askSaveDiscard();
+            if (r == SWT.CANCEL) return;
+            if (r == SWT.YES) triggerCurrentSave();
+        }
         state.category = category;
         state.selectedItem = null;
         switchMode(Mode.EMPTY);
     }
 
     private void onSelectionChanged(AbstractItemData item) {
+        if (state.mode == Mode.EDIT) {
+            int r = askSaveDiscard();
+            if (r == SWT.CANCEL) return;
+            if (r == SWT.YES) triggerCurrentSave();
+        }
         state.selectedItem = item;
         if (item == null) {
             switchMode(Mode.EMPTY);
@@ -361,6 +381,63 @@ public class MainController {
         d.data.mobiles = List.of("+1 23456789");
         identityStore.put(id, d);
         state.allItems.add(d);
+    }
+
+    /** Returns SWT.YES (save), SWT.NO (discard), or SWT.CANCEL. */
+    private int askSaveDiscard() {
+        Shell parent = topContainer.getShell();
+        Shell dialog = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        dialog.setText("Unsaved Changes");
+
+        GridLayout gl = new GridLayout(1, false);
+        gl.marginWidth = 20;
+        gl.marginHeight = 20;
+        gl.verticalSpacing = 16;
+        dialog.setLayout(gl);
+
+        Label msg = new Label(dialog, SWT.NONE);
+        msg.setText("You have unsaved changes.");
+
+        Composite btnRow = new Composite(dialog, SWT.NONE);
+        btnRow.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+        RowLayout rl = new RowLayout(SWT.HORIZONTAL);
+        rl.spacing = 8;
+        btnRow.setLayout(rl);
+
+        int[] result = { SWT.CANCEL };
+
+        Button btnSave = new Button(btnRow, SWT.PUSH);
+        btnSave.setText(" Save ");
+        btnSave.addListener(SWT.Selection, _ -> { result[0] = SWT.YES; dialog.close(); });
+
+        Button btnDiscard = new Button(btnRow, SWT.PUSH);
+        btnDiscard.setText(" Discard ");
+        btnDiscard.addListener(SWT.Selection, _ -> { result[0] = SWT.NO; dialog.close(); });
+
+        Button btnCancel = new Button(btnRow, SWT.PUSH);
+        btnCancel.setText(" Cancel ");
+        btnCancel.addListener(SWT.Selection, _ -> { result[0] = SWT.CANCEL; dialog.close(); });
+
+        dialog.setDefaultButton(btnSave);
+        dialog.pack();
+
+        Rectangle pb = parent.getBounds();
+        Point ps = dialog.getSize();
+        dialog.setLocation(pb.x + (pb.width - ps.x) / 2, pb.y + (pb.height - ps.y) / 2);
+
+        dialog.open();
+        Display display = parent.getDisplay();
+        while (!dialog.isDisposed()) {
+            if (!display.readAndDispatch())
+                display.sleep();
+        }
+        return result[0];
+    }
+
+    private void triggerCurrentSave() {
+        if (activeEditComposite == loginEditView.composite) loginEditView.triggerSave();
+        else if (activeEditComposite == noteEditView.composite) noteEditView.triggerSave();
+        else if (activeEditComposite == identityEditView.composite) identityEditView.triggerSave();
     }
 
     private void switchMode(Mode mode) {
