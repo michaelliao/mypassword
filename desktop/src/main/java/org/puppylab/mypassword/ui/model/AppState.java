@@ -13,6 +13,7 @@ public class AppState {
 
     public boolean                unlocked     = false;
     public List<AbstractItemData> allItems     = new ArrayList<>();
+    public List<AbstractItemData> deletedItems = new ArrayList<>();
     public AbstractItemData       selectedItem = null;
     public Category               category     = Category.ALL;
     public Mode                   mode         = Mode.EMPTY;

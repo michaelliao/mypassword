@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.ui.controller;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,6 +173,7 @@ public class MainController {
         Session.current().lock();
         state.unlocked = false;
         state.allItems.clear();
+        state.deletedItems.clear();
         state.selectedItem = null;
         loginStore.clear();
         noteStore.clear();
@@ -182,8 +184,9 @@ public class MainController {
 
     private void onSearch(String query) {
         String q = query == null ? "" : query.strip().toLowerCase();
-        List<AbstractItemData> source = q.isEmpty() ? state.allItems
-                : state.allItems.stream().filter(i -> contains(i.title(), q)).toList();
+        List<AbstractItemData> combined = getAllAndDeletedItems();
+        List<AbstractItemData> source = q.isEmpty() ? combined
+                : combined.stream().filter(i -> contains(i.title(), q)).toList();
         listView.setAllItems(source);
     }
 
@@ -304,7 +307,8 @@ public class MainController {
             return;
         vaultManager.deleteItem(id);
         AbstractItemData updated = vaultManager.getItem(key, id);
-        state.allItems.replaceAll(i -> i.id == id ? updated : i);
+        state.allItems.removeIf(i -> i.id == id);
+        state.deletedItems.add(updated);
         switch (updated) {
         case LoginItemData d -> loginStore.put(d.id, d);
         case NoteItemData d -> noteStore.put(d.id, d);
@@ -314,7 +318,7 @@ public class MainController {
         }
         }
         state.selectedItem = null;
-        listView.setAllItems(state.allItems);
+        refreshListView();
         switchMode(Mode.EMPTY);
     }
 
@@ -328,7 +332,7 @@ public class MainController {
         state.selectedItem = vaultItem;
         if (isNew) {
             state.allItems.add(vaultItem);
-            listView.setAllItems(state.allItems);
+            refreshListView();
             listView.selectItem(vaultItem.id);
         } else {
             state.allItems.replaceAll(i -> i.id == vaultItem.id ? vaultItem : i);
@@ -342,11 +346,16 @@ public class MainController {
             return;
         List<AbstractItemData> items = vaultManager.getItems(key);
         state.allItems.clear();
+        state.deletedItems.clear();
         loginStore.clear();
         noteStore.clear();
         identityStore.clear();
         for (AbstractItemData item : items) {
-            state.allItems.add(item);
+            if (item.deleted) {
+                state.deletedItems.add(item);
+            } else {
+                state.allItems.add(item);
+            }
             switch (item) {
             case LoginItemData d -> loginStore.put(d.id, d);
             case NoteItemData d -> noteStore.put(d.id, d);
@@ -355,7 +364,18 @@ public class MainController {
             }
             }
         }
-        listView.setAllItems(state.allItems);
+        refreshListView();
+    }
+
+    private List<AbstractItemData> getAllAndDeletedItems() {
+        List<AbstractItemData> combined = new ArrayList<>(state.allItems.size() + state.deletedItems.size());
+        combined.addAll(state.allItems);
+        combined.addAll(state.deletedItems);
+        return combined;
+    }
+
+    private void refreshListView() {
+        listView.setAllItems(getAllAndDeletedItems());
     }
 
     /** Returns SWT.YES (save), SWT.NO (discard), or SWT.CANCEL. */
