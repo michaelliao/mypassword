@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.Constants;
 import org.puppylab.mypassword.core.ErrorUtils;
 import org.puppylab.mypassword.core.Session;
@@ -140,6 +142,26 @@ public class RequestController {
         }
         Session.current().setKey(dek);
         return info();
+    }
+
+    @Post("/activate")
+    public BaseResponse activate(BaseRequest request) {
+        Display display = Display.getDefault();
+        display.asyncExec(() -> {
+            Shell shell = display.getActiveShell();
+            if (shell == null) {
+                Shell[] shells = display.getShells();
+                if (shells.length > 0) {
+                    shell = shells[0];
+                }
+            }
+            if (shell != null) {
+                shell.setMinimized(false);
+                shell.setActive();
+                shell.forceActive();
+            }
+        });
+        return new BaseResponse();
     }
 
     InfoResponse info() {
