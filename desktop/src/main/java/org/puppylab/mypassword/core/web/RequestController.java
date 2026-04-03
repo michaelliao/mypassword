@@ -9,23 +9,22 @@ import javax.crypto.SecretKey;
 import org.puppylab.mypassword.core.Constants;
 import org.puppylab.mypassword.core.EncryptUtils;
 import org.puppylab.mypassword.core.ErrorUtils;
-import org.puppylab.mypassword.core.IdUtils;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
+import org.puppylab.mypassword.core.data.AbstractFields;
+import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.core.data.IdentityFieldsData;
+import org.puppylab.mypassword.core.data.IdentityItemData;
+import org.puppylab.mypassword.core.data.ItemType;
+import org.puppylab.mypassword.core.data.LoginFieldsData;
+import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.core.data.NoteFieldsData;
+import org.puppylab.mypassword.core.data.NoteItemData;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
-import org.puppylab.mypassword.rpc.data.AbstractFields;
-import org.puppylab.mypassword.rpc.data.AbstractItemData;
-import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
-import org.puppylab.mypassword.rpc.data.IdentityItemData;
-import org.puppylab.mypassword.rpc.data.ItemType;
-import org.puppylab.mypassword.rpc.data.LoginFieldsData;
-import org.puppylab.mypassword.rpc.data.LoginItemData;
-import org.puppylab.mypassword.rpc.data.NoteFieldsData;
-import org.puppylab.mypassword.rpc.data.NoteItemData;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
@@ -71,7 +70,7 @@ public class RequestController {
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        List<Item> items = vaultManager.getItems();
+        List<Item> items = vaultManager.getRawItems();
         var response = new ItemsResponse();
         response.items = items.stream().map(item -> toItemData(key, item)).toList();
         return response;
@@ -83,29 +82,10 @@ public class RequestController {
         if (key == null) {
             throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        AbstractItemData itemData = request.item;
-        // check:
-        if (itemData.fields() == null) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Missing fields.");
-        }
-        String errField = itemData.fields().check();
-        if (errField != null) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
-        }
-        // prepare entity:
-        Item item = new Item();
-        item.id = IdUtils.nextId();
-        item.item_type = itemData.item_type;
-        item.deleted = false;
-        item.favorite = false;
-        item.updated_at = System.currentTimeMillis();
-        // encrypt fields and set to item:
-        encrypt(key, item, itemData.fields());
-        // insert into db:
-        this.vaultManager.createItem(item);
+        long id = this.vaultManager.createItem(key, request.item);
         // build response:
         var response = new ItemResponse();
-        response.item = toItemData(key, item);
+        response.item = this.vaultManager.getItem(key, id);
         return response;
     }
 
@@ -115,65 +95,47 @@ public class RequestController {
         if (key == null) {
             throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        long id;
-        try {
-            id = Long.parseLong(args[0]);
-        } catch (Exception e) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found.");
-        }
-        Item item = this.vaultManager.getItem(id);
-        if (item == null) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found.");
-        }
+        long id = getIdFromPath(args[0]);
         // build response:
         var response = new ItemResponse();
-        response.item = toItemData(key, item);
+        response.item = this.vaultManager.getItem(key, id);
         return response;
     }
 
     @Post("/items/{id}/update")
-    public BaseResponse loginUpdate(ItemRequest request, String... args) {
+    public BaseResponse itemUpdate(ItemRequest request, String... args) {
         SecretKey key = Session.current().getKey();
         if (key == null) {
             return ErrorUtils.error(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        long id;
-        try {
-            id = Long.parseLong(args[0]);
-        } catch (Exception e) {
-            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
-        }
-        Item item = this.vaultManager.getItem(id);
-        if (item == null) {
-            return ErrorUtils.error(ErrorCode.DATA_NOT_FOUND, "Login item not found.");
-        }
-        // decrypt item fields:
-        AbstractItemData itemData = toItemData(key, item);
-
-        // set fields:
-        LoginFieldsData lfd = new LoginFieldsData();
-        // FIXME: copy(request, lfd);
-        encrypt(key, item, lfd);
-        item.updated_at = System.currentTimeMillis();
-        this.vaultManager.updateItem(item);
+        long id = getIdFromPath(args[0]);
+        this.vaultManager.updateItem(key, request.item);
         // build response:
         var response = new ItemResponse();
-        response.item = toItemData(key, item);
+        response.item = this.vaultManager.getItem(key, id);
         return response;
     }
 
-    @Post("/vault/init")
-    public BaseResponse vaultInit(VaultPasswordRequest request) {
-        if (vaultManager.isInitialized()) {
-            return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault already initialized.");
+    @Post("/items/{id}/delete")
+    public BaseResponse itemDelete(BaseRequest request, String... args) {
+        SecretKey key = Session.current().getKey();
+        if (key == null) {
+            throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
-        if (request.password == null || request.password.length() < Constants.PASSWORD_MIN_LENGTH) {
-            return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
+        long id = getIdFromPath(args[0]);
+        this.vaultManager.deleteItem(id);
+        var response = new BaseResponse();
+        return response;
+    }
+
+    long getIdFromPath(String s) {
+        long id;
+        try {
+            id = Long.parseLong(s);
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found.");
         }
-        SecretKey dek = vaultManager.initVault(request.password.toCharArray());
-        Session.current().setKey(dek);
-        logger.info("Vault initialized by provided password.");
-        return info();
+        return id;
     }
 
     @Post("/vault/lock")

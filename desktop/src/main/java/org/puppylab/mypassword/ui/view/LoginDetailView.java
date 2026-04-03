@@ -2,7 +2,7 @@ package org.puppylab.mypassword.ui.view;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.puppylab.mypassword.rpc.data.LoginItemData;
+import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class LoginDetailView extends AbstractDetailView<LoginItemData> {

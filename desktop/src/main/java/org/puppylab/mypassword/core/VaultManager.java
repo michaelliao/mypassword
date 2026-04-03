@@ -5,10 +5,14 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.exception.EncryptException;
+import org.puppylab.mypassword.rpc.BadRequestException;
+import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.ConvertUtils;
 import org.puppylab.mypassword.util.FileUtils;
 
 public class VaultManager {
@@ -29,30 +33,75 @@ public class VaultManager {
     }
 
     // nullable:
-    public Item getItem(long id) {
+    Item getItem(long id) {
         return this.dbManager.queryFirst(Item.class, "where id = ?", id);
     }
 
-    public List<Item> getItems() {
+    public AbstractItemData getItem(SecretKey key, long id) {
+        Item item = getItem(id);
+        if (item == null) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+        }
+        return ConvertUtils.toItemData(key, item);
+    }
+
+    public List<AbstractItemData> getItems(SecretKey key) {
+        return getRawItems().stream().map(it -> ConvertUtils.toItemData(key, it)).toList();
+    }
+
+    public List<Item> getRawItems() {
         return this.dbManager.queryForList(Item.class, "");
     }
 
-    public void createItem(Item item) {
+    public long createItem(SecretKey key, AbstractItemData data) {
+        // check:
+        if (data.fields() == null) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Missing fields.");
+        }
+        String errField = data.fields().check();
+        if (errField != null) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
+        }
+        // prepare entity:
+        Item item = new Item();
+        item.id = IdUtils.nextId();
+        item.item_type = data.item_type;
+        item.deleted = false;
+        item.favorite = false;
+        item.updated_at = System.currentTimeMillis();
+        // encrypt fields and set to item:
+        ConvertUtils.encrypt(key, item, data.fields());
         this.dbManager.insert(item);
+        return item.id;
     }
 
-    public boolean deleteItem(long id) {
+    public void deleteItem(long id) {
         Item item = getItem(id);
-        if (item == null || item.deleted) {
-            return false;
+        if (item == null) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+        }
+        if (item.deleted) {
+            return;
         }
         item.deleted = true;
         item.updated_at = System.currentTimeMillis();
         this.dbManager.update(item, "deleted", "updated_at");
-        return true;
     }
 
-    public void updateItem(Item item) {
+    public void updateItem(SecretKey key, AbstractItemData data) {
+        String errField = data.fields().check();
+        if (errField != null) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
+        }
+        Item item = getItem(data.id);
+        if (item == null) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + data.id);
+        }
+        if (item.item_type != data.item_type) {
+            throw new BadRequestException(ErrorCode.BAD_FIELD, "Item type not match: " + data.item_type);
+        }
+        ConvertUtils.encrypt(key, item, data.fields());
+        item.updated_at = System.currentTimeMillis();
         this.dbManager.tx(() -> {
             this.dbManager.execute(
                     "INSERT INTO ItemHistory (hid, rid, b64_encrypted_data, b64_encrypted_data_iv, updated_at) SELECT "

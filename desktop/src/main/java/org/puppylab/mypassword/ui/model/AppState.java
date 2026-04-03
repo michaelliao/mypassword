@@ -3,7 +3,7 @@ package org.puppylab.mypassword.ui.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.puppylab.mypassword.rpc.data.AbstractItemData;
+import org.puppylab.mypassword.core.data.AbstractItemData;
 
 public class AppState {
 

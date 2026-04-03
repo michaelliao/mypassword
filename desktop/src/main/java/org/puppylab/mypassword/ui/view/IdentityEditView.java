@@ -3,8 +3,8 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.puppylab.mypassword.rpc.data.IdentityFieldsData;
-import org.puppylab.mypassword.rpc.data.IdentityItemData;
+import org.puppylab.mypassword.core.data.IdentityFieldsData;
+import org.puppylab.mypassword.core.data.IdentityItemData;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class IdentityEditView extends AbstractEditView<IdentityItemData> {

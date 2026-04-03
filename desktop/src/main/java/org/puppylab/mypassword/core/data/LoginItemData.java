@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.rpc.data;
+package org.puppylab.mypassword.core.data;
 
 import org.puppylab.mypassword.util.StringUtils;
 

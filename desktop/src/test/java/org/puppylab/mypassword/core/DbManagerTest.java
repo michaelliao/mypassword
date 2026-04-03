@@ -12,10 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultVersion;
-import org.puppylab.mypassword.rpc.data.ItemType;
 import org.puppylab.mypassword.util.Base64Utils;
 
 public class DbManagerTest {
