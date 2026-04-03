@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.SecretKey;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.graphics.Point;
@@ -16,17 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import javax.crypto.SecretKey;
-
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.AbstractItemData;
-import org.puppylab.mypassword.core.data.IdentityFieldsData;
 import org.puppylab.mypassword.core.data.IdentityItemData;
 import org.puppylab.mypassword.core.data.ItemType;
-import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
-import org.puppylab.mypassword.core.data.NoteFieldsData;
 import org.puppylab.mypassword.core.data.NoteItemData;
 import org.puppylab.mypassword.ui.model.AppState;
 import org.puppylab.mypassword.ui.model.AppState.Mode;
@@ -44,7 +41,7 @@ import org.puppylab.mypassword.ui.view.UnlockView;
 
 public class MainController {
 
-    private final AppState     state        = new AppState();
+    private final AppState     state = new AppState();
     private final VaultManager vaultManager;
 
     // ── unlock layer ──────────────────────────────────────────────────
@@ -75,12 +72,11 @@ public class MainController {
     private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
-    public MainController(VaultManager vaultManager,
-            UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
-            ToolbarView toolbar, ItemListView listView, EmptyView emptyView, LoginDetailView loginDetailView,
-            NoteDetailView noteDetailView, IdentityDetailView identityDetailView, LoginEditView loginEditView,
-            NoteEditView noteEditView, IdentityEditView identityEditView, Composite rightContainer,
-            StackLayout rightStack) {
+    public MainController(VaultManager vaultManager, UnlockView unlockView, Composite topContainer,
+            StackLayout topStack, Composite mainContent, ToolbarView toolbar, ItemListView listView,
+            EmptyView emptyView, LoginDetailView loginDetailView, NoteDetailView noteDetailView,
+            IdentityDetailView identityDetailView, LoginEditView loginEditView, NoteEditView noteEditView,
+            IdentityEditView identityEditView, Composite rightContainer, StackLayout rightStack) {
         this.vaultManager = vaultManager;
         this.unlockView = unlockView;
         this.topContainer = topContainer;
@@ -190,8 +186,10 @@ public class MainController {
     private void onCategoryChanged(Category category) {
         if (state.mode == Mode.EDIT) {
             int r = askSaveDiscard();
-            if (r == SWT.CANCEL) return;
-            if (r == SWT.YES) triggerCurrentSave();
+            if (r == SWT.CANCEL)
+                return;
+            if (r == SWT.YES)
+                triggerCurrentSave();
         }
         state.category = category;
         state.selectedItem = null;
@@ -201,8 +199,10 @@ public class MainController {
     private void onSelectionChanged(AbstractItemData item) {
         if (state.mode == Mode.EDIT) {
             int r = askSaveDiscard();
-            if (r == SWT.CANCEL) return;
-            if (r == SWT.YES) triggerCurrentSave();
+            if (r == SWT.CANCEL)
+                return;
+            if (r == SWT.YES)
+                triggerCurrentSave();
         }
         state.selectedItem = item;
         if (item == null) {
@@ -251,6 +251,7 @@ public class MainController {
             identityEditView.edit(identityStore.get(state.selectedItem.id));
             activeEditComposite = identityEditView.composite;
         }
+        default -> throw new IllegalArgumentException("Unexpected value: " + state.selectedItem.item_type);
         }
         switchMode(Mode.EDIT);
     }
@@ -307,88 +308,25 @@ public class MainController {
     }
 
     private void loadItems() {
-        // TODO: replace with daemon API calls
-        addLogin(1, "Google", "michael@gmail.com", true, false);
-        addLogin(2, "GitHub", "michael-liao", false, false);
-        addLogin(3, "Amazon", "michael@gmail.com", false, false);
-        addLogin(4, "Netflix", "michael@gmail.com", false, false);
-        addLogin(5, "Twitter / X", "michael_liao", false, true);
-        addLogin(6, "LinkedIn", "michael.liao@work.com", true, false);
-        addLogin(7, "Dropbox", "michael@gmail.com", false, false);
-        addLogin(8, "Apple ID", "michael@icloud.com", false, false);
-        addLogin(9, "Microsoft", "michael@outlook.com", false, false);
-        addLogin(10, "Steam", "michael_games", false, true);
-        addLogin(11, "Spotify", "michael@gmail.com", true, false);
-        addLogin(12, "PayPal", "michael@gmail.com", false, false);
-        addLogin(13, "Slack", "michael.liao@work.com", false, false);
-        addLogin(14, "Notion", "michael.liao@work.com", false, false);
-        addLogin(15, "Adobe", "michael@gmail.com", false, true);
-        addLogin(16, "1Password", "michael@gmail.com", true, false);
-        addLogin(17, "Figma", "michael.liao@work.com", false, false);
-        addLogin(18, "Cloudflare", "michael@gmail.com", false, false);
-        addLogin(19, "Digital Ocean", "michael@gmail.com", false, false);
-        addLogin(20, "Old Forum", "michael1990", false, true);
-
-        addNote(21, "Wi-Fi Password", "Router: TP-Link AX3000...", true, false);
-        addNote(22, "Server SSH Keys", "prod-01: ssh michael@...", false, false);
-        addNote(23, "Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-...", false, true);
-        addNote(24, "API Keys", "Stripe live key: sk_live_...", false, false);
-        addNote(25, "Software Licenses", "JetBrains: ABCD-EFGH-...", false, false);
-        addNote(26, "Home Alarm Code", "Front door: 4 digits...", true, false);
-        addNote(27, "Bank Account Details", "IBAN: GB29 NWBK...", false, false);
-        addNote(28, "Travel SIM PINs", "UK SIM PIN: 1234...", false, true);
-        addNote(29, "Emergency Contacts", "Police: 110, Fire: 119...", false, false);
-        addNote(30, "Old Passwords Archive", "pre-2020 list...", false, false);
-
-        addIdentity(31, "Personal Passport", "Michael Liao", "E12345678", true, false);
-        addIdentity(32, "Work ID", "Michael Liao", "", false, false);
-        addIdentity(33, "Old Passport", "Michael Liao", "D98765432", false, true);
-        addIdentity(34, "Driver License", "Michael Liao", "", false, false);
-        addIdentity(35, "National ID", "Michael Liao", "", false, false);
-
+        SecretKey key = Session.current().getKey();
+        if (key == null)
+            return;
+        List<AbstractItemData> items = vaultManager.getItems(key);
+        state.allItems.clear();
+        loginStore.clear();
+        noteStore.clear();
+        identityStore.clear();
+        for (AbstractItemData item : items) {
+            state.allItems.add(item);
+            switch (item) {
+            case LoginItemData d -> loginStore.put(d.id, d);
+            case NoteItemData d -> noteStore.put(d.id, d);
+            case IdentityItemData d -> identityStore.put(d.id, d);
+            default -> {
+            }
+            }
+        }
         listView.setAllItems(state.allItems);
-    }
-
-    private void addLogin(long id, String title, String username, boolean fav, boolean del) {
-        LoginItemData d = new LoginItemData();
-        d.item_type = ItemType.LOGIN;
-        d.id = id;
-        d.favorite = fav;
-        d.deleted = del;
-        d.data = new LoginFieldsData();
-        d.data.title = title;
-        d.data.username = username;
-        d.data.password = "it is a secret - " + id;
-        d.data.websites = List.of("https://google.com", "https://gmail.com");
-        loginStore.put(id, d);
-        state.allItems.add(d);
-    }
-
-    private void addNote(long id, String title, String content, boolean fav, boolean del) {
-        NoteItemData d = new NoteItemData();
-        d.item_type = ItemType.NOTE;
-        d.id = id;
-        d.favorite = fav;
-        d.deleted = del;
-        d.data = new NoteFieldsData();
-        d.data.title = title;
-        d.data.content = content;
-        noteStore.put(id, d);
-        state.allItems.add(d);
-    }
-
-    private void addIdentity(long id, String title, String name, String passport, boolean fav, boolean del) {
-        IdentityItemData d = new IdentityItemData();
-        d.item_type = ItemType.IDENTITY;
-        d.id = id;
-        d.favorite = fav;
-        d.deleted = del;
-        d.data = new IdentityFieldsData();
-        d.data.name = name;
-        d.data.passport_number = passport;
-        d.data.mobiles = List.of("+1 23456789");
-        identityStore.put(id, d);
-        state.allItems.add(d);
     }
 
     /** Returns SWT.YES (save), SWT.NO (discard), or SWT.CANCEL. */
@@ -416,15 +354,24 @@ public class MainController {
 
         Button btnSave = new Button(btnRow, SWT.PUSH);
         btnSave.setText(" Save ");
-        btnSave.addListener(SWT.Selection, _ -> { result[0] = SWT.YES; dialog.close(); });
+        btnSave.addListener(SWT.Selection, _ -> {
+            result[0] = SWT.YES;
+            dialog.close();
+        });
 
         Button btnDiscard = new Button(btnRow, SWT.PUSH);
         btnDiscard.setText(" Discard ");
-        btnDiscard.addListener(SWT.Selection, _ -> { result[0] = SWT.NO; dialog.close(); });
+        btnDiscard.addListener(SWT.Selection, _ -> {
+            result[0] = SWT.NO;
+            dialog.close();
+        });
 
         Button btnCancel = new Button(btnRow, SWT.PUSH);
         btnCancel.setText(" Cancel ");
-        btnCancel.addListener(SWT.Selection, _ -> { result[0] = SWT.CANCEL; dialog.close(); });
+        btnCancel.addListener(SWT.Selection, _ -> {
+            result[0] = SWT.CANCEL;
+            dialog.close();
+        });
 
         dialog.setDefaultButton(btnSave);
         dialog.pack();
@@ -443,9 +390,12 @@ public class MainController {
     }
 
     private void triggerCurrentSave() {
-        if (activeEditComposite == loginEditView.composite) loginEditView.triggerSave();
-        else if (activeEditComposite == noteEditView.composite) noteEditView.triggerSave();
-        else if (activeEditComposite == identityEditView.composite) identityEditView.triggerSave();
+        if (activeEditComposite == loginEditView.composite)
+            loginEditView.triggerSave();
+        else if (activeEditComposite == noteEditView.composite)
+            noteEditView.triggerSave();
+        else if (activeEditComposite == identityEditView.composite)
+            identityEditView.triggerSave();
     }
 
     private void switchMode(Mode mode) {
