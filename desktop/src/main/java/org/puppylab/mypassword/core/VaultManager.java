@@ -1,6 +1,5 @@
 package org.puppylab.mypassword.core;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -13,18 +12,15 @@ import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
-import org.puppylab.mypassword.util.FileUtils;
 
 public class VaultManager {
 
-    private final Path      dbFile;
     private final DbManager dbManager;
 
     private VaultConfig vaultConfig = null;
 
-    public VaultManager() {
-        this.dbFile = FileUtils.getDbFile();
-        this.dbManager = new DbManager(this.dbFile);
+    public VaultManager(DbManager dbManager) {
+        this.dbManager = dbManager;
         this.vaultConfig = dbManager.queryVaultConfig();
     }
 

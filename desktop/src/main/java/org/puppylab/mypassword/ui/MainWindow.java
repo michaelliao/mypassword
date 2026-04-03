@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui;
 
+import java.nio.file.Path;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.GridData;
@@ -8,6 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
 import org.puppylab.mypassword.ui.view.EmptyView;
@@ -20,6 +23,7 @@ import org.puppylab.mypassword.ui.view.NoteDetailView;
 import org.puppylab.mypassword.ui.view.NoteEditView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
+import org.puppylab.mypassword.util.FileUtils;
 
 public class MainWindow {
 
@@ -39,7 +43,9 @@ public class MainWindow {
         // ── main thread: owns the SWT Display ─────────────────────────────
         Display display = new Display();
 
-        VaultManager vaultManager = new VaultManager();
+        Path dbFile = FileUtils.getDbFile();
+        DbManager dbManager = new DbManager(dbFile);
+        VaultManager vaultManager = new VaultManager(dbManager);
         daemon.setVaultManager(vaultManager);
 
         if (!vaultManager.isInitialized()) {

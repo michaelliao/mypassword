@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
-public class DbManager implements AutoCloseable {
+public class DbManager {
 
     final Logger                 logger      = LoggerFactory.getLogger(getClass());
     final Map<Class<?>, Mapping> ormMappings = new HashMap<>();
@@ -266,7 +266,6 @@ public class DbManager implements AutoCloseable {
         }
     }
 
-    @Override
     public synchronized void close() {
         if (this.connection != null) {
             try {
