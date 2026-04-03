@@ -5,6 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.data.IdentityFieldsData;
 import org.puppylab.mypassword.core.data.IdentityItemData;
+import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class IdentityEditView extends AbstractEditView<IdentityItemData> {
@@ -65,6 +66,7 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
     @Override
     protected IdentityItemData collectData() {
         IdentityItemData data = editingItem != null ? editingItem : new IdentityItemData();
+        data.item_type = ItemType.IDENTITY;
         data.data = new IdentityFieldsData();
         data.data.name = nameField.getText().strip();
         data.data.passport_number = passportField.getText().strip();

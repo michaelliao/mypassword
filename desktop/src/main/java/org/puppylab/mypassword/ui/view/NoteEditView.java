@@ -3,6 +3,7 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.NoteFieldsData;
 import org.puppylab.mypassword.core.data.NoteItemData;
 import org.puppylab.mypassword.util.StringUtils;
@@ -40,6 +41,7 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
     @Override
     protected NoteItemData collectData() {
         NoteItemData data = editingItem != null ? editingItem : new NoteItemData();
+        data.item_type = ItemType.NOTE;
         data.data = new NoteFieldsData();
         data.data.title = titleField.getText().strip();
         data.data.content = contentField.getText();

@@ -111,6 +111,10 @@ public class MainController {
         noteDetailView.setOnEdit(this::onEditCurrent);
         identityDetailView.setOnEdit(this::onEditCurrent);
 
+        loginDetailView.setOnDelete(this::onDeleteCurrent);
+        noteDetailView.setOnDelete(this::onDeleteCurrent);
+        identityDetailView.setOnDelete(this::onDeleteCurrent);
+
         loginEditView.setOnSave(this::onSave);
         loginEditView.setOnCancel(this::onCancel);
 
@@ -289,6 +293,29 @@ public class MainController {
         }
         commitItem(saved, isNew);
         switchMode(Mode.DETAIL);
+    }
+
+    private void onDeleteCurrent() {
+        if (state.selectedItem == null)
+            return;
+        long id = state.selectedItem.id;
+        SecretKey key = Session.current().getKey();
+        if (key == null)
+            return;
+        vaultManager.deleteItem(id);
+        AbstractItemData updated = vaultManager.getItem(key, id);
+        state.allItems.replaceAll(i -> i.id == id ? updated : i);
+        switch (updated) {
+        case LoginItemData d -> loginStore.put(d.id, d);
+        case NoteItemData d -> noteStore.put(d.id, d);
+        case IdentityItemData d -> identityStore.put(d.id, d);
+        default -> {
+            showError("Invalid item type: " + updated.item_type);
+        }
+        }
+        state.selectedItem = null;
+        listView.setAllItems(state.allItems);
+        switchMode(Mode.EMPTY);
     }
 
     private void onCancel() {

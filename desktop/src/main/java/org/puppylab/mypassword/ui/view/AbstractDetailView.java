@@ -23,6 +23,7 @@ public abstract class AbstractDetailView<T> {
     final Composite         content;
 
     private Runnable onEdit;
+    private Runnable onDelete;
 
     public AbstractDetailView(Composite parent) {
         composite = new Composite(parent, SWT.NONE);
@@ -54,6 +55,17 @@ public abstract class AbstractDetailView<T> {
 
         createFields();
 
+        // ── delete button at bottom of scrollable area ───────────────
+        Label sep = new Label(content, SWT.SEPARATOR | SWT.HORIZONTAL);
+        sep.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Button btnDelete = new Button(content, SWT.PUSH);
+        btnDelete.setText(" Delete ");
+        btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        btnDelete.addListener(SWT.Selection, e -> {
+            if (onDelete != null) onDelete.run();
+        });
+
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
@@ -74,6 +86,10 @@ public abstract class AbstractDetailView<T> {
 
     public void setOnEdit(Runnable listener) {
         this.onEdit = listener;
+    }
+
+    public void setOnDelete(Runnable listener) {
+        this.onDelete = listener;
     }
 
     protected Label createField(String labelText) {

@@ -3,6 +3,7 @@ package org.puppylab.mypassword.ui.view;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.util.StringUtils;
@@ -56,6 +57,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     @Override
     protected LoginItemData collectData() {
         LoginItemData data = editingItem != null ? editingItem : new LoginItemData();
+        data.item_type = ItemType.LOGIN;
         data.data = new LoginFieldsData();
         data.data.title = titleField.getText().strip();
         data.data.username = usernameField.getText().strip();
