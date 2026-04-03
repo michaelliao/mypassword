@@ -17,6 +17,7 @@ public class VaultManagerTest {
         dbFile = File.createTempFile("test-mypassword-", ".db").toPath();
         Files.delete(dbFile); // delete db file to force init schema
         this.vaultManager = new VaultManager(new DbManager(dbFile));
+        this.vaultManager.initVault("password");
     }
 
     @AfterEach

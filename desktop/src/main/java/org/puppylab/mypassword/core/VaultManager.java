@@ -108,14 +108,14 @@ public class VaultManager {
         });
     }
 
-    public SecretKey initVault(char[] password) {
+    public SecretKey initVault(String password) {
         if (isInitialized()) {
             throw new IllegalStateException("Vault already initialized.");
         }
         // generate pbe key by password:
         final int pbe_iterations = 1_000_000;
         byte[] pbe_salt = EncryptUtils.generateSalt();
-        byte[] pbe_key = EncryptUtils.derivePbeKey(password, pbe_salt, pbe_iterations);
+        byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
         // encrypt dek by pbe key:
         byte[] dek = EncryptUtils.generateKey();
         byte[] encrypted_dek_iv = EncryptUtils.generateIV();

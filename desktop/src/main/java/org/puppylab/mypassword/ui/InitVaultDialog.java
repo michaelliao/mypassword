@@ -124,7 +124,7 @@ public class InitVaultDialog {
                 shell.layout(true, true);
                 return;
             }
-            vaultManager.initVault(pw.toCharArray());
+            vaultManager.initVault(pw);
             result[0] = true;
             shell.close();
         };
