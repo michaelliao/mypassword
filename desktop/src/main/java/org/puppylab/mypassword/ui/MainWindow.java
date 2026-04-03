@@ -1,5 +1,9 @@
 package org.puppylab.mypassword.ui;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 
 import org.eclipse.swt.SWT;
@@ -37,6 +41,16 @@ public class MainWindow {
 
         // ── bind port — exit if another instance is already running ──────────
         if (!daemon.listen()) {
+            // activate the existing instance's window before exiting:
+            try (var client = HttpClient.newHttpClient()) {
+                client.send(
+                        HttpRequest.newBuilder().uri(URI.create("http://127.0.0.1:" + Daemon.PORT + "/activate"))
+                                .header("Content-Type", "application/json")
+                                .POST(HttpRequest.BodyPublishers.ofString("{}")).build(),
+                        HttpResponse.BodyHandlers.discarding());
+            } catch (Exception e) {
+                // ignore — existing instance may not be reachable
+            }
             System.exit(1);
         }
 
