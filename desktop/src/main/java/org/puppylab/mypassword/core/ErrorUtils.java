@@ -4,8 +4,6 @@ import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.JsonUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 public class ErrorUtils {
 
     public static BaseResponse error(ErrorCode code, String message) {
@@ -16,11 +14,6 @@ public class ErrorUtils {
     }
 
     public static String errorJson(ErrorCode code, String message) {
-        try {
-            return JsonUtils.getObjectMapper().writeValueAsString(error(code, message));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return JsonUtils.toJson(error(code, message));
     }
-
 }

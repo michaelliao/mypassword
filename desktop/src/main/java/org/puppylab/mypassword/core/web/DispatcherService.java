@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.puppylab.mypassword.core.ErrorUtils;
+import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
@@ -14,12 +15,9 @@ import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class DispatcherService {
     final Logger           logger          = LoggerFactory.getLogger(getClass());
     final List<Dispatcher> dispatchers     = new ArrayList<>();
-    final ObjectMapper     mapper          = JsonUtils.getObjectMapper();
     final String           errorBadRequest = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
     final String           errorNotFound   = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Not found.");
 
@@ -43,9 +41,14 @@ public class DispatcherService {
                 }
             }
             if (result != null) {
-                return mapper.writeValueAsString(result);
+                return JsonUtils.toJson(result);
             }
             return errorNotFound;
+        } catch (BadRequestException e) {
+            var resp = new BaseResponse();
+            resp.error = e.errorCode;
+            resp.errorMessage = e.getMessage();
+            return JsonUtils.toJson(resp);
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
         }
