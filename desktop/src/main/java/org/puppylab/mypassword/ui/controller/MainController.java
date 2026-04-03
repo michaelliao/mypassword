@@ -111,13 +111,13 @@ public class MainController {
         noteDetailView.setOnEdit(this::onEditCurrent);
         identityDetailView.setOnEdit(this::onEditCurrent);
 
-        loginEditView.setOnSave(this::onSaveLogin);
+        loginEditView.setOnSave(this::onSave);
         loginEditView.setOnCancel(this::onCancel);
 
-        noteEditView.setOnSave(this::onSaveNote);
+        noteEditView.setOnSave(this::onSave);
         noteEditView.setOnCancel(this::onCancel);
 
-        identityEditView.setOnSave(this::onSaveIdentity);
+        identityEditView.setOnSave(this::onSave);
         identityEditView.setOnCancel(this::onCancel);
     }
 
@@ -158,7 +158,7 @@ public class MainController {
             activeEditComposite = identityEditView.composite;
         }
         default -> {
-            // FIXME: popup error message dialog:
+            showError("Invalid item type: " + type);
         }
         }
         switchMode(Mode.EDIT);
@@ -229,7 +229,7 @@ public class MainController {
             activeDetailComposite = identityDetailView.composite;
         }
         default -> {
-            // FIXME: display error view
+            showError("Invalid item type: " + item.item_type);
         }
         }
         switchMode(Mode.DETAIL);
@@ -251,41 +251,43 @@ public class MainController {
             identityEditView.edit(identityStore.get(state.selectedItem.id));
             activeEditComposite = identityEditView.composite;
         }
-        default -> throw new IllegalArgumentException("Unexpected value: " + state.selectedItem.item_type);
+        default -> showError("Invalid item type: " + state.selectedItem.item_type);
         }
         switchMode(Mode.EDIT);
     }
 
-    private void onSaveLogin(LoginItemData data) {
+    private void onSave(AbstractItemData data) {
+        SecretKey key = Session.current().getKey();
+        if (key == null)
+            return;
         boolean isNew = data.id == 0;
-        if (isNew)
-            data.id = System.currentTimeMillis();
-        loginStore.put(data.id, data);
-        commitItem(data, isNew);
-        loginDetailView.show(data);
-        activeDetailComposite = loginDetailView.composite;
-        switchMode(Mode.DETAIL);
-    }
-
-    private void onSaveNote(NoteItemData data) {
-        boolean isNew = data.id == 0;
-        if (isNew)
-            data.id = System.currentTimeMillis();
-        noteStore.put(data.id, data);
-        commitItem(data, isNew);
-        noteDetailView.show(data);
-        activeDetailComposite = noteDetailView.composite;
-        switchMode(Mode.DETAIL);
-    }
-
-    private void onSaveIdentity(IdentityItemData data) {
-        boolean isNew = data.id == 0;
-        if (isNew)
-            data.id = System.currentTimeMillis();
-        identityStore.put(data.id, data);
-        commitItem(data, isNew);
-        identityDetailView.show(data);
-        activeDetailComposite = identityDetailView.composite;
+        if (isNew) {
+            data.id = vaultManager.createItem(key, data);
+        } else {
+            vaultManager.updateItem(key, data);
+        }
+        AbstractItemData saved = vaultManager.getItem(key, data.id);
+        switch (saved) {
+        case LoginItemData d -> {
+            loginStore.put(d.id, d);
+            loginDetailView.show(d);
+            activeDetailComposite = loginDetailView.composite;
+        }
+        case NoteItemData d -> {
+            noteStore.put(d.id, d);
+            noteDetailView.show(d);
+            activeDetailComposite = noteDetailView.composite;
+        }
+        case IdentityItemData d -> {
+            identityStore.put(d.id, d);
+            identityDetailView.show(d);
+            activeDetailComposite = identityDetailView.composite;
+        }
+        default -> {
+            showError("Invalid item type: " + saved.item_type);
+        }
+        }
+        commitItem(saved, isNew);
         switchMode(Mode.DETAIL);
     }
 
@@ -389,6 +391,12 @@ public class MainController {
         return result[0];
     }
 
+    // display error message:
+    private void showError(String string) {
+        // TODO Auto-generated method stub
+
+    }
+
     private void triggerCurrentSave() {
         if (activeEditComposite == loginEditView.composite)
             loginEditView.triggerSave();
@@ -410,9 +418,5 @@ public class MainController {
 
     private boolean contains(String text, String query) {
         return text != null && text.toLowerCase().contains(query);
-    }
-
-    private String notNull(String s) {
-        return s != null ? s : "";
     }
 }
