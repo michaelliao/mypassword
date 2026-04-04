@@ -1,5 +1,8 @@
 package org.puppylab.mypassword.ui;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,9 +11,9 @@ import java.nio.file.Path;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
@@ -175,6 +178,10 @@ public class MainWindow {
     }
 
     private static Image loadIcon(Display display) {
-        return new Image(display, MainWindow.class.getResourceAsStream("/logo.ico"));
+        try (InputStream input = MainWindow.class.getResourceAsStream("/logo.ico")) {
+            return new Image(display, input);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
