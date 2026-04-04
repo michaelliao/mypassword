@@ -13,6 +13,8 @@ import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
+import org.puppylab.mypassword.util.EncryptUtils;
+import org.puppylab.mypassword.util.IdUtils;
 
 public class VaultManager {
 

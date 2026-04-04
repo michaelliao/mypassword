@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
 
-import org.puppylab.mypassword.core.EncryptUtils;
 import org.puppylab.mypassword.core.data.AbstractFields;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.IdentityFieldsData;

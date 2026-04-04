@@ -1,12 +1,12 @@
-package org.puppylab.mypassword.ui.view;
+package org.puppylab.mypassword.core;
 
 import java.util.Arrays;
 
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.widgets.Display;
-import org.puppylab.mypassword.core.EncryptUtils;
-import org.puppylab.mypassword.core.VaultManager;
+import org.puppylab.mypassword.core.data.SettingKey;
+import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.HashUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class ClearPasswordThread extends Thread {
     }
 
     public static void scheduleClear(String password) {
-        int seconds = vaultManager.getSetting("clear_pwd_after", 60);
+        int seconds = vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 60);
         byte[] key = EncryptUtils.generateKey();
         hmacKey = key;
         expectedHash = HashUtils.hmacSha256(password, key);
@@ -48,7 +48,7 @@ public class ClearPasswordThread extends Thread {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                // schedule() called, restart countdown loop
+                // scheduleClear() called, restart countdown loop
                 continue;
             }
             if (countdown <= 0) {

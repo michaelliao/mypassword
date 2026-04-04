@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.core;
+package org.puppylab.mypassword.utils;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,6 +15,7 @@ import javax.security.auth.DestroyFailedException;
 import org.junit.jupiter.api.Test;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.EncryptUtils;
 
 public class EncryptUtilsTest {
 

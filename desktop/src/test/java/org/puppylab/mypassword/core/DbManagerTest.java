@@ -17,6 +17,8 @@ import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultVersion;
 import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.EncryptUtils;
+import org.puppylab.mypassword.util.IdUtils;
 
 public class DbManagerTest {
 

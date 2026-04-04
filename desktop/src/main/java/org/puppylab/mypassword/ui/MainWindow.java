@@ -23,11 +23,11 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
+import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
-import org.puppylab.mypassword.ui.view.ClearPasswordThread;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.IdentityDetailView;
 import org.puppylab.mypassword.ui.view.IdentityEditView;

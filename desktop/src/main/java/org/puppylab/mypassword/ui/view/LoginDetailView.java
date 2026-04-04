@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
+import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.util.StringUtils;
 

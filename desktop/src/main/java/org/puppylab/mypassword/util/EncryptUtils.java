@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.core;
+package org.puppylab.mypassword.util;
 
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;

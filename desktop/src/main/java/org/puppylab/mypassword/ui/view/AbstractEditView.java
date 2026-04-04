@@ -198,7 +198,10 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         multiText.fields().add(t);
 
         Button removeBtn = new Button(row, SWT.PUSH);
-        removeBtn.setText(" × ");
+        removeBtn.setText("×");
+        GridData removeBtnGd = new GridData();
+        removeBtnGd.widthHint = 32;
+        removeBtn.setLayoutData(removeBtnGd);
         removeBtn.addListener(SWT.Selection, _ -> {
             multiText.fields().remove(t);
             row.dispose();

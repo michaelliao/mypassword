@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.core;
+package org.puppylab.mypassword.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
+import org.puppylab.mypassword.util.IdUtils;
 
 class IdUtilsTest {
 
