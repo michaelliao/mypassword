@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -21,7 +23,7 @@ public class EmptyView {
         iconLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
 
         Label hint = new Label(composite, SWT.CENTER);
-        hint.setText("Select an item from the list, or click \"+ Add New\".");
+        hint.setText(i18n("empty.hint"));
         hint.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         hint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
     }

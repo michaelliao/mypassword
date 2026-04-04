@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
@@ -45,7 +47,7 @@ public class UnlockView {
 
         // ── app title ─────────────────────────────────────────────────
         Label title = new Label(card, SWT.CENTER);
-        title.setText("MyPassword");
+        title.setText(i18n("app.name"));
         title.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
         Font boldFont = deriveBoldFont(title, 4);
         title.setFont(boldFont);
@@ -53,7 +55,7 @@ public class UnlockView {
 
         // ── hint ──────────────────────────────────────────────────────
         Label hint = new Label(card, SWT.CENTER | SWT.WRAP);
-        hint.setText("Enter your master password to unlock the vault.");
+        hint.setText(i18n("unlock.hint"));
         hint.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         GridData hintGd   = new GridData(SWT.CENTER, SWT.CENTER, true, false);
         hintGd.widthHint  = 320;
@@ -72,14 +74,14 @@ public class UnlockView {
         pwRow.setLayout(pwRowGl);
 
         passwordText = new Text(pwRow, SWT.BORDER | SWT.PASSWORD | SWT.SINGLE);
-        passwordText.setMessage("Master password (8–50 chars)");
+        passwordText.setMessage(i18n("unlock.password.placeholder"));
         passwordText.setTextLimit(MAX_PASSWORD_LEN);
         GridData pwGd   = new GridData(SWT.FILL, SWT.CENTER, true, false);
         pwGd.heightHint = 28;
         passwordText.setLayoutData(pwGd);
 
         unlockBtn = new Button(pwRow, SWT.PUSH);
-        unlockBtn.setText("Unlock");
+        unlockBtn.setText(i18n("unlock.btn"));
         GridData btnGd   = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
         btnGd.heightHint = 30;
         unlockBtn.setLayoutData(btnGd);

@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -33,8 +35,8 @@ public class ItemListView {
     // ── category metadata ─────────────────────────────────────────────
     private static final Category[] CATEGORIES      = { Category.ALL, Category.FAVORITES, Category.LOGINS,
             Category.NOTES, Category.IDENTITIES, Category.TRASH };
-    private static final String[]   CATEGORY_LABELS = { "All Items", "Favorites", "Logins", "Notes", "Identities",
-            "Trash" };
+    private static final String[]   CATEGORY_KEYS   = { "category.all", "category.favorites", "category.logins",
+            "category.notes", "category.identities", "category.trash" };
 
     // ── widgets ───────────────────────────────────────────────────────
     private final Table categoryTable;
@@ -128,8 +130,8 @@ public class ItemListView {
         table.setHeaderVisible(false);
         table.setLinesVisible(false);
 
-        for (String label : CATEGORY_LABELS) {
-            new TableItem(table, SWT.NONE).setText(label);
+        for (String key : CATEGORY_KEYS) {
+            new TableItem(table, SWT.NONE).setText(i18n(key));
         }
         table.setSelection(0);
 

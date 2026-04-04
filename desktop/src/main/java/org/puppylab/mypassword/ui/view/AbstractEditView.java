@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,7 +42,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         actions.setLayout(rl);
 
         Button btnSave = new Button(actions, SWT.PUSH);
-        btnSave.setText(" Save ");
+        btnSave.setText(i18n("edit.btn.save"));
         btnSave.addListener(SWT.Selection, _ -> {
             if (onSave != null) {
                 onSave.accept(collectData());
@@ -48,7 +50,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         });
 
         Button btnCancel = new Button(actions, SWT.PUSH);
-        btnCancel.setText(" Cancel ");
+        btnCancel.setText(i18n("edit.btn.cancel"));
         btnCancel.addListener(SWT.Selection, _ -> {
             if (onCancel != null) {
                 onCancel.run();
@@ -175,7 +177,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         Button addWebsiteBtn = new Button(right, SWT.PUSH);
         MultiText multiText = new MultiText(websitesContainer, websiteFields, addWebsiteBtn);
 
-        addWebsiteBtn.setText("+ Add more");
+        addWebsiteBtn.setText(i18n("edit.btn.add_more"));
         addWebsiteBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         addWebsiteBtn.addListener(SWT.Selection, _ -> addMultiTextRow(multiText, "", true));
         return multiText;

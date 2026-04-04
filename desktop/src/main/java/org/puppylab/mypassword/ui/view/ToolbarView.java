@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
@@ -30,12 +32,12 @@ public class ToolbarView {
 
         // ── Add New button with drop-down menu ────────────────────────
         Button btnAdd = new Button(composite, SWT.PUSH);
-        btnAdd.setText(" + Add New ");
+        btnAdd.setText(i18n("toolbar.btn.add_new"));
 
         Menu addMenu = new Menu(btnAdd);
-        addMenuItem(addMenu, "Login", ItemType.LOGIN);
-        addMenuItem(addMenu, "Note", ItemType.NOTE);
-        addMenuItem(addMenu, "Identity", ItemType.IDENTITY);
+        addMenuItem(addMenu, i18n("toolbar.menu.login"), ItemType.LOGIN);
+        addMenuItem(addMenu, i18n("toolbar.menu.note"), ItemType.NOTE);
+        addMenuItem(addMenu, i18n("toolbar.menu.identity"), ItemType.IDENTITY);
 
         btnAdd.addListener(SWT.Selection, e -> {
             Rectangle bounds = btnAdd.getBounds();
@@ -46,7 +48,7 @@ public class ToolbarView {
 
         // ── Search field (fills remaining space) ──────────────────────
         Text search = new Text(composite, SWT.SEARCH | SWT.ICON_SEARCH);
-        search.setMessage("Search...");
+        search.setMessage(i18n("toolbar.search.placeholder"));
         search.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         search.addModifyListener(e -> {
             if (onSearch != null)
@@ -55,7 +57,7 @@ public class ToolbarView {
 
         // ── Lock button (pinned to the right) ─────────────────────────
         Button btnLock = new Button(composite, SWT.PUSH);
-        btnLock.setText("Lock");
+        btnLock.setText(i18n("toolbar.btn.lock"));
         btnLock.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         btnLock.addListener(SWT.Selection, e -> {
             if (onLock != null)

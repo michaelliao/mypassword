@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -45,13 +47,13 @@ public class InitVaultDialog {
      */
     public boolean open(VaultManager vaultManager) {
         Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        shell.setText("Set Master Password");
+        shell.setText(i18n("init.title"));
         shell.setSize(400, 320);
         shell.setLayout(new GridLayout(1, false));
 
         // ── title ────────────────────────────────────────────────────────
         Label title = new Label(shell, SWT.CENTER);
-        title.setText("Create Master Password");
+        title.setText(i18n("init.heading"));
         title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         Font boldFont = deriveBoldFont(title, 3);
         title.setFont(boldFont);
@@ -59,7 +61,7 @@ public class InitVaultDialog {
 
         // ── hint ─────────────────────────────────────────────────────────
         Label hint = new Label(shell, SWT.CENTER | SWT.WRAP);
-        hint.setText("This password protects your vault. It cannot be recovered if lost.");
+        hint.setText(i18n("init.hint"));
         hint.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         GridData hintGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         hintGd.widthHint = 360;
@@ -69,7 +71,7 @@ public class InitVaultDialog {
 
         // ── password field ───────────────────────────────────────────────
         Text passwordText = new Text(shell, SWT.BORDER | SWT.PASSWORD | SWT.SINGLE);
-        passwordText.setMessage("Password (" + MIN_PASSWORD_LEN + "–" + MAX_PASSWORD_LEN + " chars)");
+        passwordText.setMessage(i18n("init.password.placeholder", MIN_PASSWORD_LEN, MAX_PASSWORD_LEN));
         passwordText.setTextLimit(MAX_PASSWORD_LEN);
         GridData pwGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         pwGd.heightHint = 28;
@@ -77,7 +79,7 @@ public class InitVaultDialog {
 
         // ── confirm field ─────────────────────────────────────────────────
         Text confirmText = new Text(shell, SWT.BORDER | SWT.PASSWORD | SWT.SINGLE);
-        confirmText.setMessage("Confirm password");
+        confirmText.setMessage(i18n("init.confirm.placeholder"));
         confirmText.setTextLimit(MAX_PASSWORD_LEN);
         GridData cfGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         cfGd.heightHint = 28;
@@ -97,7 +99,7 @@ public class InitVaultDialog {
         btnRow.setLayout(btnGl);
 
         Button createBtn = new Button(btnRow, SWT.PUSH);
-        createBtn.setText("Create Vault");
+        createBtn.setText(i18n("init.btn.create"));
         GridData createGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         createGd.widthHint = 120;
         createGd.heightHint = 30;
@@ -106,7 +108,7 @@ public class InitVaultDialog {
         shell.setDefaultButton(createBtn);
 
         Button cancelBtn = new Button(btnRow, SWT.PUSH);
-        cancelBtn.setText("Cancel");
+        cancelBtn.setText(i18n("init.btn.cancel"));
         GridData cancelGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         cancelGd.widthHint = 120;
         cancelGd.heightHint = 30;
@@ -124,12 +126,12 @@ public class InitVaultDialog {
             String pw = passwordText.getText();
             String cfm = confirmText.getText();
             if (pw.length() < MIN_PASSWORD_LEN) {
-                errorLabel.setText("Password must be at least " + MIN_PASSWORD_LEN + " characters.");
+                errorLabel.setText(i18n("init.error.too_short", MIN_PASSWORD_LEN));
                 shell.layout(true, true);
                 return;
             }
             if (!pw.equals(cfm)) {
-                errorLabel.setText("Passwords do not match.");
+                errorLabel.setText(i18n("init.error.mismatch"));
                 confirmText.setText("");
                 confirmText.setFocus();
                 shell.layout(true, true);

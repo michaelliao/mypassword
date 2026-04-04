@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -44,7 +46,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         Composite actions = new Composite(composite, SWT.NONE);
         actions.setLayout(new RowLayout());
         Button btnEdit = new Button(actions, SWT.PUSH);
-        btnEdit.setText(" Edit ");
+        btnEdit.setText(i18n("detail.btn.edit"));
         btnEdit.addListener(SWT.Selection, e -> {
             if (onEdit != null) {
                 onEdit.run();
@@ -75,7 +77,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         lblLastEdit.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         btnDelete = new Button(content, SWT.PUSH);
-        btnDelete.setText(" Delete ");
+        btnDelete.setText(i18n("detail.btn.delete"));
         btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         btnDelete.addListener(SWT.Selection, e -> {
             if (onDelete != null)
@@ -94,9 +96,9 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
 
     public void show(T item) {
         setData(item);
-        btnDelete.setText(item.deleted ? " Restore " : " Delete ");
+        btnDelete.setText(item.deleted ? i18n("detail.btn.restore") : i18n("detail.btn.delete"));
         if (item.updated_at > 0) {
-            lblLastEdit.setText("Last edit on: " + DATE_TIME_FMT.format(Instant.ofEpochMilli(item.updated_at)));
+            lblLastEdit.setText(i18n("detail.last_edit", DATE_TIME_FMT.format(Instant.ofEpochMilli(item.updated_at))));
         } else {
             lblLastEdit.setText("");
         }

@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.VaultManager;
@@ -88,7 +90,7 @@ public class MainWindow {
 
         // ── SWT shell ──────────────────────────────────────────────────────
         Shell shell = new Shell(display);
-        shell.setText("MyPassword");
+        shell.setText(i18n("app.name"));
         shell.setSize(800, 600);
         shell.setLayout(new GridLayout(1, false));
         Image appIcon = loadIcon(display);
@@ -140,19 +142,19 @@ public class MainWindow {
         Tray tray = display.getSystemTray();
         if (tray != null) {
             TrayItem trayItem = new TrayItem(tray, SWT.NONE);
-            trayItem.setToolTipText("MyPassword");
+            trayItem.setToolTipText(i18n("app.name"));
             trayItem.setImage(appIcon);
 
             Menu trayMenu = new Menu(shell, SWT.POP_UP);
             MenuItem openItem = new MenuItem(trayMenu, SWT.PUSH);
-            openItem.setText("Open MyPassword");
+            openItem.setText(i18n("tray.open"));
             openItem.addListener(SWT.Selection, e -> {
                 shell.setVisible(true);
                 shell.setMinimized(false);
                 shell.setActive();
             });
             MenuItem exitItem = new MenuItem(trayMenu, SWT.PUSH);
-            exitItem.setText("Exit");
+            exitItem.setText(i18n("tray.exit"));
             exitItem.addListener(SWT.Selection, e -> shell.dispose());
 
             trayItem.addListener(SWT.Selection, e -> {
