@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -21,8 +23,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
-import static org.puppylab.mypassword.util.I18nUtils.i18n;
-
 import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
@@ -97,7 +97,7 @@ public class MainWindow {
         shell.setImage(appIcon);
 
         // Stop the HTTP service when the window closes
-        shell.addListener(SWT.Dispose, e -> daemon.stop());
+        shell.addListener(SWT.Dispose, _ -> daemon.stop());
 
         // ── top-level stack: unlock vs. main content ───────────────────────
         Composite topContainer = new Composite(shell, SWT.NONE);
@@ -148,21 +148,21 @@ public class MainWindow {
             Menu trayMenu = new Menu(shell, SWT.POP_UP);
             MenuItem openItem = new MenuItem(trayMenu, SWT.PUSH);
             openItem.setText(i18n("tray.open"));
-            openItem.addListener(SWT.Selection, e -> {
+            openItem.addListener(SWT.Selection, _ -> {
                 shell.setVisible(true);
                 shell.setMinimized(false);
                 shell.setActive();
             });
             MenuItem exitItem = new MenuItem(trayMenu, SWT.PUSH);
             exitItem.setText(i18n("tray.exit"));
-            exitItem.addListener(SWT.Selection, e -> shell.dispose());
+            exitItem.addListener(SWT.Selection, _ -> shell.dispose());
 
-            trayItem.addListener(SWT.Selection, e -> {
+            trayItem.addListener(SWT.Selection, _ -> {
                 shell.setVisible(true);
                 shell.setMinimized(false);
                 shell.setActive();
             });
-            trayItem.addListener(SWT.MenuDetect, e -> trayMenu.setVisible(true));
+            trayItem.addListener(SWT.MenuDetect, _ -> trayMenu.setVisible(true));
 
             // minimize to tray instead of closing:
             shell.addListener(SWT.Close, e -> {
