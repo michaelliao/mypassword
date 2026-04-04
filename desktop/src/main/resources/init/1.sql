@@ -17,8 +17,7 @@ CREATE TABLE VaultConfig (
 
 CREATE TABLE Setting (
     setting_key TEXT PRIMARY KEY NOT NULL, -- lock.time = "10min"
-    setting_value TEXT NOT NULL,           -- "600"
-    setting_type TEXT NOT NULL             -- int, bool, string
+    setting_value TEXT NOT NULL            -- "600"
 );
 
 CREATE TABLE RecoveryConfig (

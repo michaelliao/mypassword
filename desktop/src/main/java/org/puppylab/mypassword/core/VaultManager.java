@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
+import org.puppylab.mypassword.core.entity.VaultSetting;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.ErrorCode;
@@ -26,6 +27,40 @@ public class VaultManager {
 
     public boolean isInitialized() {
         return this.vaultConfig != null;
+    }
+
+    public String getSetting(String key, String defaultValue) {
+        VaultSetting vs = this.dbManager.queryFirst(VaultSetting.class, "where setting_key = ?", key);
+        if (vs == null) {
+            return defaultValue;
+        }
+        return vs.setting_value;
+    }
+
+    public long getSetting(String key, long defaultValue) {
+        String s = getSetting(key, String.valueOf(defaultValue));
+        try {
+            return Long.parseLong(s);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    public void setSetting(String key, String value) {
+        VaultSetting vs = this.dbManager.queryFirst(VaultSetting.class, "where setting_key = ?", key);
+        if (vs == null) {
+            vs = new VaultSetting();
+            vs.setting_key = key;
+            vs.setting_value = value;
+            this.dbManager.insert(vs);
+        } else {
+            vs.setting_value = value;
+            this.dbManager.update(vs, "setting_value");
+        }
+    }
+
+    public void setSetting(String key, long value) {
+        setSetting(key, String.valueOf(value));
     }
 
     // nullable:
