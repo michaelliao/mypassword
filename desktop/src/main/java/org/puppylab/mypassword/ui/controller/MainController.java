@@ -220,19 +220,19 @@ public class MainController {
         case ItemType.LOGIN -> {
             LoginItemData d = loginStore.get(item.id);
             if (d != null)
-                loginDetailView.show(d);
+                loginDetailView.show(d, item.deleted);
             activeDetailComposite = loginDetailView.composite;
         }
         case ItemType.NOTE -> {
             NoteItemData d = noteStore.get(item.id);
             if (d != null)
-                noteDetailView.show(d);
+                noteDetailView.show(d, item.deleted);
             activeDetailComposite = noteDetailView.composite;
         }
         case ItemType.IDENTITY -> {
             IdentityItemData d = identityStore.get(item.id);
             if (d != null)
-                identityDetailView.show(d);
+                identityDetailView.show(d, item.deleted);
             activeDetailComposite = identityDetailView.composite;
         }
         default -> {
@@ -277,17 +277,17 @@ public class MainController {
         switch (saved) {
         case LoginItemData d -> {
             loginStore.put(d.id, d);
-            loginDetailView.show(d);
+            loginDetailView.show(d, false);
             activeDetailComposite = loginDetailView.composite;
         }
         case NoteItemData d -> {
             noteStore.put(d.id, d);
-            noteDetailView.show(d);
+            noteDetailView.show(d, false);
             activeDetailComposite = noteDetailView.composite;
         }
         case IdentityItemData d -> {
             identityStore.put(d.id, d);
-            identityDetailView.show(d);
+            identityDetailView.show(d, false);
             activeDetailComposite = identityDetailView.composite;
         }
         default -> {
@@ -305,10 +305,20 @@ public class MainController {
         SecretKey key = Session.current().getKey();
         if (key == null)
             return;
-        vaultManager.deleteItem(id);
+        boolean wasDeleted = state.selectedItem.deleted;
+        if (wasDeleted) {
+            vaultManager.restoreItem(id);
+        } else {
+            vaultManager.deleteItem(id);
+        }
         AbstractItemData updated = vaultManager.getItem(key, id);
         state.allItems.removeIf(i -> i.id == id);
-        state.deletedItems.add(updated);
+        state.deletedItems.removeIf(i -> i.id == id);
+        if (updated.deleted) {
+            state.deletedItems.add(updated);
+        } else {
+            state.allItems.add(updated);
+        }
         switch (updated) {
         case LoginItemData d -> loginStore.put(d.id, d);
         case NoteItemData d -> noteStore.put(d.id, d);

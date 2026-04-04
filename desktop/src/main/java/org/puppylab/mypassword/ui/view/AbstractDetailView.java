@@ -22,6 +22,8 @@ public abstract class AbstractDetailView<T> {
     final ScrolledComposite sc;
     final Composite         content;
 
+    private final Button btnDelete;
+
     private Runnable onEdit;
     private Runnable onDelete;
 
@@ -59,7 +61,7 @@ public abstract class AbstractDetailView<T> {
         Label sep = new Label(content, SWT.SEPARATOR | SWT.HORIZONTAL);
         sep.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-        Button btnDelete = new Button(content, SWT.PUSH);
+        btnDelete = new Button(content, SWT.PUSH);
         btnDelete.setText(" Delete ");
         btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         btnDelete.addListener(SWT.Selection, e -> {
@@ -76,8 +78,9 @@ public abstract class AbstractDetailView<T> {
 
     protected abstract void createFields();
 
-    public void show(T item) {
+    public void show(T item, boolean deleted) {
         setData(item);
+        btnDelete.setText(deleted ? " Restore " : " Delete ");
         content.layout(true, true);
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
