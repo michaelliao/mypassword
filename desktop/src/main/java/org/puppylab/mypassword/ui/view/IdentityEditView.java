@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -26,12 +28,12 @@ public class IdentityEditView extends AbstractEditView<IdentityItemData> {
 
     @Override
     protected void createFields() {
-        nameField = createField("Name:", SWT.BORDER);
-        passportField = createField("Passport:", SWT.BORDER);
-        identityNumberField = createField("ID Number:", SWT.BORDER);
-        taxNumberField = createField("Tax Number:", SWT.BORDER);
-        mobilesMultiFields = createMultiTextFields("Mobiles:");
-        telephonesMultiFields = createMultiTextFields("Telephones:");
+        nameField = createField(i18n("field.name"), SWT.BORDER);
+        passportField = createField(i18n("field.passport"), SWT.BORDER);
+        identityNumberField = createField(i18n("field.id_number"), SWT.BORDER);
+        taxNumberField = createField(i18n("field.tax_number"), SWT.BORDER);
+        mobilesMultiFields = createMultiTextFields(i18n("field.mobiles"));
+        telephonesMultiFields = createMultiTextFields(i18n("field.telephones"));
     }
 
     /**

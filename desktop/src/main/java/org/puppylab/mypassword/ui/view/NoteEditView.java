@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -21,8 +23,8 @@ public class NoteEditView extends AbstractEditView<NoteItemData> {
 
     @Override
     protected void createFields() {
-        titleField = createField("Title:", SWT.BORDER);
-        contentField = createAreaField("Content:");
+        titleField = createField(i18n("field.title"), SWT.BORDER);
+        contentField = createAreaField(i18n("field.content"));
     }
 
     /** Populate form for editing an existing item, or pass null for a new item. */

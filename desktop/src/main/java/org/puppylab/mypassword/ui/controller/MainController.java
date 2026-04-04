@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.controller;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -132,7 +134,7 @@ public class MainController {
     private void onUnlockSubmit(String password) {
         SecretKey dek = vaultManager.unlockVault(password.toCharArray());
         if (dek == null) {
-            unlockView.showError("Incorrect password. Please try again.");
+            unlockView.showError(i18n("unlock.error.wrong_password"));
             return;
         }
         Session.current().setKey(dek);
@@ -302,7 +304,7 @@ public class MainController {
     private void onDeleteCurrent() {
         if (state.selectedItem == null)
             return;
-        if (!state.selectedItem.deleted && !askConfirm("Delete \"" + state.selectedItem.title() + "\"?"))
+        if (!state.selectedItem.deleted && !askConfirm(i18n("confirm.delete", state.selectedItem.title())))
             return;
         long id = state.selectedItem.id;
         SecretKey key = Session.current().getKey();
@@ -392,7 +394,7 @@ public class MainController {
 
     private boolean askConfirm(String message) {
         MessageBox mb = new MessageBox(topContainer.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
-        mb.setText("Confirm");
+        mb.setText(i18n("confirm.title"));
         mb.setMessage(message);
         return mb.open() == SWT.OK;
     }
@@ -401,7 +403,7 @@ public class MainController {
     private int askSaveDiscard() {
         Shell parent = topContainer.getShell();
         Shell dialog = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-        dialog.setText("Unsaved Changes");
+        dialog.setText(i18n("unsaved.title"));
 
         GridLayout gl = new GridLayout(1, false);
         gl.marginWidth = 20;
@@ -410,7 +412,7 @@ public class MainController {
         dialog.setLayout(gl);
 
         Label msg = new Label(dialog, SWT.NONE);
-        msg.setText("You have unsaved changes.");
+        msg.setText(i18n("unsaved.message"));
 
         Composite btnRow = new Composite(dialog, SWT.NONE);
         btnRow.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
@@ -421,21 +423,21 @@ public class MainController {
         int[] result = { SWT.CANCEL };
 
         Button btnSave = new Button(btnRow, SWT.PUSH);
-        btnSave.setText(" Save ");
+        btnSave.setText(i18n("unsaved.btn.save"));
         btnSave.addListener(SWT.Selection, _ -> {
             result[0] = SWT.YES;
             dialog.close();
         });
 
         Button btnDiscard = new Button(btnRow, SWT.PUSH);
-        btnDiscard.setText(" Discard ");
+        btnDiscard.setText(i18n("unsaved.btn.discard"));
         btnDiscard.addListener(SWT.Selection, _ -> {
             result[0] = SWT.NO;
             dialog.close();
         });
 
         Button btnCancel = new Button(btnRow, SWT.PUSH);
-        btnCancel.setText(" Cancel ");
+        btnCancel.setText(i18n("unsaved.btn.cancel"));
         btnCancel.addListener(SWT.Selection, _ -> {
             result[0] = SWT.CANCEL;
             dialog.close();

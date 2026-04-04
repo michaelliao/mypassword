@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.core.data.NoteItemData;
@@ -16,8 +18,8 @@ public class NoteDetailView extends AbstractDetailView<NoteItemData> {
 
     @Override
     protected void createFields() {
-        titleValue = createField("Title:");
-        contentValue = createField("Content:");
+        titleValue = createField(i18n("field.title"));
+        contentValue = createField(i18n("field.content"));
     }
 
     @Override

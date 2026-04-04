@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.core.data.IdentityItemData;
@@ -20,12 +22,12 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
     @Override
     protected void createFields() {
-        nameValue = createField("Name:");
-        passportValue = createField("Passport:");
-        identityNumberValue = createField("ID Number:");
-        taxNumberValue = createField("Tax Number:");
-        telephonesValue = createMultiValueField("Telephones:");
-        mobilesValue = createMultiValueField("Mobiles:");
+        nameValue = createField(i18n("field.name"));
+        passportValue = createField(i18n("field.passport"));
+        identityNumberValue = createField(i18n("field.id_number"));
+        taxNumberValue = createField(i18n("field.tax_number"));
+        telephonesValue = createMultiValueField(i18n("field.telephones"));
+        mobilesValue = createMultiValueField(i18n("field.mobiles"));
     }
 
     @Override

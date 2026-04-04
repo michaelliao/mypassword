@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import static org.puppylab.mypassword.util.I18nUtils.i18n;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -25,11 +27,11 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
 
     @Override
     protected void createFields() {
-        titleField = createField("Title:", SWT.BORDER);
-        usernameField = createField("Username:", SWT.BORDER);
-        passwordField = createField("Password:", SWT.BORDER | SWT.PASSWORD);
-        websitesMultiFields = createMultiTextFields("Websites:");
-        memoField = createAreaField("Memo:");
+        titleField = createField(i18n("field.title"), SWT.BORDER);
+        usernameField = createField(i18n("field.username"), SWT.BORDER);
+        passwordField = createField(i18n("field.password"), SWT.BORDER | SWT.PASSWORD);
+        websitesMultiFields = createMultiTextFields(i18n("field.websites"));
+        memoField = createAreaField(i18n("field.memo"));
     }
 
     @Override
