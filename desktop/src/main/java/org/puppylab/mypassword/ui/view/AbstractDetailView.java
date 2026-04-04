@@ -1,5 +1,9 @@
 package org.puppylab.mypassword.ui.view;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +21,17 @@ import org.eclipse.swt.widgets.Label;
 
 public abstract class AbstractDetailView<T> {
 
+    private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter
+            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withZone(ZoneId.systemDefault());
+
     public final Composite composite;
 
     final ScrolledComposite sc;
     final Composite         content;
 
     private final Button btnDelete;
+    private final Label  lblLastEdit;
 
     private Runnable onEdit;
     private Runnable onDelete;
@@ -57,9 +66,13 @@ public abstract class AbstractDetailView<T> {
 
         createFields();
 
-        // ── delete button at bottom of scrollable area ───────────────
+        // ── last edit time + delete button at bottom of scrollable area ─
         Label sep = new Label(content, SWT.SEPARATOR | SWT.HORIZONTAL);
         sep.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        lblLastEdit = new Label(content, SWT.NONE);
+        lblLastEdit.setForeground(content.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+        lblLastEdit.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         btnDelete = new Button(content, SWT.PUSH);
         btnDelete.setText(" Delete ");
@@ -78,9 +91,14 @@ public abstract class AbstractDetailView<T> {
 
     protected abstract void createFields();
 
-    public void show(T item, boolean deleted) {
+    public void show(T item, boolean deleted, long updatedAt) {
         setData(item);
         btnDelete.setText(deleted ? " Restore " : " Delete ");
+        if (updatedAt > 0) {
+            lblLastEdit.setText("Last edit on: " + DATE_TIME_FMT.format(Instant.ofEpochMilli(updatedAt)));
+        } else {
+            lblLastEdit.setText("");
+        }
         content.layout(true, true);
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
