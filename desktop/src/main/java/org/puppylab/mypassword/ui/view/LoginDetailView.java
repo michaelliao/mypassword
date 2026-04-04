@@ -31,7 +31,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     private MultiLabel websitesContainer;
     private Label      memoValue;
 
-    private String  plainPassword = "";
+    private String  plainPassword   = "";
     private boolean passwordVisible = false;
 
     private MenuItem showHideItem;
@@ -83,7 +83,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
         copyBtn = new Button(btnGroup, SWT.PUSH);
         copyBtn.setText("Copy");
-        copyBtn.addListener(SWT.Selection, e -> copyPassword());
+        copyBtn.addListener(SWT.Selection, _ -> copyPassword());
 
         Button arrowBtn = new Button(btnGroup, SWT.PUSH);
         arrowBtn.setText("\u25BE");
@@ -91,13 +91,13 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Menu menu = new Menu(arrowBtn);
         showHideItem = new MenuItem(menu, SWT.PUSH);
         showHideItem.setText("Show Password");
-        showHideItem.addListener(SWT.Selection, e -> togglePasswordVisibility());
+        showHideItem.addListener(SWT.Selection, _ -> togglePasswordVisibility());
 
         MenuItem largeItem = new MenuItem(menu, SWT.PUSH);
         largeItem.setText("Show Large Password");
-        largeItem.addListener(SWT.Selection, e -> showLargePassword());
+        largeItem.addListener(SWT.Selection, _ -> showLargePassword());
 
-        arrowBtn.addListener(SWT.Selection, e -> {
+        arrowBtn.addListener(SWT.Selection, _ -> {
             Rectangle rect = arrowBtn.getBounds();
             Point pt = arrowBtn.getParent().toDisplay(rect.x, rect.y + rect.height);
             menu.setLocation(pt);
@@ -118,7 +118,8 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     }
 
     private void copyPassword() {
-        if (plainPassword.isEmpty()) return;
+        if (plainPassword.isEmpty())
+            return;
         Display display = Display.getCurrent();
         Clipboard cb = new Clipboard(display);
         cb.setContents(new Object[] { plainPassword }, new Transfer[] { TextTransfer.getInstance() });
@@ -132,12 +133,14 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         tip.setLocation(loc);
         tip.setVisible(true);
         display.timerExec(3000, () -> {
-            if (!tip.isDisposed()) tip.dispose();
+            if (!tip.isDisposed())
+                tip.dispose();
         });
     }
 
     private void togglePasswordVisibility() {
-        if (plainPassword.isEmpty()) return;
+        if (plainPassword.isEmpty())
+            return;
         passwordVisible = !passwordVisible;
         passwordValue.setText(passwordVisible ? plainPassword : MASKED);
         showHideItem.setText(passwordVisible ? "Hide Password" : "Show Password");
@@ -146,7 +149,8 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     }
 
     private void showLargePassword() {
-        if (plainPassword.isEmpty()) return;
+        if (plainPassword.isEmpty())
+            return;
         Shell parent = composite.getShell();
         Shell popup = new Shell(parent, SWT.DIALOG_TRIM);
         popup.setText("Password");
@@ -160,8 +164,8 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         gd.widthHint = 400;
         label.setLayoutData(gd);
 
-        popup.addListener(SWT.Deactivate, e -> popup.close());
-        popup.addListener(SWT.Dispose, e -> largeFont.dispose());
+        popup.addListener(SWT.Deactivate, _ -> popup.close());
+        popup.addListener(SWT.Dispose, _ -> largeFont.dispose());
 
         popup.pack();
         // center on parent:
