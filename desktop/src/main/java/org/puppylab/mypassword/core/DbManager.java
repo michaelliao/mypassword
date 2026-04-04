@@ -201,7 +201,7 @@ public class DbManager {
             throw new RuntimeException(e);
         }
         sb.deleteCharAt(sb.length() - 1); // remove trailing comma
-        sb.append(" WHERE id = ?");
+        sb.append(" WHERE ").append(mapping.idField.getName()).append(" = ?");
         String sql = sb.toString();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             for (int i = 0; i < values.length; i++) {
