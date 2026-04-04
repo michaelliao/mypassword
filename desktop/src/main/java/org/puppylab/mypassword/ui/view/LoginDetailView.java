@@ -1,5 +1,7 @@
 package org.puppylab.mypassword.ui.view;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -18,7 +20,9 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
+import org.puppylab.mypassword.core.EncryptUtils;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.util.HashUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class LoginDetailView extends AbstractDetailView<LoginItemData> {
@@ -123,6 +127,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Clipboard cb = new Clipboard(display);
         cb.setContents(new Object[] { plainPassword }, new Transfer[] { TextTransfer.getInstance() });
         cb.dispose();
+        scheduleClearClipboard(display, plainPassword);
         // show tooltip below copy button:
         ToolTip tip = new ToolTip(composite.getShell(), SWT.BALLOON | SWT.ICON_INFORMATION);
         tip.setMessage("Copied to clipboard");
@@ -168,5 +173,28 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Point ps = popup.getSize();
         popup.setLocation(pb.x + (pb.width - ps.x) / 2, pb.y + (pb.height - ps.y) / 2);
         popup.open();
+    }
+
+    private void scheduleClearClipboard(Display display, String password) {
+        byte[] hmacKey = EncryptUtils.generateKey();
+        byte[] expectedHash = HashUtils.hmacSha256(password, hmacKey);
+        Thread cleaner = new Thread(() -> {
+            try {
+                Thread.sleep(60_000);
+            } catch (InterruptedException e) {
+                return;
+            }
+            display.asyncExec(() -> {
+                if (display.isDisposed()) return;
+                Clipboard cb = new Clipboard(display);
+                String current = (String) cb.getContents(TextTransfer.getInstance());
+                if (current != null && Arrays.equals(expectedHash, HashUtils.hmacSha256(current, hmacKey))) {
+                    cb.clearContents();
+                }
+                cb.dispose();
+            });
+        }, "clipboard-cleaner");
+        cleaner.setDaemon(true);
+        cleaner.start();
     }
 }
