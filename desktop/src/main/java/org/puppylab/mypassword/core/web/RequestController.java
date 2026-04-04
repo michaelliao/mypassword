@@ -72,10 +72,8 @@ public class RequestController {
     @Post("/items/create")
     public BaseResponse create(ItemRequest request) {
         SecretKey key = getKey();
-        long id = this.vaultManager.createItem(key, request.item);
-        // build response:
         var response = new ItemResponse();
-        response.item = this.vaultManager.getItem(key, id);
+        response.item = this.vaultManager.createItem(key, request.item);
         return response;
     }
 
@@ -83,7 +81,6 @@ public class RequestController {
     public BaseResponse itemGet(BaseRequest request, String... args) {
         SecretKey key = getKey();
         long id = getIdFromPath(args[0]);
-        // build response:
         var response = new ItemResponse();
         response.item = this.vaultManager.getItem(key, id);
         return response;
@@ -92,20 +89,17 @@ public class RequestController {
     @Post("/items/{id}/update")
     public BaseResponse itemUpdate(ItemRequest request, String... args) {
         SecretKey key = getKey();
-        long id = getIdFromPath(args[0]);
-        this.vaultManager.updateItem(key, request.item);
-        // build response:
         var response = new ItemResponse();
-        response.item = this.vaultManager.getItem(key, id);
+        response.item = this.vaultManager.updateItem(key, request.item);
         return response;
     }
 
     @Post("/items/{id}/delete")
     public BaseResponse itemDelete(BaseRequest request, String... args) {
-        SecretKey _ = getKey();
+        SecretKey key = getKey();
         long id = getIdFromPath(args[0]);
-        this.vaultManager.deleteItem(id);
-        var response = new BaseResponse();
+        var response = new ItemResponse();
+        response.item = this.vaultManager.deleteItem(key, id);
         return response;
     }
 

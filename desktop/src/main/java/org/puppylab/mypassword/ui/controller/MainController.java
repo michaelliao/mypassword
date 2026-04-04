@@ -268,12 +268,12 @@ public class MainController {
         if (key == null)
             return;
         boolean isNew = data.id == 0;
+        AbstractItemData saved;
         if (isNew) {
-            data.id = vaultManager.createItem(key, data);
+            saved = vaultManager.createItem(key, data);
         } else {
-            vaultManager.updateItem(key, data);
+            saved = vaultManager.updateItem(key, data);
         }
-        AbstractItemData saved = vaultManager.getItem(key, data.id);
         switch (saved) {
         case LoginItemData d -> {
             loginStore.put(d.id, d);
@@ -305,13 +305,12 @@ public class MainController {
         SecretKey key = Session.current().getKey();
         if (key == null)
             return;
-        boolean wasDeleted = state.selectedItem.deleted;
-        if (wasDeleted) {
-            vaultManager.restoreItem(id);
+        AbstractItemData updated;
+        if (state.selectedItem.deleted) {
+            updated = vaultManager.restoreItem(key, id);
         } else {
-            vaultManager.deleteItem(id);
+            updated = vaultManager.deleteItem(key, id);
         }
-        AbstractItemData updated = vaultManager.getItem(key, id);
         state.allItems.removeIf(i -> i.id == id);
         state.deletedItems.removeIf(i -> i.id == id);
         if (updated.deleted) {

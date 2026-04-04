@@ -49,7 +49,11 @@ public class VaultManager {
         return this.dbManager.queryForList(Item.class, "");
     }
 
-    public long createItem(SecretKey key, AbstractItemData data) {
+    /**
+     * Create item by provided data. The id of the data is ignored. The return data
+     * has a generated valid id.
+     */
+    public AbstractItemData createItem(SecretKey key, AbstractItemData data) {
         // check:
         if (data.fields() == null) {
             throw new BadRequestException(ErrorCode.BAD_FIELD, "Missing fields.");
@@ -68,23 +72,46 @@ public class VaultManager {
         // encrypt fields and set to item:
         ConvertUtils.encrypt(key, item, data.fields());
         this.dbManager.insert(item);
-        return item.id;
+        return ConvertUtils.toItemData(key, item);
     }
 
-    public void deleteItem(long id) {
+    /**
+     * Soft delete an item. Return deleted item data.
+     */
+    public AbstractItemData deleteItem(SecretKey key, long id) {
+        Item item = getItem(id);
+        if (item == null) {
+            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+        }
+        if (!item.deleted) {
+            item.deleted = true;
+            item.updated_at = System.currentTimeMillis();
+            this.dbManager.update(item, "deleted", "updated_at");
+        }
+        return ConvertUtils.toItemData(key, item);
+    }
+
+    /**
+     * Set deleted flag to false. Return undeleted item data.
+     */
+    public AbstractItemData restoreItem(SecretKey key, long id) {
         Item item = getItem(id);
         if (item == null) {
             throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
         }
         if (item.deleted) {
-            return;
+            item.deleted = false;
+            item.updated_at = System.currentTimeMillis();
+            this.dbManager.update(item, "deleted", "updated_at");
         }
-        item.deleted = true;
-        item.updated_at = System.currentTimeMillis();
-        this.dbManager.update(item, "deleted", "updated_at");
+        return ConvertUtils.toItemData(key, item);
     }
 
-    public void updateItem(SecretKey key, AbstractItemData data) {
+    /**
+     * Update an exist item. The argument data must have a valid id. Return updated
+     * item data.
+     */
+    public AbstractItemData updateItem(SecretKey key, AbstractItemData data) {
         String errField = data.fields().check();
         if (errField != null) {
             throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
@@ -106,6 +133,7 @@ public class VaultManager {
                     item.id);
             this.dbManager.update(item, "b64_encrypted_data", "b64_encrypted_data_iv", "updated_at");
         });
+        return ConvertUtils.toItemData(key, item);
     }
 
     public SecretKey initVault(String password) {

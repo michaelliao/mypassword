@@ -78,27 +78,29 @@ public class VaultManagerTest {
     @Test
     void testCreateAndGetLoginItem() {
         LoginItemData login = newLogin("GitHub", "alice", "s3cret");
-        long id = vaultManager.createItem(key, login);
+        AbstractItemData created = vaultManager.createItem(key, login);
 
-        AbstractItemData item = vaultManager.getItem(key, id);
-        assertInstanceOf(LoginItemData.class, item);
-        LoginItemData result = (LoginItemData) item;
+        assertInstanceOf(LoginItemData.class, created);
+        LoginItemData result = (LoginItemData) created;
+        assertTrue(result.id != 0);
         assertEquals("GitHub", result.data.title);
         assertEquals("alice", result.data.username);
         assertEquals("s3cret", result.data.password);
         assertEquals(ItemType.LOGIN, result.item_type);
         assertFalse(result.deleted);
         assertFalse(result.favorite);
+
+        // verify getItem returns same data:
+        AbstractItemData fetched = vaultManager.getItem(key, result.id);
+        assertEquals(result.id, fetched.id);
     }
 
     @Test
     void testCreateAndGetNoteItem() {
-        NoteItemData note = newNote("My Note", "some content");
-        long id = vaultManager.createItem(key, note);
+        AbstractItemData created = vaultManager.createItem(key, newNote("My Note", "some content"));
 
-        AbstractItemData item = vaultManager.getItem(key, id);
-        assertInstanceOf(NoteItemData.class, item);
-        NoteItemData result = (NoteItemData) item;
+        assertInstanceOf(NoteItemData.class, created);
+        NoteItemData result = (NoteItemData) created;
         assertEquals("My Note", result.data.title);
         assertEquals("some content", result.data.content);
     }
@@ -143,17 +145,18 @@ public class VaultManagerTest {
 
     @Test
     void testUpdateItem() {
-        LoginItemData login = newLogin("Old Title", "alice", "pass");
-        long id = vaultManager.createItem(key, login);
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Old Title", "alice", "pass"));
 
         LoginItemData updated = newLogin("New Title", "bob", "newpass");
-        updated.id = id;
+        updated.id = created.id;
         updated.item_type = ItemType.LOGIN;
-        vaultManager.updateItem(key, updated);
+        AbstractItemData result = vaultManager.updateItem(key, updated);
 
-        LoginItemData result = (LoginItemData) vaultManager.getItem(key, id);
-        assertEquals("New Title", result.data.title);
-        assertEquals("bob", result.data.username);
+        assertInstanceOf(LoginItemData.class, result);
+        LoginItemData loginResult = (LoginItemData) result;
+        assertEquals("New Title", loginResult.data.title);
+        assertEquals("bob", loginResult.data.username);
+        assertEquals(created.id, loginResult.id);
     }
 
     @Test
@@ -168,38 +171,61 @@ public class VaultManagerTest {
 
     @Test
     void testUpdateItemTypeMismatch() {
-        long id = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
 
         NoteItemData note = newNote("Title", "content");
-        note.id = id;
+        note.id = created.id;
         note.item_type = ItemType.NOTE;
 
         BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.updateItem(key, note));
         assertEquals(ErrorCode.BAD_FIELD, ex.errorCode);
     }
 
-    // --- delete ---
+    // --- delete & restore ---
 
     @Test
     void testDeleteItem() {
-        long id = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
-        vaultManager.deleteItem(id);
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
+        AbstractItemData deleted = vaultManager.deleteItem(key, created.id);
 
-        AbstractItemData item = vaultManager.getItem(key, id);
-        assertTrue(item.deleted);
+        assertTrue(deleted.deleted);
+        assertEquals(created.id, deleted.id);
     }
 
     @Test
     void testDeleteItemIdempotent() {
-        long id = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
-        vaultManager.deleteItem(id);
-        vaultManager.deleteItem(id); // should not throw
-        assertTrue(vaultManager.getItem(key, id).deleted);
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
+        vaultManager.deleteItem(key, created.id);
+        AbstractItemData deleted2 = vaultManager.deleteItem(key, created.id); // should not throw
+        assertTrue(deleted2.deleted);
     }
 
     @Test
     void testDeleteItemNotFound() {
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.deleteItem(999L));
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.deleteItem(key, 999L));
+        assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
+    }
+
+    @Test
+    void testRestoreItem() {
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
+        vaultManager.deleteItem(key, created.id);
+        AbstractItemData restored = vaultManager.restoreItem(key, created.id);
+
+        assertFalse(restored.deleted);
+        assertEquals(created.id, restored.id);
+    }
+
+    @Test
+    void testRestoreItemIdempotent() {
+        AbstractItemData created = vaultManager.createItem(key, newLogin("Title", "user", "pass"));
+        AbstractItemData restored = vaultManager.restoreItem(key, created.id); // not deleted, should not throw
+        assertFalse(restored.deleted);
+    }
+
+    @Test
+    void testRestoreItemNotFound() {
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.restoreItem(key, 999L));
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 
