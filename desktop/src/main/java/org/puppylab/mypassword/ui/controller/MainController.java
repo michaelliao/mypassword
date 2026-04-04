@@ -221,19 +221,19 @@ public class MainController {
         case ItemType.LOGIN -> {
             LoginItemData d = loginStore.get(item.id);
             if (d != null)
-                loginDetailView.show(d, item.deleted, item.updated_at);
+                loginDetailView.show(d);
             activeDetailComposite = loginDetailView.composite;
         }
         case ItemType.NOTE -> {
             NoteItemData d = noteStore.get(item.id);
             if (d != null)
-                noteDetailView.show(d, item.deleted, item.updated_at);
+                noteDetailView.show(d);
             activeDetailComposite = noteDetailView.composite;
         }
         case ItemType.IDENTITY -> {
             IdentityItemData d = identityStore.get(item.id);
             if (d != null)
-                identityDetailView.show(d, item.deleted, item.updated_at);
+                identityDetailView.show(d);
             activeDetailComposite = identityDetailView.composite;
         }
         default -> {
@@ -278,17 +278,17 @@ public class MainController {
         switch (saved) {
         case LoginItemData d -> {
             loginStore.put(d.id, d);
-            loginDetailView.show(d, false, saved.updated_at);
+            loginDetailView.show(d);
             activeDetailComposite = loginDetailView.composite;
         }
         case NoteItemData d -> {
             noteStore.put(d.id, d);
-            noteDetailView.show(d, false, saved.updated_at);
+            noteDetailView.show(d);
             activeDetailComposite = noteDetailView.composite;
         }
         case IdentityItemData d -> {
             identityStore.put(d.id, d);
-            identityDetailView.show(d, false, saved.updated_at);
+            identityDetailView.show(d);
             activeDetailComposite = identityDetailView.composite;
         }
         default -> {

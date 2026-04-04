@@ -92,11 +92,11 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
 
     protected abstract void createFields();
 
-    public void show(T item, boolean deleted, long updatedAt) {
+    public void show(T item) {
         setData(item);
-        btnDelete.setText(deleted ? " Restore " : " Delete ");
-        if (updatedAt > 0) {
-            lblLastEdit.setText("Last edit on: " + DATE_TIME_FMT.format(Instant.ofEpochMilli(updatedAt)));
+        btnDelete.setText(item.deleted ? " Restore " : " Delete ");
+        if (item.updated_at > 0) {
+            lblLastEdit.setText("Last edit on: " + DATE_TIME_FMT.format(Instant.ofEpochMilli(item.updated_at)));
         } else {
             lblLastEdit.setText("");
         }
