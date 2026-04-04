@@ -46,6 +46,15 @@ public class VaultManager {
         }
     }
 
+    public int getSetting(String key, int defaultValue) {
+        String s = getSetting(key, String.valueOf(defaultValue));
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     public void setSetting(String key, String value) {
         VaultSetting vs = this.dbManager.queryFirst(VaultSetting.class, "where setting_key = ?", key);
         if (vs == null) {
@@ -60,6 +69,10 @@ public class VaultManager {
     }
 
     public void setSetting(String key, long value) {
+        setSetting(key, String.valueOf(value));
+    }
+
+    public void setSetting(String key, int value) {
         setSetting(key, String.valueOf(value));
     }
 

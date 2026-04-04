@@ -25,6 +25,7 @@ import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
+import org.puppylab.mypassword.ui.view.ClearPasswordThread;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.IdentityDetailView;
 import org.puppylab.mypassword.ui.view.IdentityEditView;
@@ -122,6 +123,7 @@ public class MainWindow {
         rightContainer.setLayout(rightStack);
 
         EmptyView emptyView = new EmptyView(rightContainer);
+        ClearPasswordThread.init(display, vaultManager);
         LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
         NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
