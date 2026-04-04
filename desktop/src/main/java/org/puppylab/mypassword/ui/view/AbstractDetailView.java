@@ -47,7 +47,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         actions.setLayout(new RowLayout());
         Button btnEdit = new Button(actions, SWT.PUSH);
         btnEdit.setText(i18n("detail.btn.edit"));
-        btnEdit.addListener(SWT.Selection, e -> {
+        btnEdit.addListener(SWT.Selection, _ -> {
             if (onEdit != null) {
                 onEdit.run();
             }
@@ -79,14 +79,15 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         btnDelete = new Button(content, SWT.PUSH);
         btnDelete.setText(i18n("detail.btn.delete"));
         btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-        btnDelete.addListener(SWT.Selection, e -> {
-            if (onDelete != null)
+        btnDelete.addListener(SWT.Selection, _ -> {
+            if (onDelete != null) {
                 onDelete.run();
+            }
         });
 
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-        sc.addControlListener(ControlListener.controlResizedAdapter(e -> {
+        sc.addControlListener(ControlListener.controlResizedAdapter(_ -> {
             int w = sc.getClientArea().width;
             sc.setMinSize(content.computeSize(w, SWT.DEFAULT));
         }));
