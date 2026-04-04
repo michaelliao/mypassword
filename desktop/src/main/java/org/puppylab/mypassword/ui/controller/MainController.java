@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
@@ -301,6 +302,8 @@ public class MainController {
     private void onDeleteCurrent() {
         if (state.selectedItem == null)
             return;
+        if (!state.selectedItem.deleted && !askConfirm("Delete \"" + state.selectedItem.title() + "\"?"))
+            return;
         long id = state.selectedItem.id;
         SecretKey key = Session.current().getKey();
         if (key == null)
@@ -385,6 +388,13 @@ public class MainController {
 
     private void refreshListView() {
         listView.setAllItems(getAllAndDeletedItems());
+    }
+
+    private boolean askConfirm(String message) {
+        MessageBox mb = new MessageBox(topContainer.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+        mb.setText("Confirm");
+        mb.setMessage(message);
+        return mb.open() == SWT.OK;
     }
 
     /** Returns SWT.YES (save), SWT.NO (discard), or SWT.CANCEL. */
