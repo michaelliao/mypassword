@@ -15,16 +15,16 @@ import org.puppylab.mypassword.core.exception.EncryptException;
 
 public class EncryptUtils {
 
-    static final String AES_ALG      = "AES/GCM/NoPadding";
-    static final int    AES_KEY_SIZE = 256;
-    static final int    AES_TAG_SIZE = 128;
-    static final int    AES_IV_SIZE  = 96;
+    public static final String AES_ALG      = "AES/GCM/NoPadding";
+    public static final int    AES_KEY_SIZE = 256;
+    public static final int    AES_TAG_SIZE = 128;
+    public static final int    AES_IV_SIZE  = 96;
 
-    static final String PBE_ALG        = "PBKDF2WithHmacSHA256";
-    static final int    PBE_KEY_SIZE   = 256;
-    static final int    PBE_ITERATIONS = 100_000;
+    public static final String PBE_ALG        = "PBKDF2WithHmacSHA256";
+    public static final int    PBE_KEY_SIZE   = 256;
+    public static final int    PBE_ITERATIONS = 100_000;
 
-    static final SecureRandom srandom = new SecureRandom();
+    private static final SecureRandom srandom = new SecureRandom();
 
     /**
      * Derive a PBE key.
