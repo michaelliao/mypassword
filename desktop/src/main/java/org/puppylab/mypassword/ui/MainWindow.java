@@ -10,9 +10,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Tray;
+import org.eclipse.swt.widgets.TrayItem;
 import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.VaultManager;
@@ -82,6 +87,8 @@ public class MainWindow {
         shell.setText("MyPassword");
         shell.setSize(800, 600);
         shell.setLayout(new GridLayout(1, false));
+        Image appIcon = loadIcon(display);
+        shell.setImage(appIcon);
 
         // Stop the HTTP service when the window closes
         shell.addListener(SWT.Dispose, e -> daemon.stop());
@@ -124,12 +131,50 @@ public class MainWindow {
                 noteEditView, identityEditView, rightContainer, rightStack);
         controller.init();
 
+        // ── system tray ──────────────────────────────────────────────────
+        Tray tray = display.getSystemTray();
+        if (tray != null) {
+            TrayItem trayItem = new TrayItem(tray, SWT.NONE);
+            trayItem.setToolTipText("MyPassword");
+            trayItem.setImage(appIcon);
+
+            Menu trayMenu = new Menu(shell, SWT.POP_UP);
+            MenuItem openItem = new MenuItem(trayMenu, SWT.PUSH);
+            openItem.setText("Open MyPassword");
+            openItem.addListener(SWT.Selection, e -> {
+                shell.setVisible(true);
+                shell.setMinimized(false);
+                shell.setActive();
+            });
+            MenuItem exitItem = new MenuItem(trayMenu, SWT.PUSH);
+            exitItem.setText("Exit");
+            exitItem.addListener(SWT.Selection, e -> shell.dispose());
+
+            trayItem.addListener(SWT.Selection, e -> {
+                shell.setVisible(true);
+                shell.setMinimized(false);
+                shell.setActive();
+            });
+            trayItem.addListener(SWT.MenuDetect, e -> trayMenu.setVisible(true));
+
+            // minimize to tray instead of closing:
+            shell.addListener(SWT.Close, e -> {
+                e.doit = false;
+                shell.setVisible(false);
+            });
+        }
+
         // ── SWT event loop (main thread stays here) ────────────────────────
         shell.open();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())
                 display.sleep();
         }
+        appIcon.dispose();
         display.dispose();
+    }
+
+    private static Image loadIcon(Display display) {
+        return new Image(display, MainWindow.class.getResourceAsStream("/logo.ico"));
     }
 }
