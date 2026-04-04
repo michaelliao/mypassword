@@ -123,7 +123,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Clipboard cb = new Clipboard(display);
         cb.setContents(new Object[] { plainPassword }, new Transfer[] { TextTransfer.getInstance() });
         cb.dispose();
-        ClearPasswordThread.schedule(plainPassword);
+        ClearPasswordThread.scheduleClear(plainPassword);
         // show tooltip below copy button:
         ToolTip tip = new ToolTip(composite.getShell(), SWT.BALLOON | SWT.ICON_INFORMATION);
         tip.setMessage("Copied to clipboard");

@@ -1,7 +1,6 @@
 package org.puppylab.mypassword.ui.view;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -9,45 +8,68 @@ import org.eclipse.swt.widgets.Display;
 import org.puppylab.mypassword.core.EncryptUtils;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.util.HashUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class ClearPasswordThread {
+public class ClearPasswordThread extends Thread {
+
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static Display      display;
     private static VaultManager vaultManager;
 
-    private static final AtomicInteger version = new AtomicInteger(0);
+    private static volatile int    countdown = 0;
+    private static volatile byte[] hmacKey;
+    private static volatile byte[] expectedHash;
+
+    private static ClearPasswordThread instance;
 
     public static void init(Display display, VaultManager vaultManager) {
         ClearPasswordThread.display = display;
         ClearPasswordThread.vaultManager = vaultManager;
+        instance = new ClearPasswordThread();
+        instance.setDaemon(true);
+        instance.setName("clipboard-cleaner");
+        instance.start();
     }
 
-    public static void schedule(String password) {
-        int ver = version.incrementAndGet();
+    public static void scheduleClear(String password) {
         int seconds = vaultManager.getSetting("clear_pwd_after", 60);
-        byte[] hmacKey = EncryptUtils.generateKey();
-        byte[] expectedHash = HashUtils.hmacSha256(password, hmacKey);
-        Thread cleaner = new Thread(() -> {
+        byte[] key = EncryptUtils.generateKey();
+        hmacKey = key;
+        expectedHash = HashUtils.hmacSha256(password, key);
+        countdown = seconds;
+        instance.interrupt();
+    }
+
+    @Override
+    public void run() {
+        while (true) {
             try {
-                Thread.sleep(seconds * 1000L);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
-                return;
+                // schedule() called, restart countdown loop
+                continue;
             }
-            if (version.get() != ver) {
-                return;
+            if (countdown <= 0) {
+                continue;
             }
-            display.asyncExec(() -> {
-                if (display.isDisposed())
-                    return;
-                Clipboard cb = new Clipboard(display);
-                String current = (String) cb.getContents(TextTransfer.getInstance());
-                if (current != null && Arrays.equals(expectedHash, HashUtils.hmacSha256(current, hmacKey))) {
-                    cb.clearContents();
-                }
-                cb.dispose();
-            });
-        }, "clipboard-cleaner");
-        cleaner.setDaemon(true);
-        cleaner.start();
+            countdown--;
+            if (countdown == 0) {
+                final byte[] key = hmacKey;
+                final byte[] hash = expectedHash;
+                display.asyncExec(() -> {
+                    if (display.isDisposed())
+                        return;
+                    Clipboard cb = new Clipboard(display);
+                    String current = (String) cb.getContents(TextTransfer.getInstance());
+                    if (current != null && Arrays.equals(hash, HashUtils.hmacSha256(current, key))) {
+                        cb.clearContents();
+                        logger.info("password cleared from clipboard.");
+                    }
+                    cb.dispose();
+                });
+            }
+        }
     }
 }
