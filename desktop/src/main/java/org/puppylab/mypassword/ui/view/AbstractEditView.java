@@ -15,8 +15,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.core.data.AbstractItemData;
 
-public abstract class AbstractEditView<T> {
+public abstract class AbstractEditView<T extends AbstractItemData> {
 
     static final int LABEL_WIDTH = 80;
 

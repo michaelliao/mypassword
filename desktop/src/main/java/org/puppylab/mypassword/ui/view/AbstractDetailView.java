@@ -18,12 +18,12 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.puppylab.mypassword.core.data.AbstractItemData;
 
-public abstract class AbstractDetailView<T> {
+public abstract class AbstractDetailView<T extends AbstractItemData> {
 
     private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter
-            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-            .withZone(ZoneId.systemDefault());
+            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withZone(ZoneId.systemDefault());
 
     public final Composite composite;
 
@@ -78,7 +78,8 @@ public abstract class AbstractDetailView<T> {
         btnDelete.setText(" Delete ");
         btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         btnDelete.addListener(SWT.Selection, e -> {
-            if (onDelete != null) onDelete.run();
+            if (onDelete != null)
+                onDelete.run();
         });
 
         sc.setContent(content);
