@@ -229,6 +229,40 @@ public class VaultManagerTest {
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 
+    // --- settings ---
+
+    @Test
+    void testGetSettingDefault() {
+        assertEquals("default", vaultManager.getSetting("nonexistent", "default"));
+        assertEquals(42L, vaultManager.getSetting("nonexistent", 42L));
+    }
+
+    @Test
+    void testSetAndGetStringSetting() {
+        vaultManager.setSetting("theme", "dark");
+        assertEquals("dark", vaultManager.getSetting("theme", "light"));
+    }
+
+    @Test
+    void testSetAndGetLongSetting() {
+        vaultManager.setSetting("lock.time", 600L);
+        assertEquals(600L, vaultManager.getSetting("lock.time", 0L));
+    }
+
+    @Test
+    void testUpdateSetting() {
+        vaultManager.setSetting("theme", "dark");
+        assertEquals("dark", vaultManager.getSetting("theme", ""));
+        vaultManager.setSetting("theme", "light");
+        assertEquals("light", vaultManager.getSetting("theme", ""));
+    }
+
+    @Test
+    void testGetLongSettingWithInvalidValue() {
+        vaultManager.setSetting("bad", "not-a-number");
+        assertEquals(99L, vaultManager.getSetting("bad", 99L));
+    }
+
     // --- helpers ---
 
     static LoginItemData newLogin(String title, String username, String password) {

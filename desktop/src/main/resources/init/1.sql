@@ -15,7 +15,7 @@ CREATE TABLE VaultConfig (
     b64_encrypted_dek_iv TEXT NOT NULL              -- iv used above
 );
 
-CREATE TABLE Setting (
+CREATE TABLE VaultSetting (
     setting_key TEXT PRIMARY KEY NOT NULL, -- lock.time = "10min"
     setting_value TEXT NOT NULL            -- "600"
 );
