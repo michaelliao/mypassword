@@ -3,7 +3,9 @@ package org.puppylab.mypassword.core;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.puppylab.mypassword.core.web.DispatcherService;
@@ -36,8 +38,7 @@ public class Daemon implements HttpHandler {
     private VaultManager            vaultManager;
     private final DispatcherService dispatcherService;
 
-    private HttpServer       httpServer;
-    private volatile boolean running = true;
+    private HttpServer httpServer;
 
     public Daemon() {
         this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
@@ -54,6 +55,7 @@ public class Daemon implements HttpHandler {
     public boolean listen() {
         try {
             this.httpServer = HttpServer.create(new InetSocketAddress("127.0.0.1", PORT), 0);
+            this.httpServer.createContext("/", this);
             logger.info("HTTP service listening on 127.0.0.1:{}", PORT);
             return true;
         } catch (IOException e) {
@@ -81,23 +83,22 @@ public class Daemon implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
-        String path = exchange.getRequestURI().getPath();
-        String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+        URI uri = exchange.getRequestURI();
+        String path = uri.getPath();
+        String query = uri.getRawQuery();
         String body = null;
-        if ("POST".equals(method) && contentType != null
-                && (contentType.equals("application/json") || contentType.startsWith("application/json;"))) {
-            body = readJsonBody(exchange);
+        if ("POST".equals(method)) {
+            body = readRequestBody(exchange);
         }
         if ("OPTIONS".equals(method)) {
             sendCors(exchange);
         } else {
-            Object resp = processHttp(exchange);
-            exchange.sendResponseHeaders(200, -1);
+            processHttp(exchange, method, path, query, body);
         }
         exchange.close();
     }
 
-    private String readJsonBody(HttpExchange exchange) throws IOException {
+    private String readRequestBody(HttpExchange exchange) throws IOException {
         try (var reader = new BufferedReader(
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
             return reader.readAllAsString();
@@ -114,7 +115,39 @@ public class Daemon implements HttpHandler {
         exchange.sendResponseHeaders(204, -1);
     }
 
-    private Object processHttp(HttpExchange exchange) {
-        return "Hello";
+    private void processHttp(HttpExchange exchange, String method, String path, String query, String body)
+            throws IOException {
+        Object resp = this.dispatcherService.processHttpRequest(exchange, method, path, query, body);
+        if (resp == null) {
+            exchange.sendResponseHeaders(200, -1);
+            return;
+        }
+        if (resp == DispatcherService.NOT_PROCESSED) {
+            exchange.sendResponseHeaders(404, -1);
+            return;
+        }
+        if (resp instanceof String s) {
+            logger.info("string response: {}", s);
+            if (s.startsWith("<html>")) {
+                sendResponse(exchange, "text/html", s);
+            } else {
+                // send as json:
+                sendResponse(exchange, "application/json", s);
+            }
+            return;
+        }
+        // serialize to json:
+        String json = JsonUtils.toJson(resp);
+        logger.info("json response: {}", json);
+        sendResponse(exchange, "application/json", json);
+    }
+
+    private void sendResponse(HttpExchange exchange, String contentType, String content) throws IOException {
+        exchange.getResponseHeaders().set("Content-Type", contentType);
+        byte[] body = content.getBytes(StandardCharsets.UTF_8);
+        exchange.sendResponseHeaders(200, body.length);
+        try (OutputStream output = exchange.getResponseBody()) {
+            output.write(body);
+        }
     }
 }

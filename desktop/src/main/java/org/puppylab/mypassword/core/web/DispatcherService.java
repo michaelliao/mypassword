@@ -22,7 +22,8 @@ import com.sun.net.httpserver.HttpExchange;
 
 public class DispatcherService {
 
-    final Logger logger = LoggerFactory.getLogger(getClass());
+    public static final Object NOT_PROCESSED = new Object();
+    final Logger               logger        = LoggerFactory.getLogger(getClass());
 
     List<Dispatcher> getDispatchers  = new ArrayList<>();
     List<Dispatcher> postDispatchers = new ArrayList<>();
@@ -56,13 +57,27 @@ public class DispatcherService {
         m.setAccessible(true);
     }
 
-    public Object processHttpRequest(HttpExchange exchange) {
-        return null;
+    public Object processHttpRequest(HttpExchange exchange, String method, String path, String query, String body) {
+        List<Dispatcher> dispatchers = null;
+        if ("GET".equals(method)) {
+            dispatchers = this.getDispatchers;
+        } else if ("POST".equals(method)) {
+            dispatchers = this.postDispatchers;
+        }
+        if (dispatchers == null) {
+            return NOT_PROCESSED;
+        }
+        for (Dispatcher dispatcher : dispatchers) {
+            Object resp = dispatcher.process(method, path, query, body);
+            if (resp != NOT_PROCESSED) {
+                return resp;
+            }
+        }
+        return NOT_PROCESSED;
     }
 
     static class Dispatcher {
-        static final Object  NOT_PROCESSED = new Object();
-        static final Pattern QUERY_SPLIT   = Pattern.compile("\\&");
+        static final Pattern QUERY_SPLIT = Pattern.compile("\\&");
 
         final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -92,7 +107,7 @@ public class DispatcherService {
             return Pattern.compile("^" + regPath + "$");
         }
 
-        Object process(String method, String path, String query, String body) throws Exception {
+        Object process(String method, String path, String query, String body) {
             Map<String, String> parsedQuery = null;
             Matcher matcher = urlPattern.matcher(path);
             if (matcher.matches()) {
