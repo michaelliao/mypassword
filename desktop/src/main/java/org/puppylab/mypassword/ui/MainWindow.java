@@ -138,6 +138,14 @@ public class MainWindow {
                 noteEditView, identityEditView, rightContainer, rightStack);
         controller.init();
 
+        // ── activate window action (shared by tray and /activate) ───────
+        Runnable activate = () -> {
+            shell.setVisible(true);
+            shell.setMinimized(false);
+            shell.setActive();
+            shell.forceActive();
+        };
+
         // ── system tray ──────────────────────────────────────────────────
         Tray tray = display.getSystemTray();
         if (tray != null) {
@@ -148,20 +156,17 @@ public class MainWindow {
             Menu trayMenu = new Menu(shell, SWT.POP_UP);
             MenuItem openItem = new MenuItem(trayMenu, SWT.PUSH);
             openItem.setText(i18n("tray.open"));
-            openItem.addListener(SWT.Selection, _ -> {
-                shell.setVisible(true);
-                shell.setMinimized(false);
-                shell.setActive();
-            });
+            openItem.addListener(SWT.Selection, _ -> activate.run());
+            new MenuItem(trayMenu, SWT.SEPARATOR);
+            MenuItem settingsItem = new MenuItem(trayMenu, SWT.PUSH);
+            settingsItem.setText(i18n("tray.settings"));
+            settingsItem.addListener(SWT.Selection, _ -> new SettingsDialog(shell).open(vaultManager));
+            new MenuItem(trayMenu, SWT.SEPARATOR);
             MenuItem exitItem = new MenuItem(trayMenu, SWT.PUSH);
             exitItem.setText(i18n("tray.exit"));
             exitItem.addListener(SWT.Selection, _ -> shell.dispose());
 
-            trayItem.addListener(SWT.Selection, _ -> {
-                shell.setVisible(true);
-                shell.setMinimized(false);
-                shell.setActive();
-            });
+            trayItem.addListener(SWT.Selection, _ -> activate.run());
             trayItem.addListener(SWT.MenuDetect, _ -> trayMenu.setVisible(true));
 
             // minimize to tray instead of closing:

@@ -24,7 +24,22 @@ public interface SettingKey {
     String KEEP_TRAY_ICON = "keep_tray_icon";
 
     /**
+     * Hot key to activate app.
+     * 
+     * Value: "alt+p", or "" = no hot key.
+     */
+    String HOT_KEY_ACTIVATE = "hot_key_activate";
+
+    String HOT_KEY_LOCK = "hot_key_lock";
+
+    /**
      * UI language. "" = system default.
      */
     String LANGUAGE = "language";
+
+    /**
+     * OAuth client id.
+     */
+    String OAUTH_GOOGLE  = "oauth_google";
+    String OAUTH_DISCORD = "oauth_discord";
 }

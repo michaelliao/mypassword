@@ -15,8 +15,12 @@ import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.IdUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VaultManager {
+
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final DbManager dbManager;
 
@@ -58,6 +62,7 @@ public class VaultManager {
     }
 
     public void setSetting(String key, String value) {
+        logger.info("set setting {} = {}", key, value);
         VaultSetting vs = this.dbManager.queryFirst(VaultSetting.class, "where setting_key = ?", key);
         if (vs == null) {
             vs = new VaultSetting();
@@ -190,12 +195,20 @@ public class VaultManager {
         if (isInitialized()) {
             throw new IllegalStateException("Vault already initialized.");
         }
-        // generate pbe key by password:
+        byte[] dek = EncryptUtils.generateKey();
+        encryptDEK(password, dek);
+        return EncryptUtils.bytesToAesKey(dek);
+    }
+
+    /**
+     * Derive a fresh PBE key from {@code password} and wrap {@code dek} into a new
+     * {@link VaultConfig}. Since VaultConfig always has a single row with id=1, the
+     * existing row (if any) is deleted and a fresh row is inserted.
+     */
+    private void encryptDEK(String password, byte[] dek) {
         final int pbe_iterations = 1_000_000;
         byte[] pbe_salt = EncryptUtils.generateSalt();
         byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
-        // encrypt dek by pbe key:
-        byte[] dek = EncryptUtils.generateKey();
         byte[] encrypted_dek_iv = EncryptUtils.generateIV();
         byte[] encrypted_dek = EncryptUtils.encrypt(dek, EncryptUtils.bytesToAesKey(pbe_key), encrypted_dek_iv);
         VaultConfig vc = new VaultConfig();
@@ -204,9 +217,11 @@ public class VaultManager {
         vc.b64_pbe_salt = Base64Utils.b64(pbe_salt);
         vc.b64_encrypted_dek = Base64Utils.b64(encrypted_dek);
         vc.b64_encrypted_dek_iv = Base64Utils.b64(encrypted_dek_iv);
-        dbManager.insert(vc);
+        this.dbManager.tx(() -> {
+            this.dbManager.execute("DELETE FROM VaultConfig WHERE id = 1");
+            this.dbManager.insert(vc);
+        });
         this.vaultConfig = vc;
-        return EncryptUtils.bytesToAesKey(dek);
     }
 
     /**
@@ -227,6 +242,24 @@ public class VaultManager {
             return null;
         }
         return EncryptUtils.bytesToAesKey(dek);
+    }
+
+    /**
+     * Change the master password. Verifies {@code oldPassword} first; on success
+     * re-wraps the existing DEK with a new PBE key derived from {@code newPassword}
+     * and updates the stored vault config. Returns {@code false} if the old
+     * password is incorrect.
+     */
+    public boolean changeMasterPassword(String oldPassword, String newPassword) {
+        if (!isInitialized()) {
+            throw new IllegalStateException("Vault not initialized.");
+        }
+        SecretKey dekKey = unlockVault(oldPassword.toCharArray());
+        if (dekKey == null) {
+            return false;
+        }
+        encryptDEK(newPassword, dekKey.getEncoded());
+        return true;
     }
 
     public void close() {
