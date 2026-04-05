@@ -1,0 +1,132 @@
+package org.puppylab.mypassword.core.web.pkce;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Properties;
+
+import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.EncryptUtils;
+import org.puppylab.mypassword.util.HashUtils;
+import org.puppylab.mypassword.util.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public abstract class OAuthAuthenticator {
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    final String provider;
+    final String authUrl;
+    final String tokenUrl;
+    final String clientId;
+    final String clientSecret;
+
+    // current code verifier:
+    String codeVerifier = null;
+
+    public OAuthAuthenticator(String provider) {
+        this.provider = provider;
+        this.authUrl = loadProperty("oauth." + provider + ".auth_url");
+        this.tokenUrl = loadProperty("oauth." + provider + ".token_url");
+        this.clientId = loadProperty("oauth." + provider + ".client_id");
+        this.clientSecret = loadProperty("oauth." + provider + ".client_secret");
+        logger.info("Load oauth provider {}: auth: {}, token url: {}", provider, authUrl, tokenUrl);
+    }
+
+    public synchronized String startOAuth() {
+        this.codeVerifier = Base64Utils.b64(EncryptUtils.generateKey());
+        byte[] digest = HashUtils.sha256(codeVerifier.getBytes(StandardCharsets.UTF_8));
+        String code_challenge = Base64Utils.b64(digest);
+        Map<String, String> query = Map.of("client_id", this.clientId, // client id
+                "response_type", "code", // response type
+                "scope", "openid email", // scope
+                "code_challenge", code_challenge, // challenge
+                "code_challenge_method", "S256", // sha-256
+                "redirect_uri", "http://127.0.0.1:27432/oauth/" + this.provider + "/callback");
+        return this.authUrl + '?' + toQueryString(query);
+    }
+
+    public synchronized JwtUser exchangeOAuthId(String code) {
+        Map<String, String> query = Map.of("client_id", this.clientId, // client id
+                "client_secret", this.clientSecret == null ? "" : this.clientSecret, // ignore if client secret is empty
+                "code", code, // received code
+                "code_verifier", this.codeVerifier, // last stored code verifier
+                "grant_type", "authorization_code", // grant_type
+                "redirect_uri", "http://127.0.0.1:27432/oauth/" + this.provider + "/callback");
+        // clear code verifier after use:
+        this.codeVerifier = null;
+        // send http post:
+        String result = httpPostForm(this.tokenUrl, query);
+        logger.info("Post result: {}", result);
+        OAuthResult oauth = JsonUtils.fromJson(result, OAuthResult.class);
+        if (oauth.id_token != null) {
+            String[] parts = oauth.id_token.split("\\.");
+            JwtUser user = decodeJWT(parts[1], JwtUser.class);
+            return user;
+        }
+        return null;
+    }
+
+    private <T> T decodeJWT(String s, Class<T> clazz) {
+        String payload = new String(Base64Utils.b64(s), StandardCharsets.UTF_8);
+        return JsonUtils.fromJson(payload, clazz);
+    }
+
+    private String toQueryString(Map<String, String> query) {
+        StringBuilder sb = new StringBuilder();
+        for (String key : query.keySet()) {
+            String value = query.get(key);
+            if (value != null && !value.isEmpty()) {
+                sb.append(key).append('=').append(URLEncoder.encode(value, StandardCharsets.UTF_8)).append('&');
+            }
+        }
+        if (sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        return sb.toString();
+    }
+
+    protected String httpPostForm(String url, Map<String, String> query) {
+        String q = toQueryString(query);
+        logger.info("Post form {}: {}", url, q);
+        try (var client = HttpClient.newHttpClient()) {
+            var request = HttpRequest.newBuilder().uri(URI.create(url))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(q)).build();
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.body();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("resource")
+    String loadProperty(String key) {
+        if (props == null) {
+            Properties p = new Properties();
+            try {
+                p.load(getClass().getResourceAsStream("/oauth.properties"));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            props = p;
+        }
+        return props.getProperty(key);
+    }
+
+    static Properties props = null;
+
+    public static class OAuthResult {
+        public String access_token;
+        public String scope;
+        public String token_type;
+        public String id_token;
+    }
+}

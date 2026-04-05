@@ -1,6 +1,7 @@
 package org.puppylab.mypassword.core;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -12,6 +13,9 @@ import org.puppylab.mypassword.core.web.PathVariable;
 import org.puppylab.mypassword.core.web.PostMapping;
 import org.puppylab.mypassword.core.web.RequestBody;
 import org.puppylab.mypassword.core.web.RequestParam;
+import org.puppylab.mypassword.core.web.pkce.GoogleAuthenticator;
+import org.puppylab.mypassword.core.web.pkce.JwtUser;
+import org.puppylab.mypassword.core.web.pkce.OAuthAuthenticator;
 import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
@@ -56,9 +60,29 @@ public class RequestController {
         return info;
     }
 
-    @GetMapping("/oauth/callback")
-    public String oauthCallback(@RequestParam("code") String code) {
-        return "<html><body>OAuth OK:</body></html>";
+    Map<String, OAuthAuthenticator> authenticators = Map.of( // list all oauth here:
+            "google", new GoogleAuthenticator() // google
+    );
+
+    @GetMapping("/oauth/{provider}/start")
+    public String oauthStart(@PathVariable("provider") String provider) {
+        OAuthAuthenticator auth = authenticators.get(provider);
+        if (auth == null) {
+            return "<html><body>OAuth provider not found.</body></html>";
+        }
+        return "redirect:" + auth.startOAuth();
+    }
+
+    @GetMapping("/oauth/{provider}/callback")
+    public String oauthCallback(@PathVariable("provider") String provider, @RequestParam("code") String code) {
+        OAuthAuthenticator auth = authenticators.get(provider);
+        if (auth == null) {
+            return "<html><body>OAuth provider not found.</body></html>";
+        }
+        logger.info("exchange code: {}", code);
+        JwtUser user = auth.exchangeOAuthId(code);
+        return "<html><body><p>OAuth OK:<p><p>iss: " + user.iss + "</p><p>email: " + user.email + "</p><p>sub: "
+                + user.sub + "</p></body></html>";
     }
 
     /**

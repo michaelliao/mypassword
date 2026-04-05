@@ -1,8 +1,6 @@
 package org.puppylab.mypassword.core;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -35,17 +33,17 @@ public class Daemon implements HttpHandler {
     final ObjectMapper mapper          = JsonUtils.getObjectMapper();
     final String       badRequestError = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
 
-    private VaultManager            vaultManager;
-    private final DispatcherService dispatcherService;
+    private VaultManager      vaultManager;
+    private DispatcherService dispatcherService;
 
     private HttpServer httpServer;
 
     public Daemon() {
-        this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
     }
 
     public void setVaultManager(VaultManager vaultManager) {
         this.vaultManager = vaultManager;
+        this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
     }
 
     /**
@@ -87,6 +85,7 @@ public class Daemon implements HttpHandler {
         String path = uri.getPath();
         String query = uri.getRawQuery();
         String body = null;
+        logger.info("http {}: {}", method, path);
         if ("POST".equals(method)) {
             body = readRequestBody(exchange);
         }
@@ -99,10 +98,8 @@ public class Daemon implements HttpHandler {
     }
 
     private String readRequestBody(HttpExchange exchange) throws IOException {
-        try (var reader = new BufferedReader(
-                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
-            return reader.readAllAsString();
-        }
+        byte[] bytes = exchange.getRequestBody().readAllBytes();
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     // -------- cors response --------
@@ -128,7 +125,11 @@ public class Daemon implements HttpHandler {
         }
         if (resp instanceof String s) {
             logger.info("string response: {}", s);
-            if (s.startsWith("<html>")) {
+            if (s.startsWith("redirect:")) {
+                // redirect to url:
+                exchange.getResponseHeaders().set("Location", s.substring(9));
+                exchange.sendResponseHeaders(302, -1);
+            } else if (s.startsWith("<html>")) {
                 sendResponse(exchange, "text/html", s);
             } else {
                 // send as json:

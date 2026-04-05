@@ -129,7 +129,7 @@ public class DispatcherService {
                         if (parsedQuery == null) {
                             parsedQuery = parseQuery(query);
                         }
-                        String s = parsedQuery.getOrDefault(param.name, param.defaultValue);
+                        String s = parsedQuery.get(param.name);
                         yield convertToType(param.classType, s);
                     }
                     };
@@ -192,7 +192,6 @@ public class DispatcherService {
         String    name;
         ParamType paramType;
         Class<?>  classType;
-        String    defaultValue;
 
         public Param(Method method, Parameter parameter, Annotation[] annotations) {
             PathVariable pv = getAnnotation(annotations, PathVariable.class);
@@ -211,7 +210,6 @@ public class DispatcherService {
                 this.paramType = ParamType.PATH_VARIABLE;
             } else if (rp != null) {
                 this.name = rp.value();
-                this.defaultValue = rp.defaultValue();
                 this.paramType = ParamType.REQUEST_PARAM;
             } else if (rb != null) {
                 this.paramType = ParamType.REQUEST_BODY;
@@ -233,8 +231,7 @@ public class DispatcherService {
 
         @Override
         public String toString() {
-            return "Param [name=" + name + ", paramType=" + paramType + ", classType=" + classType + ", defaultValue="
-                    + defaultValue + "]";
+            return "Param [name=" + name + ", paramType=" + paramType + ", classType=" + classType + "]";
         }
     }
 }
