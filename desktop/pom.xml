@@ -24,8 +24,7 @@
 		<jline.version>3.30.8</jline.version>
 		<junit.version>5.14.3</junit.version>
 		<persistence.version>3.2.0</persistence.version>
-		<logback.version>1.5.32</logback.version>
-		<rawhttp.version>2.6.0</rawhttp.version>
+		<logback.version>1.5.32</logback.version> 
 		<slf4j.version>2.0.17</slf4j.version>
 		<sqlite.version>3.51.2.0</sqlite.version>
 		<swt.version>3.133.0</swt.version>
@@ -88,12 +87,7 @@
 	</profiles>
 
 
-	<dependencies>
-		<dependency>
-			<groupId>com.athaydes.rawhttp</groupId>
-			<artifactId>rawhttp-core</artifactId>
-			<version>${rawhttp.version}</version>
-		</dependency>
+	<dependencies> 
 		<dependency>
 			<groupId>org.jline</groupId>
 			<artifactId>jline</artifactId>

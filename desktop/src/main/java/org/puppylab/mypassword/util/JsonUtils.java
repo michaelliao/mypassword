@@ -30,6 +30,14 @@ public class JsonUtils {
         }
     }
 
+    public static <T> T fromJson(String data, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(data, clazz);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static <T> T fromJson(byte[] data, Class<T> clazz) {
         try {
             return objectMapper.readValue(data, clazz);
