@@ -3,7 +3,9 @@ package org.puppylab.mypassword.core;
 import java.util.Arrays;
 
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 import org.puppylab.mypassword.core.data.SettingKey;
 import org.puppylab.mypassword.util.EncryptUtils;
@@ -15,7 +17,6 @@ public class ClearPasswordThread extends Thread {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static Display      display;
     private static VaultManager vaultManager;
 
     private static volatile int    countdown = 0;
@@ -24,8 +25,7 @@ public class ClearPasswordThread extends Thread {
 
     private static ClearPasswordThread instance;
 
-    public static void init(Display display, VaultManager vaultManager) {
-        ClearPasswordThread.display = display;
+    public static void init(VaultManager vaultManager) {
         ClearPasswordThread.vaultManager = vaultManager;
         instance = new ClearPasswordThread();
         instance.setDaemon(true);
@@ -61,13 +61,14 @@ public class ClearPasswordThread extends Thread {
             if (countdown == 0) {
                 final byte[] key = hmacKey;
                 final byte[] hash = expectedHash;
-                display.asyncExec(() -> {
-                    if (display.isDisposed())
+                Display.getDefault().asyncExec(() -> {
+                    if (Display.getCurrent().isDisposed())
                         return;
-                    Clipboard cb = new Clipboard(display);
+                    Clipboard cb = new Clipboard(Display.getCurrent());
                     String current = (String) cb.getContents(TextTransfer.getInstance());
                     if (current != null && Arrays.equals(hash, HashUtils.hmacSha256(current, key))) {
-                        cb.clearContents();
+                        cb.setContents(new Object[] { " " }, new Transfer[] { TextTransfer.getInstance() });
+                        cb.clearContents(DND.CLIPBOARD);
                         logger.info("password cleared from clipboard.");
                     }
                     cb.dispose();

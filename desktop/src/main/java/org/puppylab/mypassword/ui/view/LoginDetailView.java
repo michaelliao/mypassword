@@ -134,7 +134,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         logger.info("password copied.");
         ClearPasswordThread.scheduleClear(plainPassword);
         // show tooltip below copy button:
-        ToolTip tip = new ToolTip(composite.getShell(), SWT.BALLOON | SWT.ICON_INFORMATION);
+        ToolTip tip = new ToolTip(composite.getShell(), SWT.ICON_INFORMATION);
         tip.setMessage(i18n("password.tip.copied"));
         Rectangle rect = copyBtn.getBounds();
         Point loc = copyBtn.getParent().toDisplay(rect.x, rect.y + rect.height);

@@ -24,8 +24,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.puppylab.mypassword.core.ClearPasswordThread;
-import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.DbManager;
+import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
@@ -131,7 +131,7 @@ public class MainWindow {
         rightContainer.setLayout(rightStack);
 
         EmptyView emptyView = new EmptyView(rightContainer);
-        ClearPasswordThread.init(display, vaultManager);
+        ClearPasswordThread.init(vaultManager);
         LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
         NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);
