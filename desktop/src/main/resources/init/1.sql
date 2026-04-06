@@ -26,6 +26,8 @@ CREATE TABLE RecoveryConfig (
     oauth_provider TEXT PRIMARY KEY NOT NULL,      -- OAuth provider: "google", "github", etc.
     oauth_client_id TEXT NOT NULL,                 -- OAuth client id
     oauth_client_secret TEXT NOT NULL,             -- OAuth client secret
+    oauth_name TEXT NOT NULL DEFAULT "",           -- OAuth user display name
+    oauth_email TEXT NOT NULL DEFAULT "",          -- OAuth user email
     b64_uid_hash TEXT NOT NULL DEFAULT "",         -- OAuth user id hash by HmacSHA256
     b64_uid_hash_hmac TEXT NOT NULL DEFAULT "",    -- hmac key used
     b64_encrypted_dek TEXT NOT NULL DEFAULT "",    -- encrypted dek

@@ -2,9 +2,12 @@ package org.puppylab.mypassword.ui;
 
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -13,8 +16,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
+import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.SettingKey;
+import org.puppylab.mypassword.core.entity.RecoveryConfig;
 
 /**
  * Tab-based settings dialog opened from the tray menu.
@@ -47,7 +52,7 @@ public class SettingsDialog {
     public void open(VaultManager vaultManager) {
         Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         shell.setText(i18n("settings.title"));
-        shell.setSize(500, 380);
+        shell.setSize(500, 520);
         GridLayout gl = new GridLayout(1, false);
         gl.marginWidth = 12;
         gl.marginHeight = 12;
@@ -260,5 +265,95 @@ public class SettingsDialog {
             msgLabel.setText(i18n("settings.password.success"));
             c.layout(true, true);
         });
+
+        // ── OAuth list ──────────────────────────────────────────────────
+        Label separator = new Label(c, SWT.SEPARATOR | SWT.HORIZONTAL);
+        GridData sepGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        sepGd.horizontalSpan = 2;
+        sepGd.verticalIndent = 8;
+        separator.setLayoutData(sepGd);
+
+        Label oauthHint = new Label(c, SWT.WRAP);
+        oauthHint.setText(i18n("settings.oauth.hint"));
+        GridData hintGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        hintGd.horizontalSpan = 2;
+        oauthHint.setLayoutData(hintGd);
+
+        buildOAuthList(c, vaultManager);
+    }
+
+    private void buildOAuthList(Composite parent, VaultManager vaultManager) {
+        List<RecoveryConfig> configs = vaultManager.getRecoveryConfigs();
+        for (RecoveryConfig rc : configs) {
+            // row composite: 3 columns — provider, status, button
+            Composite row = new Composite(parent, SWT.NONE);
+            GridLayout rowLayout = new GridLayout(3, false);
+            rowLayout.marginWidth = 0;
+            rowLayout.marginHeight = 2;
+            rowLayout.horizontalSpacing = 12;
+            row.setLayout(rowLayout);
+            GridData rowGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+            rowGd.horizontalSpan = 2;
+            row.setLayoutData(rowGd);
+
+            boolean loggedIn = rc.b64_uid_hash != null && !rc.b64_uid_hash.isEmpty();
+
+            // provider name (capitalized):
+            Label providerLabel = new Label(row, SWT.NONE);
+            String displayName = Character.toUpperCase(rc.oauth_provider.charAt(0)) + rc.oauth_provider.substring(1);
+            providerLabel.setText(displayName);
+            providerLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
+            // logged-in-as status:
+            Label statusLabel = new Label(row, SWT.NONE);
+            if (loggedIn) {
+                String name = rc.oauth_name != null && !rc.oauth_name.isEmpty() ? rc.oauth_name : "";
+                String email = rc.oauth_email != null && !rc.oauth_email.isEmpty() ? rc.oauth_email : "";
+                if (!name.isEmpty() && !email.isEmpty()) {
+                    statusLabel.setText(name + " <" + email + ">");
+                } else if (!email.isEmpty()) {
+                    statusLabel.setText(email);
+                } else if (!name.isEmpty()) {
+                    statusLabel.setText(name);
+                } else {
+                    statusLabel.setText(i18n("settings.oauth.provider") + " connected");
+                }
+            } else {
+                statusLabel.setText(i18n("settings.oauth.not_logged_in"));
+                statusLabel.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+            }
+            statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+            // action button:
+            Button actionBtn = new Button(row, SWT.PUSH);
+            GridData btnGd = new GridData(SWT.END, SWT.CENTER, false, false);
+            btnGd.widthHint = 100;
+            actionBtn.setLayoutData(btnGd);
+
+            if (loggedIn) {
+                actionBtn.setText(i18n("settings.oauth.btn.disconnect"));
+                actionBtn.addListener(SWT.Selection, _ -> {
+                    vaultManager.disconnectOAuth(rc.oauth_provider);
+                    // refresh UI:
+                    statusLabel.setText(i18n("settings.oauth.not_logged_in"));
+                    statusLabel.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+                    actionBtn.setText(i18n("settings.oauth.btn.login"));
+                    // re-bind as login:
+                    actionBtn.getListeners(SWT.Selection);
+                    for (var l : actionBtn.getListeners(SWT.Selection)) {
+                        actionBtn.removeListener(SWT.Selection, l);
+                    }
+                    actionBtn.addListener(SWT.Selection, __ -> {
+                        Program.launch("http://127.0.0.1:" + Daemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
+                    });
+                    parent.layout(true, true);
+                });
+            } else {
+                actionBtn.setText(i18n("settings.oauth.btn.login"));
+                actionBtn.addListener(SWT.Selection, _ -> {
+                    Program.launch("http://127.0.0.1:" + Daemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
+                });
+            }
+        }
     }
 }

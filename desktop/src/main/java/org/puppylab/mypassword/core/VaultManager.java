@@ -88,6 +88,21 @@ public class VaultManager {
         return dbManager.queryForList(RecoveryConfig.class, "");
     }
 
+    public void disconnectOAuth(String provider) {
+        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
+        if (rc != null) {
+            rc.oauth_name = "";
+            rc.oauth_email = "";
+            rc.b64_uid_hash = "";
+            rc.b64_uid_hash_hmac = "";
+            rc.b64_encrypted_dek = "";
+            rc.b64_encrypted_dek_iv = "";
+            rc.updated_at = 0;
+            dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac",
+                    "b64_encrypted_dek", "b64_encrypted_dek_iv", "updated_at");
+        }
+    }
+
     // nullable:
     Item getItem(long id) {
         return this.dbManager.queryFirst(Item.class, "where id = ?", id);

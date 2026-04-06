@@ -9,6 +9,9 @@ public class RecoveryConfig {
     public String oauth_client_id;
     public String oauth_client_secret;
 
+    public String oauth_name;
+    public String oauth_email;
+
     public String b64_uid_hash;
     public String b64_uid_hash_hmac;
 
