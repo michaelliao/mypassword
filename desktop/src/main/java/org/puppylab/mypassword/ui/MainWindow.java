@@ -72,6 +72,8 @@ public class MainWindow {
         Path dbFile = FileUtils.getDbFile();
         DbManager dbManager = new DbManager(dbFile);
         VaultManager vaultManager = new VaultManager(dbManager);
+        Session.current().setVaultManager(vaultManager);
+        Session.current().startAutoLockThread();
         daemon.setVaultManager(vaultManager);
 
         if (!vaultManager.isInitialized()) {

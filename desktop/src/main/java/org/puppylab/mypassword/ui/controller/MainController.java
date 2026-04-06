@@ -113,6 +113,17 @@ public class MainController {
             });
         });
 
+        // register auto-lock callback (fired from auto-lock thread):
+        Session.current().setOnAutoLocked(() -> {
+            topContainer.getDisplay().asyncExec(() -> {
+                if (topContainer.isDisposed())
+                    return;
+                if (!state.unlocked)
+                    return;
+                onLock();
+            });
+        });
+
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
         toolbar.setOnLock(this::onLock);
