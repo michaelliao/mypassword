@@ -109,7 +109,8 @@ public class RequestController {
             if (dek == null) {
                 return "<html><body><p>Unlock vault by OAuth failed. Make sure you logged in with correct user account.</p></body></html>";
             }
-            // TODO: unlock:
+            Session.current().setKey(Session.UnlockType.OAUTH, dek);
+            vaultManager.fireVaultUnlocked();
             return "<html><body><p>You have successfully logged in " + displayProvider
                     + " and unlocked your vault.</p><p>Please reset your master password in Settings - Password.</p></body></html>";
         } else {
@@ -180,7 +181,7 @@ public class RequestController {
         if (!vaultManager.isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
-        Session.current().setKey(null);
+        Session.current().setKey(null, null);
         return info();
     }
 
@@ -196,7 +197,7 @@ public class RequestController {
         if (dek == null) {
             return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
-        Session.current().setKey(dek);
+        Session.current().setKey(Session.UnlockType.PASSWORD, dek);
         return info();
     }
 

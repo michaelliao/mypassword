@@ -30,6 +30,7 @@ public class VaultManager {
 
     private VaultConfig       vaultConfig = null;
     private volatile Runnable onOAuthChanged;
+    private volatile Runnable onVaultUnlocked;
 
     public VaultManager(DbManager dbManager) {
         this.dbManager = dbManager;
@@ -90,6 +91,17 @@ public class VaultManager {
 
     public void setOnOAuthChanged(Runnable onOAuthChanged) {
         this.onOAuthChanged = onOAuthChanged;
+    }
+
+    public void setOnVaultUnlocked(Runnable onVaultUnlocked) {
+        this.onVaultUnlocked = onVaultUnlocked;
+    }
+
+    void fireVaultUnlocked() {
+        Runnable callback = this.onVaultUnlocked;
+        if (callback != null) {
+            callback.run();
+        }
     }
 
     public List<RecoveryConfig> getRecoveryConfigs() {

@@ -104,6 +104,15 @@ public class MainController {
         topStack.topControl = unlockView.composite;
         topContainer.layout(true, true);
 
+        // register OAuth unlock callback (fired from HTTP thread):
+        vaultManager.setOnVaultUnlocked(() -> {
+            topContainer.getDisplay().asyncExec(() -> {
+                if (topContainer.isDisposed())
+                    return;
+                showMainContent();
+            });
+        });
+
         toolbar.setOnAddNew(this::onAddNew);
         toolbar.setOnSearch(this::onSearch);
         toolbar.setOnLock(this::onLock);
@@ -137,7 +146,11 @@ public class MainController {
             unlockView.showError(i18n("unlock.error.wrong_password"));
             return;
         }
-        Session.current().setKey(dek);
+        Session.current().setKey(Session.UnlockType.PASSWORD, dek);
+        showMainContent();
+    }
+
+    private void showMainContent() {
         state.unlocked = true;
         unlockView.clearError();
         topStack.topControl = mainContent;
