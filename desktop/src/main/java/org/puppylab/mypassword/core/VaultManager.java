@@ -372,6 +372,13 @@ public class VaultManager {
         return true;
     }
 
+    public void resetMasterPassword(String newPassword, SecretKey dek) {
+        if (!isInitialized()) {
+            throw new IllegalStateException("Vault not initialized.");
+        }
+        encryptDEK(newPassword, dek.getEncoded());
+    }
+
     public void close() {
         this.dbManager.close();
     }

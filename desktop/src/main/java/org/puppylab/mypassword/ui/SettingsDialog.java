@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.SettingKey;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
@@ -197,14 +198,19 @@ public class SettingsDialog {
         c.setLayout(gl);
         item.setControl(c);
 
-        Label curLabel = new Label(c, SWT.NONE);
-        curLabel.setText(i18n("settings.password.current"));
-        curLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        Text curText = new Text(c, SWT.BORDER | SWT.PASSWORD | SWT.SINGLE);
-        curText.setTextLimit(MAX_PASSWORD_LEN);
-        GridData curGd = new GridData(SWT.END, SWT.CENTER, false, false);
-        curGd.widthHint = 220;
-        curText.setLayoutData(curGd);
+        boolean oauthUnlocked = Session.current().getUnlockType() == Session.UnlockType.OAUTH;
+
+        Text curText = null;
+        if (!oauthUnlocked) {
+            Label curLabel = new Label(c, SWT.NONE);
+            curLabel.setText(i18n("settings.password.current"));
+            curLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            curText = new Text(c, SWT.BORDER | SWT.PASSWORD | SWT.SINGLE);
+            curText.setTextLimit(MAX_PASSWORD_LEN);
+            GridData curGd = new GridData(SWT.END, SWT.CENTER, false, false);
+            curGd.widthHint = 220;
+            curText.setLayoutData(curGd);
+        }
 
         Label newLabel = new Label(c, SWT.NONE);
         newLabel.setText(i18n("settings.password.new"));
@@ -237,8 +243,8 @@ public class SettingsDialog {
         changeGd.heightHint = 30;
         changeBtn.setLayoutData(changeGd);
 
+        final Text curTextRef = curText;
         changeBtn.addListener(SWT.Selection, _ -> {
-            String cur = curText.getText();
             String nw = newText.getText();
             String cfm = cfmText.getText();
             if (nw.length() < MIN_PASSWORD_LEN) {
@@ -253,14 +259,20 @@ public class SettingsDialog {
                 c.layout(true, true);
                 return;
             }
-            boolean ok = vaultManager.changeMasterPassword(cur, nw);
-            if (!ok) {
-                msgLabel.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_RED));
-                msgLabel.setText(i18n("settings.password.error.wrong"));
-                c.layout(true, true);
-                return;
+            if (oauthUnlocked) {
+                // no old password needed — use DEK from session directly:
+                vaultManager.resetMasterPassword(nw, Session.current().getKey());
+            } else {
+                String cur = curTextRef.getText();
+                boolean ok = vaultManager.changeMasterPassword(cur, nw);
+                if (!ok) {
+                    msgLabel.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_RED));
+                    msgLabel.setText(i18n("settings.password.error.wrong"));
+                    c.layout(true, true);
+                    return;
+                }
+                curTextRef.setText("");
             }
-            curText.setText("");
             newText.setText("");
             cfmText.setText("");
             msgLabel.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN));

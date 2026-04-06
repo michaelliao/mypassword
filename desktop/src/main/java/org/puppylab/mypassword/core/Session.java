@@ -49,6 +49,7 @@ public class Session {
     }
 
     public synchronized void lock() {
+        this.unlockType = null;
         this.dek = null;
     }
 
