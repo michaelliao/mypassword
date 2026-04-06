@@ -62,7 +62,7 @@ public class UnlockView {
         title.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
         Font boldFont = deriveBoldFont(title, 4);
         title.setFont(boldFont);
-        title.addListener(SWT.Dispose, e -> boldFont.dispose());
+        title.addListener(SWT.Dispose, _ -> boldFont.dispose());
 
         // ── hint ──────────────────────────────────────────────────────
         Label hint = new Label(card, SWT.CENTER | SWT.WRAP);
@@ -98,7 +98,7 @@ public class UnlockView {
         unlockBtn.setLayoutData(btnGd);
         unlockBtn.setEnabled(false);
 
-        passwordText.addListener(SWT.Modify, e -> {
+        passwordText.addListener(SWT.Modify, _ -> {
             int len = passwordText.getText().length();
             unlockBtn.setEnabled(len >= MIN_PASSWORD_LEN);
         });
@@ -106,7 +106,7 @@ public class UnlockView {
             if (e.detail == SWT.TRAVERSE_RETURN && unlockBtn.isEnabled())
                 submit();
         });
-        unlockBtn.addListener(SWT.Selection, e -> submit());
+        unlockBtn.addListener(SWT.Selection, _ -> submit());
 
         // ── error label ───────────────────────────────────────────────
         errorLabel = new Label(card, SWT.CENTER);

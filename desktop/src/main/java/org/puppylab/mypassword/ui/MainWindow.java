@@ -93,6 +93,9 @@ public class MainWindow {
         Shell shell = new Shell(display);
         shell.setText(i18n("app.name"));
         shell.setSize(800, 600);
+        var screenBounds = display.getPrimaryMonitor().getBounds();
+        var shellSize = shell.getSize();
+        shell.setLocation((screenBounds.width - shellSize.x) / 2, (screenBounds.height - shellSize.y) / 2);
         shell.setLayout(new GridLayout(1, false));
         Image appIcon = loadIcon(display);
         shell.setImage(appIcon);
