@@ -7,6 +7,7 @@ public class RecoveryConfig {
     @Id
     public String oauth_provider;
     public String oauth_client_id;
+    public String oauth_client_secret;
 
     public String b64_uid_hash;
     public String b64_uid_hash_hmac;
@@ -14,4 +15,5 @@ public class RecoveryConfig {
     public String b64_encrypted_dek;
     public String b64_encrypted_dek_iv;
 
+    public long updated_at;
 }

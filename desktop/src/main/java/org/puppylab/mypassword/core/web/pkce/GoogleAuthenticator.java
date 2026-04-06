@@ -1,14 +1,26 @@
 package org.puppylab.mypassword.core.web.pkce;
 
+import org.puppylab.mypassword.core.entity.RecoveryConfig;
+
 public class GoogleAuthenticator extends OAuthAuthenticator {
 
-    public GoogleAuthenticator() {
-        super("google");
+    public GoogleAuthenticator(RecoveryConfig rc) {
+        super(rc);
     }
 
     @Override
     protected String getScope() {
         return "openid email profile";
+    }
+
+    @Override
+    protected String getAuthUrl() {
+        return "https://accounts.google.com/o/oauth2/v2/auth";
+    }
+
+    @Override
+    protected String getTokenUrl() {
+        return "https://oauth2.googleapis.com/token";
     }
 
     @Override
@@ -32,5 +44,4 @@ public class GoogleAuthenticator extends OAuthAuthenticator {
         public String email;
         public String name;
     }
-
 }

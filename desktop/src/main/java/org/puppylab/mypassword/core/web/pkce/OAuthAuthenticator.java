@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
+import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.HashUtils;
@@ -20,22 +21,17 @@ public abstract class OAuthAuthenticator {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     final String provider;
-    final String authUrl;
-    final String tokenUrl;
     final String clientId;
     final String clientSecret;
 
     // current code verifier:
     String codeVerifier = null;
 
-    public OAuthAuthenticator(String provider) {
-        this.provider = provider;
-        this.authUrl = loadProperty("oauth." + provider + ".auth_url");
-        this.tokenUrl = loadProperty("oauth." + provider + ".token_url");
-        this.clientId = loadProperty("oauth." + provider + ".client_id");
-        this.clientSecret = loadProperty("oauth." + provider + ".client_secret");
-        logger.info("Load oauth provider {}: client id: {}, auth: {}, token url: {}", provider, clientId, authUrl,
-                tokenUrl);
+    public OAuthAuthenticator(RecoveryConfig rc) {
+        this.provider = rc.oauth_provider;
+        this.clientId = rc.oauth_client_id;
+        this.clientSecret = rc.oauth_client_secret;
+        logger.info("Load oauth provider {}: client id: {}", provider, clientId);
     }
 
     public synchronized String startOAuth() {
@@ -49,8 +45,12 @@ public abstract class OAuthAuthenticator {
                 "code_challenge", code_challenge, // challenge
                 "code_challenge_method", "S256", // sha-256
                 "redirect_uri", "http://127.0.0.1:27432/oauth/" + this.provider + "/callback");
-        return HttpUtils.appendQuery(this.authUrl, query);
+        return HttpUtils.appendQuery(getAuthUrl(), query);
     }
+
+    protected abstract String getAuthUrl();
+
+    protected abstract String getTokenUrl();
 
     protected abstract String getScope();
 
@@ -64,8 +64,7 @@ public abstract class OAuthAuthenticator {
         // clear code verifier after use:
         this.codeVerifier = null;
         // send http post:
-        logger.info("post form: {}", this.tokenUrl);
-        String result = HttpUtils.postForm(this.tokenUrl, query, Map.of("Accept", "application/json"));
+        String result = HttpUtils.postForm(getTokenUrl(), query, Map.of("Accept", "application/json"));
         logger.info("Post result: {}", result);
         OAuthResult oauth = JsonUtils.fromJson(result, OAuthResult.class);
         OAuthUser user = processOAuthResult(oauth);

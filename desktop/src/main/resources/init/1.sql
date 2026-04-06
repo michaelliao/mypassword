@@ -7,6 +7,12 @@ CREATE TABLE VaultVersion (
 
 INSERT INTO VaultVersion (id, version) VALUES(1, 1);
 
+CREATE TABLE VaultSetting (
+    setting_key TEXT PRIMARY KEY NOT NULL, -- lock.time
+    setting_value TEXT NOT NULL            -- "10"
+);
+
+-- User master password:
 CREATE TABLE VaultConfig (
     id INTEGER PRIMARY KEY CHECK (id = 1) NOT NULL, -- only 1 record
     pbe_iterations INTEGER NOT NULL,                -- iterations
@@ -15,19 +21,20 @@ CREATE TABLE VaultConfig (
     b64_encrypted_dek_iv TEXT NOT NULL              -- iv used above
 );
 
-CREATE TABLE VaultSetting (
-    setting_key TEXT PRIMARY KEY NOT NULL, -- lock.time = "10min"
-    setting_value TEXT NOT NULL            -- "600"
+-- User oauth recovery:
+CREATE TABLE RecoveryConfig (
+    oauth_provider TEXT PRIMARY KEY NOT NULL,      -- OAuth provider: "google", "github", etc.
+    oauth_client_id TEXT NOT NULL,                 -- OAuth client id
+    oauth_client_secret TEXT NOT NULL,             -- OAuth client secret
+    b64_uid_hash TEXT NOT NULL DEFAULT "",         -- OAuth user id hash by HmacSHA256
+    b64_uid_hash_hmac TEXT NOT NULL DEFAULT "",    -- hmac key used
+    b64_encrypted_dek TEXT NOT NULL DEFAULT "",    -- encrypted dek
+    b64_encrypted_dek_iv TEXT NOT NULL DEFAULT "", -- iv used above
+    updated_at INTEGER                             -- updated at timestamp
 );
 
-CREATE TABLE RecoveryConfig (
-    oauth_provider TEXT PRIMARY KEY NOT NULL, -- OAuth provider: GOOGLE, GITHUB, etc.
-    oauth_client_id TEXT NOT NULL,            -- OAuth client id
-    b64_uid_hash TEXT NOT NULL,               -- OAuth user id hash by HmacSHA256
-    b64_uid_hash_hmac TEXT NOT NULL,          -- hmac key used
-    b64_encrypted_dek TEXT NOT NULL,          -- encrypted dek
-    b64_encrypted_dek_iv TEXT NOT NULL        -- iv used above
-);
+INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("google", "316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com", "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");
+INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("github", "Ov23liFEn9C7XEvQlOeR", "2fdfa08c8f88da4271a9154e84e8e132f448a5b8");
 
 CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id

@@ -6,6 +6,7 @@ import javax.crypto.SecretKey;
 
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.entity.Item;
+import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultSetting;
 import org.puppylab.mypassword.core.exception.EncryptException;
@@ -81,6 +82,10 @@ public class VaultManager {
 
     public void setSetting(String key, int value) {
         setSetting(key, String.valueOf(value));
+    }
+
+    public List<RecoveryConfig> getRecoveryConfigs() {
+        return dbManager.queryForList(RecoveryConfig.class, "");
     }
 
     // nullable:

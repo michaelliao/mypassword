@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.core;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,13 +9,12 @@ import javax.crypto.SecretKey;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
 import org.puppylab.mypassword.core.web.PathVariable;
 import org.puppylab.mypassword.core.web.PostMapping;
 import org.puppylab.mypassword.core.web.RequestBody;
 import org.puppylab.mypassword.core.web.RequestParam;
-import org.puppylab.mypassword.core.web.pkce.GithubAuthenticator;
-import org.puppylab.mypassword.core.web.pkce.GoogleAuthenticator;
 import org.puppylab.mypassword.core.web.pkce.OAuthAuthenticator;
 import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BadRequestException;
@@ -35,11 +35,30 @@ import org.slf4j.LoggerFactory;
  */
 public class RequestController {
 
-    final Logger       logger = LoggerFactory.getLogger(getClass());
-    final VaultManager vaultManager;
+    final Logger                          logger         = LoggerFactory.getLogger(getClass());
+    final VaultManager                    vaultManager;
+    final Map<String, OAuthAuthenticator> authenticators = new HashMap<>();
 
     public RequestController(VaultManager vaultManager) {
         this.vaultManager = vaultManager;
+        // load recovery config:
+        List<RecoveryConfig> rcs = vaultManager.getRecoveryConfigs();
+        for (RecoveryConfig rc : rcs) {
+            String provider = rc.oauth_provider;
+            // find provider class: "google" -> "GoogleAuthenticator"
+            String className = OAuthAuthenticator.class.getPackageName() + "."
+                    + Character.toUpperCase(provider.charAt(0)) + provider.substring(1) + "Authenticator";
+            try {
+                Class<?> clazz = Class.forName(className);
+                OAuthAuthenticator auth = (OAuthAuthenticator) clazz.getConstructor(RecoveryConfig.class)
+                        .newInstance(rc);
+                logger.info("add provider {}: {}", provider, clazz.getSimpleName());
+                authenticators.put(provider, auth);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Cannot find class '" + className + "' by provider: " + provider);
+            }
+        }
+
     }
 
     SecretKey getKey() {
@@ -60,11 +79,6 @@ public class RequestController {
         info.data = data;
         return info;
     }
-
-    Map<String, OAuthAuthenticator> authenticators = Map.of( // list all oauth here:
-            "github", new GithubAuthenticator(), // github
-            "google", new GoogleAuthenticator() // google
-    );
 
     @GetMapping("/oauth/{provider}/start")
     public String oauthStart(@PathVariable("provider") String provider) {
