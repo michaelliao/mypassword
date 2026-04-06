@@ -93,12 +93,12 @@ public class RequestController {
     public String oauthCallback(@PathVariable("provider") String provider, @RequestParam("code") String code) {
         OAuthAuthenticator auth = authenticators.get(provider);
         if (auth == null) {
-            return "<html><body>OAuth provider not found.</body></html>";
+            return htmlPage("OAuth provider not found.");
         }
         logger.info("exchange code: {}", code);
         OAuthUser user = auth.exchangeOAuthId(code);
         if (user == null) {
-            return "<html><body>OAuth login failed.</body></html>";
+            return htmlPage("OAuth login failed.");
         }
         String displayProvider = Character.toUpperCase(provider.charAt(0)) + provider.substring(1);
         // must check if oauth is used to recover key or encrypt key:
@@ -107,27 +107,27 @@ public class RequestController {
             // decrypt dek:
             SecretKey dek = vaultManager.unlockVaultByOAuth(user);
             if (dek == null) {
-                return "<html><body><p>Unlock vault by OAuth failed. Make sure you logged in with correct user account.</p></body></html>";
+                return htmlPage("Unlock vault by OAuth failed. Make sure you logged in with correct user account.");
             }
             Session.current().setKey(Session.UnlockType.OAUTH, dek);
             vaultManager.fireVaultUnlocked();
-            return "<html><body><p>You have successfully logged in " + displayProvider
-                    + " and unlocked your vault.</p><p>Please reset your master password in Settings - Password.</p></body></html>";
+            return htmlPage("<p>You have successfully logged in " + displayProvider
+                    + " and unlocked your vault.</p><p>Please reset your master password in Settings - Password.</p>");
         } else {
             logger.info("add oauth recovery...");
             // check if vault is unlocked (DEK available):
             SecretKey dek = Session.current().getKey();
             if (dek == null) {
-                return "<html><body>Vault is locked. Please unlock your vault first.</body></html>";
+                return htmlPage("Vault is locked. Please unlock your vault first.");
             }
             // save OAuth recovery:
             vaultManager.saveOAuthRecovery(provider, user.name, user.email, user.oauthId, dek);
             // display name:
             String displayUser = user.name != null && !user.name.isEmpty() ? user.name : "";
             String displayEmail = user.email != null && !user.email.isEmpty() ? " &lt;" + user.email + "&gt;" : "";
-            return "<html><body><p>You have successfully logged in " + displayProvider + " account " + displayUser
+            return htmlPage("<p>You have successfully logged in " + displayProvider + " account " + displayUser
                     + displayEmail + ".</p><p>You can use your " + displayProvider
-                    + " account to unlock your vault for emergency.</p></body></html>";
+                    + " account to unlock your vault for emergency.</p>");
         }
     }
 
@@ -219,5 +219,9 @@ public class RequestController {
             }
         });
         return new BaseResponse();
+    }
+
+    static String htmlPage(String body) {
+        return "<html><body>" + body + "<p>You can now close this page.</p></body></html>";
     }
 }
