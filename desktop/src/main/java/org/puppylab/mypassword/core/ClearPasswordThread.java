@@ -17,16 +17,13 @@ public class ClearPasswordThread extends Thread {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static VaultManager vaultManager;
-
     private static volatile int    countdown = 0;
     private static volatile byte[] hmacKey;
     private static volatile byte[] expectedHash;
 
     private static ClearPasswordThread instance;
 
-    public static void init(VaultManager vaultManager) {
-        ClearPasswordThread.vaultManager = vaultManager;
+    public static void init() {
         instance = new ClearPasswordThread();
         instance.setDaemon(true);
         instance.setName("clipboard-cleaner");
@@ -34,7 +31,7 @@ public class ClearPasswordThread extends Thread {
     }
 
     public static void scheduleClear(String password) {
-        int minutes = vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 1);
+        int minutes = VaultManager.getCurrent().getSetting(SettingKey.CLEAR_CLIPBOARD, 1);
         if (minutes <= 0) {
             return;
         }

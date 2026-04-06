@@ -26,15 +26,22 @@ public class VaultManager {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final DbManager dbManager;
+    private DbManager dbManager;
 
     private VaultConfig       vaultConfig = null;
     private volatile Runnable onOAuthChanged;
     private volatile Runnable onVaultUnlocked;
 
+    private static VaultManager instance = null;
+
     public VaultManager(DbManager dbManager) {
         this.dbManager = dbManager;
         this.vaultConfig = dbManager.queryVaultConfig();
+        instance = this;
+    }
+
+    public static VaultManager getCurrent() {
+        return instance;
     }
 
     public boolean isInitialized() {
@@ -108,9 +115,13 @@ public class VaultManager {
         return dbManager.queryForList(RecoveryConfig.class, "");
     }
 
+    public RecoveryConfig getRecoveryConfig(String provider) {
+        return dbManager.queryFirst(RecoveryConfig.class, "WHERE oauth_provider = ?", provider);
+    }
+
     // nullable:
     Item getItem(long id) {
-        return this.dbManager.queryFirst(Item.class, "where id = ?", id);
+        return this.dbManager.queryFirst(Item.class, "WHERE id = ?", id);
     }
 
     public AbstractItemData getItem(SecretKey key, long id) {
@@ -381,5 +392,7 @@ public class VaultManager {
 
     public void close() {
         this.dbManager.close();
+        this.dbManager = null;
     }
+
 }

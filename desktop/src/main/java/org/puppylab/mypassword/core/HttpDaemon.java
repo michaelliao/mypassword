@@ -35,17 +35,12 @@ public class HttpDaemon implements HttpHandler {
     final ObjectMapper mapper          = JsonUtils.getObjectMapper();
     final String       badRequestError = ErrorUtils.errorJson(ErrorCode.BAD_REQUEST, "Bad request.");
 
-    private VaultManager      vaultManager;
     private DispatcherService dispatcherService;
 
     private HttpServer httpServer;
 
-    public HttpDaemon() {
-    }
-
-    public void setVaultManager(VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
-        this.dispatcherService = new DispatcherService(new RequestController(vaultManager));
+    public void initDispatcher() {
+        this.dispatcherService = new DispatcherService(new RequestController());
     }
 
     /**
@@ -75,7 +70,7 @@ public class HttpDaemon implements HttpHandler {
     /** Called by MainWindow when the SWT shell is disposed. */
     public void stop() {
         this.httpServer.stop(0);
-        vaultManager.close();
+        VaultManager.getCurrent().close();
     }
 
     // -------- http handler --------

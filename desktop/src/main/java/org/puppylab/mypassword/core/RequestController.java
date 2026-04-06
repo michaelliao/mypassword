@@ -35,14 +35,13 @@ import org.slf4j.LoggerFactory;
  */
 public class RequestController {
 
-    final Logger                          logger         = LoggerFactory.getLogger(getClass());
-    final VaultManager                    vaultManager;
+    final Logger logger = LoggerFactory.getLogger(getClass());
+
     final Map<String, OAuthAuthenticator> authenticators = new HashMap<>();
 
-    public RequestController(VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
+    public RequestController() {
         // load recovery config:
-        List<RecoveryConfig> rcs = vaultManager.getRecoveryConfigs();
+        List<RecoveryConfig> rcs = VaultManager.getCurrent().getRecoveryConfigs();
         for (RecoveryConfig rc : rcs) {
             String provider = rc.oauth_provider;
             // find provider class: "google" -> "GoogleAuthenticator"
@@ -50,8 +49,7 @@ public class RequestController {
                     + Character.toUpperCase(provider.charAt(0)) + provider.substring(1) + "Authenticator";
             try {
                 Class<?> clazz = Class.forName(className);
-                OAuthAuthenticator auth = (OAuthAuthenticator) clazz.getConstructor(RecoveryConfig.class)
-                        .newInstance(rc);
+                OAuthAuthenticator auth = (OAuthAuthenticator) clazz.getConstructor().newInstance();
                 logger.info("add provider {}: {}", provider, clazz.getSimpleName());
                 authenticators.put(provider, auth);
             } catch (Exception e) {
@@ -72,7 +70,7 @@ public class RequestController {
     @PostMapping("/info")
     public InfoResponse info() {
         var data = new InfoResponse.InfoData();
-        data.initialized = this.vaultManager.isInitialized();
+        data.initialized = VaultManager.getCurrent().isInitialized();
         data.locked = Session.current().isLocked();
         data.database = FileUtils.getDbFile().toString();
         var info = new InfoResponse();
@@ -91,6 +89,7 @@ public class RequestController {
 
     @GetMapping("/oauth/{provider}/callback")
     public String oauthCallback(@PathVariable("provider") String provider, @RequestParam("code") String code) {
+        VaultManager vaultManager = VaultManager.getCurrent();
         OAuthAuthenticator auth = authenticators.get(provider);
         if (auth == null) {
             return htmlPage("OAuth provider not found.");
@@ -137,7 +136,7 @@ public class RequestController {
     @PostMapping("/items/list")
     public BaseResponse list(@RequestBody BaseRequest request) {
         SecretKey key = getKey();
-        List<AbstractItemData> items = vaultManager.getItems(key);
+        List<AbstractItemData> items = VaultManager.getCurrent().getItems(key);
         var response = new ItemsResponse();
         response.items = items;
         return response;
@@ -147,7 +146,7 @@ public class RequestController {
     public BaseResponse create(@RequestBody ItemRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
-        response.item = this.vaultManager.createItem(key, request.item);
+        response.item = VaultManager.getCurrent().createItem(key, request.item);
         return response;
     }
 
@@ -155,7 +154,7 @@ public class RequestController {
     public BaseResponse itemGet(@PathVariable("id") long id, @RequestBody BaseRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
-        response.item = this.vaultManager.getItem(key, id);
+        response.item = VaultManager.getCurrent().getItem(key, id);
         return response;
     }
 
@@ -164,7 +163,7 @@ public class RequestController {
         SecretKey key = getKey();
         var response = new ItemResponse();
         request.item.id = id;
-        response.item = this.vaultManager.updateItem(key, request.item);
+        response.item = VaultManager.getCurrent().updateItem(key, request.item);
         return response;
     }
 
@@ -172,13 +171,13 @@ public class RequestController {
     public BaseResponse itemDelete(@PathVariable("id") long id, @RequestBody BaseRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
-        response.item = this.vaultManager.deleteItem(key, id);
+        response.item = VaultManager.getCurrent().deleteItem(key, id);
         return response;
     }
 
     @PostMapping("/vault/lock")
     public BaseResponse vaultLock() {
-        if (!vaultManager.isInitialized()) {
+        if (!VaultManager.getCurrent().isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
         Session.current().setKey(null, null);
@@ -187,13 +186,13 @@ public class RequestController {
 
     @PostMapping("/vault/unlock")
     public BaseResponse vaultUnlock(@RequestBody VaultPasswordRequest request) {
-        if (!vaultManager.isInitialized()) {
+        if (!VaultManager.getCurrent().isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
         if (request.password == null || request.password.length() < Constants.PASSWORD_MIN_LENGTH) {
             return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
-        SecretKey dek = vaultManager.unlockVault(request.password.toCharArray());
+        SecretKey dek = VaultManager.getCurrent().unlockVault(request.password.toCharArray());
         if (dek == null) {
             return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
         }

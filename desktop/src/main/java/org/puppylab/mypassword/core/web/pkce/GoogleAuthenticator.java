@@ -1,12 +1,6 @@
 package org.puppylab.mypassword.core.web.pkce;
 
-import org.puppylab.mypassword.core.entity.RecoveryConfig;
-
 public class GoogleAuthenticator extends OAuthAuthenticator {
-
-    public GoogleAuthenticator(RecoveryConfig rc) {
-        super(rc);
-    }
 
     @Override
     protected String getScope() {

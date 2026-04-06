@@ -74,7 +74,7 @@ public class MainWindow {
         VaultManager vaultManager = new VaultManager(dbManager);
         Session.current().setVaultManager(vaultManager);
         Session.current().startAutoLockThread();
-        daemon.setVaultManager(vaultManager);
+        daemon.initDispatcher();
 
         if (!vaultManager.isInitialized()) {
             Shell initShell = new Shell(display);
@@ -131,7 +131,7 @@ public class MainWindow {
         rightContainer.setLayout(rightStack);
 
         EmptyView emptyView = new EmptyView(rightContainer);
-        ClearPasswordThread.init(vaultManager);
+        ClearPasswordThread.init();
         LoginDetailView loginDetailView = new LoginDetailView(rightContainer);
         NoteDetailView noteDetailView = new NoteDetailView(rightContainer);
         IdentityDetailView identityDetailView = new IdentityDetailView(rightContainer);

@@ -2,15 +2,10 @@ package org.puppylab.mypassword.core.web.pkce;
 
 import java.util.Map;
 
-import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.util.HttpUtils;
 import org.puppylab.mypassword.util.JsonUtils;
 
 public class GithubAuthenticator extends OAuthAuthenticator {
-
-    public GithubAuthenticator(RecoveryConfig rc) {
-        super(rc);
-    }
 
     @Override
     protected String getScope() {
