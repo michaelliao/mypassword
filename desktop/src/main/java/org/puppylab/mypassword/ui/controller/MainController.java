@@ -118,7 +118,7 @@ public class MainController {
         });
 
         // register auto-lock callback (fired from auto-lock thread):
-        Session.current().setOnAutoLocked(() -> {
+        Session.getCurrent().setOnAutoLocked(() -> {
             topContainer.getDisplay().asyncExec(() -> {
                 if (topContainer.isDisposed())
                     return;
@@ -162,7 +162,7 @@ public class MainController {
             unlockView.showError(i18n("unlock.error.wrong_password"));
             return;
         }
-        Session.current().setKey(Session.UnlockType.PASSWORD, dek);
+        Session.getCurrent().setKey(Session.UnlockType.PASSWORD, dek);
         showMainContent();
     }
 
@@ -206,7 +206,7 @@ public class MainController {
     }
 
     private void onLock() {
-        Session.current().lock();
+        Session.getCurrent().lock();
         state.unlocked = false;
         state.allItems.clear();
         state.deletedItems.clear();
@@ -305,7 +305,7 @@ public class MainController {
     }
 
     private void onSave(AbstractItemData data) {
-        SecretKey key = Session.current().getKey();
+        SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
         boolean isNew = data.id == 0;
@@ -345,7 +345,7 @@ public class MainController {
         if (!state.selectedItem.deleted && !askConfirm(i18n("confirm.delete", state.selectedItem.title())))
             return;
         long id = state.selectedItem.id;
-        SecretKey key = Session.current().getKey();
+        SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
         AbstractItemData updated;
@@ -393,7 +393,7 @@ public class MainController {
     }
 
     private void loadItems() {
-        SecretKey key = Session.current().getKey();
+        SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
         List<AbstractItemData> items = vaultManager.getItems(key);

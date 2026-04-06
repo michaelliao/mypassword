@@ -60,7 +60,7 @@ public class RequestController {
     }
 
     SecretKey getKey() {
-        SecretKey key = Session.current().getKey();
+        SecretKey key = Session.getCurrent().getKey();
         if (key == null) {
             throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
@@ -71,7 +71,7 @@ public class RequestController {
     public InfoResponse info() {
         var data = new InfoResponse.InfoData();
         data.initialized = VaultManager.getCurrent().isInitialized();
-        data.locked = Session.current().isLocked();
+        data.locked = Session.getCurrent().isLocked();
         data.database = FileUtils.getDbFile().toString();
         var info = new InfoResponse();
         info.data = data;
@@ -108,14 +108,14 @@ public class RequestController {
             if (dek == null) {
                 return htmlPage("Unlock vault by OAuth failed. Make sure you logged in with correct user account.");
             }
-            Session.current().setKey(Session.UnlockType.OAUTH, dek);
+            Session.getCurrent().setKey(Session.UnlockType.OAUTH, dek);
             vaultManager.fireVaultUnlocked();
             return htmlPage("<p>You have successfully logged in " + displayProvider
                     + " and unlocked your vault.</p><p>Please reset your master password in Settings - Password.</p>");
         } else {
             logger.info("add oauth recovery...");
             // check if vault is unlocked (DEK available):
-            SecretKey dek = Session.current().getKey();
+            SecretKey dek = Session.getCurrent().getKey();
             if (dek == null) {
                 return htmlPage("Vault is locked. Please unlock your vault first.");
             }
@@ -180,7 +180,7 @@ public class RequestController {
         if (!VaultManager.getCurrent().isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
-        Session.current().setKey(null, null);
+        Session.getCurrent().setKey(null, null);
         return info();
     }
 
@@ -196,7 +196,7 @@ public class RequestController {
         if (dek == null) {
             return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
-        Session.current().setKey(Session.UnlockType.PASSWORD, dek);
+        Session.getCurrent().setKey(Session.UnlockType.PASSWORD, dek);
         return info();
     }
 

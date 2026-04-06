@@ -63,9 +63,9 @@ public class SettingsDialog {
         TabFolder tabs = new TabFolder(shell, SWT.NONE);
         tabs.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        buildGeneralTab(tabs, vaultManager);
-        buildSecurityTab(tabs, vaultManager);
-        buildPasswordTab(tabs, vaultManager);
+        buildGeneralTab(tabs);
+        buildSecurityTab(tabs);
+        buildPasswordTab(tabs);
 
         shell.open();
         shell.addListener(SWT.Dispose, _ -> vaultManager.setOnOAuthChanged(null));
@@ -76,7 +76,7 @@ public class SettingsDialog {
     }
 
     // ── General tab ──────────────────────────────────────────────────────
-    private void buildGeneralTab(TabFolder tabs, VaultManager vaultManager) {
+    private void buildGeneralTab(TabFolder tabs) {
         TabItem item = new TabItem(tabs, SWT.NONE);
         item.setText(i18n("settings.tab.general"));
 
@@ -92,7 +92,7 @@ public class SettingsDialog {
         // keep tray icon:
         Button trayCheck = new Button(c, SWT.CHECK);
         trayCheck.setText(i18n("settings.keep_tray_icon"));
-        trayCheck.setSelection(vaultManager.getSetting(SettingKey.KEEP_TRAY_ICON, 1) != 0);
+        trayCheck.setSelection(VaultManager.getCurrent().getSetting(SettingKey.KEEP_TRAY_ICON, 1) != 0);
         GridData trayGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         trayGd.horizontalSpan = 2;
         trayCheck.setLayoutData(trayGd);
@@ -106,7 +106,7 @@ public class SettingsDialog {
         langCombo.add(i18n("settings.language.system"));
         langCombo.add("English");
         langCombo.add("\u4e2d\u6587");
-        String curLang = vaultManager.getSetting(SettingKey.LANGUAGE, "");
+        String curLang = VaultManager.getCurrent().getSetting(SettingKey.LANGUAGE, "");
         int langIdx = 0;
         for (int i = 0; i < LANGUAGES.length; i++) {
             if (LANGUAGES[i].equals(curLang)) {
@@ -121,13 +121,13 @@ public class SettingsDialog {
 
         // persist immediately on change:
         trayCheck.addListener(SWT.Selection,
-                _ -> vaultManager.setSetting(SettingKey.KEEP_TRAY_ICON, trayCheck.getSelection() ? 1 : 0));
-        langCombo.addListener(SWT.Selection,
-                _ -> vaultManager.setSetting(SettingKey.LANGUAGE, LANGUAGES[langCombo.getSelectionIndex()]));
+                _ -> VaultManager.getCurrent().setSetting(SettingKey.KEEP_TRAY_ICON, trayCheck.getSelection() ? 1 : 0));
+        langCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.LANGUAGE,
+                LANGUAGES[langCombo.getSelectionIndex()]));
     }
 
     // ── Security tab ─────────────────────────────────────────────────────
-    private void buildSecurityTab(TabFolder tabs, VaultManager vaultManager) {
+    private void buildSecurityTab(TabFolder tabs) {
         TabItem item = new TabItem(tabs, SWT.NONE);
         item.setText(i18n("settings.tab.security"));
 
@@ -149,7 +149,8 @@ public class SettingsDialog {
         for (int m : AUTO_LOCK_MINUTES) {
             autoLockCombo.add(m == 0 ? i18n("settings.never") : i18n("settings.minutes", m));
         }
-        autoLockCombo.select(indexOf(AUTO_LOCK_MINUTES, vaultManager.getSetting(SettingKey.AUTO_LOCK, 10)));
+        autoLockCombo
+                .select(indexOf(AUTO_LOCK_MINUTES, VaultManager.getCurrent().getSetting(SettingKey.AUTO_LOCK, 10)));
         GridData alGd = new GridData(SWT.END, SWT.CENTER, false, false);
         alGd.widthHint = 140;
         autoLockCombo.setLayoutData(alGd);
@@ -163,15 +164,16 @@ public class SettingsDialog {
         for (int s : CLEAR_CLIPBOARD_MINUTES) {
             clearCombo.add(s == 0 ? i18n("settings.never") : i18n("settings.minutes", s));
         }
-        clearCombo.select(indexOf(CLEAR_CLIPBOARD_MINUTES, vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 1)));
+        clearCombo.select(
+                indexOf(CLEAR_CLIPBOARD_MINUTES, VaultManager.getCurrent().getSetting(SettingKey.CLEAR_CLIPBOARD, 1)));
         GridData ccGd = new GridData(SWT.END, SWT.CENTER, false, false);
         ccGd.widthHint = 140;
         clearCombo.setLayoutData(ccGd);
 
         // persist immediately on change:
-        autoLockCombo.addListener(SWT.Selection, _ -> vaultManager.setSetting(SettingKey.AUTO_LOCK,
+        autoLockCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.AUTO_LOCK,
                 AUTO_LOCK_MINUTES[autoLockCombo.getSelectionIndex()]));
-        clearCombo.addListener(SWT.Selection, _ -> vaultManager.setSetting(SettingKey.CLEAR_CLIPBOARD,
+        clearCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.CLEAR_CLIPBOARD,
                 CLEAR_CLIPBOARD_MINUTES[clearCombo.getSelectionIndex()]));
     }
 
@@ -185,7 +187,7 @@ public class SettingsDialog {
     }
 
     // ── Password tab ─────────────────────────────────────────────────────
-    private void buildPasswordTab(TabFolder tabs, VaultManager vaultManager) {
+    private void buildPasswordTab(TabFolder tabs) {
         TabItem item = new TabItem(tabs, SWT.NONE);
         item.setText(i18n("settings.tab.password"));
 
@@ -198,7 +200,7 @@ public class SettingsDialog {
         c.setLayout(gl);
         item.setControl(c);
 
-        boolean oauthUnlocked = Session.current().getUnlockType() == Session.UnlockType.OAUTH;
+        boolean oauthUnlocked = Session.getCurrent().getUnlockType() == Session.UnlockType.OAUTH;
 
         Text curText = null;
         if (!oauthUnlocked) {
@@ -261,10 +263,10 @@ public class SettingsDialog {
             }
             if (oauthUnlocked) {
                 // no old password needed — use DEK from session directly:
-                vaultManager.resetMasterPassword(nw, Session.current().getKey());
+                VaultManager.getCurrent().resetMasterPassword(nw, Session.getCurrent().getKey());
             } else {
                 String cur = curTextRef.getText();
-                boolean ok = vaultManager.changeMasterPassword(cur, nw);
+                boolean ok = VaultManager.getCurrent().changeMasterPassword(cur, nw);
                 if (!ok) {
                     msgLabel.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_RED));
                     msgLabel.setText(i18n("settings.password.error.wrong"));
@@ -303,10 +305,10 @@ public class SettingsDialog {
         containerGd.horizontalSpan = 2;
         oauthContainer.setLayoutData(containerGd);
 
-        buildOAuthRows(oauthContainer, vaultManager);
+        buildOAuthRows(oauthContainer);
 
         // register callback so HTTP-thread OAuth completion refreshes the UI:
-        vaultManager.setOnOAuthChanged(() -> {
+        VaultManager.getCurrent().setOnOAuthChanged(() -> {
             c.getDisplay().asyncExec(() -> {
                 if (c.isDisposed())
                     return;
@@ -314,14 +316,14 @@ public class SettingsDialog {
                 for (var child : oauthContainer.getChildren()) {
                     child.dispose();
                 }
-                buildOAuthRows(oauthContainer, vaultManager);
+                buildOAuthRows(oauthContainer);
                 c.layout(true, true);
             });
         });
     }
 
-    private void buildOAuthRows(Composite container, VaultManager vaultManager) {
-        List<RecoveryConfig> configs = vaultManager.getRecoveryConfigs();
+    private void buildOAuthRows(Composite container) {
+        List<RecoveryConfig> configs = VaultManager.getCurrent().getRecoveryConfigs();
         for (RecoveryConfig rc : configs) {
             Composite row = new Composite(container, SWT.NONE);
             GridLayout rowLayout = new GridLayout(3, false);
@@ -363,12 +365,12 @@ public class SettingsDialog {
                     mb.setMessage(i18n("settings.oauth.confirm.disconnect", displayName));
                     if (mb.open() != SWT.OK)
                         return;
-                    vaultManager.disconnectOAuth(rc.oauth_provider);
+                    VaultManager.getCurrent().disconnectOAuth(rc.oauth_provider);
                     // dispose and rebuild:
                     for (var child : container.getChildren()) {
                         child.dispose();
                     }
-                    buildOAuthRows(container, vaultManager);
+                    buildOAuthRows(container);
                     container.getParent().layout(true, true);
                 });
             } else {

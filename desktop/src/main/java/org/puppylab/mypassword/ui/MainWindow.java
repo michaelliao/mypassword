@@ -66,19 +66,18 @@ public class MainWindow {
             System.exit(1);
         }
 
-        // ── main thread: owns the SWT Display ─────────────────────────────
-        Display display = new Display();
-
         Path dbFile = FileUtils.getDbFile();
         DbManager dbManager = new DbManager(dbFile);
         VaultManager vaultManager = new VaultManager(dbManager);
-        Session.current().setVaultManager(vaultManager);
-        Session.current().startAutoLockThread();
+        Session.getCurrent().startAutoLockThread();
         daemon.initDispatcher();
+
+        // ── main thread: owns the SWT Display ─────────────────────────────
+        Display display = new Display();
 
         if (!vaultManager.isInitialized()) {
             Shell initShell = new Shell(display);
-            boolean initialized = new InitVaultDialog(initShell).open(vaultManager);
+            boolean initialized = new InitVaultDialog(initShell).open();
             initShell.dispose();
             if (!initialized) {
                 display.dispose();
@@ -177,7 +176,7 @@ public class MainWindow {
 
             trayItem.addListener(SWT.Selection, _ -> activate.run());
             trayItem.addListener(SWT.MenuDetect, _ -> {
-                boolean unlocked = !Session.current().isLocked();
+                boolean unlocked = !Session.getCurrent().isLocked();
                 lockItem.setEnabled(unlocked);
                 settingsItem.setEnabled(unlocked);
                 trayMenu.setVisible(true);

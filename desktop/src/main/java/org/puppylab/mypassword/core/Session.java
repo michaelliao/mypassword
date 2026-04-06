@@ -38,17 +38,16 @@ public class Session {
 
     private static final long AUTO_LOCK_POLL_INTERVAL = 30_000L; // 30 seconds
 
-    private static final String OS_NAME = System.getProperty("os.name", "").toLowerCase();
+    private static final String  OS_NAME    = System.getProperty("os.name", "").toLowerCase();
     private static final boolean IS_WINDOWS = OS_NAME.contains("win");
-    private static final boolean IS_MAC = OS_NAME.contains("mac");
-    private static final boolean IS_LINUX = OS_NAME.contains("linux");
+    private static final boolean IS_MAC     = OS_NAME.contains("mac");
+    private static final boolean IS_LINUX   = OS_NAME.contains("linux");
 
     // ── Windows: GetLastInputInfo / GetTickCount ──────────────────────
     private static final MethodHandle winGetLastInputInfo;
     private static final MethodHandle winGetTickCount;
-    private static final MemoryLayout WIN_LASTINPUTINFO = MemoryLayout.structLayout(
-            ValueLayout.JAVA_INT.withName("cbSize"),
-            ValueLayout.JAVA_INT.withName("dwTime"));
+    private static final MemoryLayout WIN_LASTINPUTINFO = MemoryLayout
+            .structLayout(ValueLayout.JAVA_INT.withName("cbSize"), ValueLayout.JAVA_INT.withName("dwTime"));
 
     // ── macOS: CGEventSourceSecondsSinceLastEventType ─────────────────
     private static final MethodHandle macIdleTime;
@@ -79,7 +78,8 @@ public class Session {
                 gtc = linker.downcallHandle(kernel32.find("GetTickCount").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.JAVA_INT));
             } else if (IS_MAC) {
-                // CGEventSourceSecondsSinceLastEventType(int32_t stateID, int32_t eventType) -> double
+                // CGEventSourceSecondsSinceLastEventType(int32_t stateID, int32_t eventType) ->
+                // double
                 SymbolLookup cg = SymbolLookup.libraryLookup(
                         "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", Arena.global());
                 mit = linker.downcallHandle(cg.find("CGEventSourceSecondsSinceLastEventType").orElseThrow(),
@@ -90,16 +90,16 @@ public class Session {
                 // Display* XOpenDisplay(char*)
                 lxod = linker.downcallHandle(x11.find("XOpenDisplay").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
-                // Window XDefaultRootWindow(Display*) — actually a macro, use XRootWindow(display, 0)
+                // Window XDefaultRootWindow(Display*) — actually a macro, use
+                // XRootWindow(display, 0)
                 lxdrw = linker.downcallHandle(x11.find("XRootWindow").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.JAVA_LONG, ValueLayout.ADDRESS, ValueLayout.JAVA_INT));
                 // XScreenSaverInfo* XScreenSaverAllocInfo()
                 lxssai = linker.downcallHandle(xss.find("XScreenSaverAllocInfo").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.ADDRESS));
                 // Status XScreenSaverQueryInfo(Display*, Drawable, XScreenSaverInfo*)
-                lxssqi = linker.downcallHandle(xss.find("XScreenSaverQueryInfo").orElseThrow(),
-                        FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG,
-                                ValueLayout.ADDRESS));
+                lxssqi = linker.downcallHandle(xss.find("XScreenSaverQueryInfo").orElseThrow(), FunctionDescriptor
+                        .of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS));
                 // int XFree(void*)
                 lxf = linker.downcallHandle(x11.find("XFree").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS));
@@ -121,7 +121,6 @@ public class Session {
         linuxXCloseDisplay = lxcd;
     }
 
-    private VaultManager      vaultManager;
     private volatile Runnable onAutoLocked;
     private UnlockType        unlockType     = null;
     private SecretKey         dek            = null;
@@ -130,12 +129,8 @@ public class Session {
     private Session() {
     }
 
-    public static Session current() {
+    public static Session getCurrent() {
         return INSTANCE;
-    }
-
-    public void setVaultManager(VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
     }
 
     public void setOnAutoLocked(Runnable onAutoLocked) {
@@ -175,7 +170,7 @@ public class Session {
         if (dek == null) {
             return true;
         }
-        long autoLockMinutes = vaultManager != null ? vaultManager.getSetting(SettingKey.AUTO_LOCK, 10) : 10;
+        long autoLockMinutes = VaultManager.getCurrent().getSetting(SettingKey.AUTO_LOCK, 10);
         if (autoLockMinutes <= 0) {
             return false;
         }
@@ -265,9 +260,9 @@ public class Session {
     }
 
     /**
-     * Linux/X11: XScreenSaverQueryInfo. The idle field in XScreenSaverInfo
-     * is at offset 32 bytes (Window=8 + int=4 + int=4 + ulong=8 + idle=8)
-     * on 64-bit systems. Returns idle time in milliseconds.
+     * Linux/X11: XScreenSaverQueryInfo. The idle field in XScreenSaverInfo is at
+     * offset 32 bytes (Window=8 + int=4 + int=4 + ulong=8 + idle=8) on 64-bit
+     * systems. Returns idle time in milliseconds.
      */
     long getSystemIdleTimeMillisForLinux() {
         if (linuxXOpenDisplay != null && linuxXScreenSaverQueryInfo != null) {
@@ -287,8 +282,10 @@ public class Session {
                 if (status != 0) {
                     // XScreenSaverInfo.idle is at offset 32 on 64-bit:
                     // Window(8) + state(4) + kind(4) + til_or_since(8) + idle(8)
-                    // but with padding: Window(8) + state(4) + kind(4) + til_or_since(8) = 24, idle at 24
-                    // Actually: struct { Window window; int state; int kind; unsigned long til_or_since; unsigned long idle; unsigned long eventMask; }
+                    // but with padding: Window(8) + state(4) + kind(4) + til_or_since(8) = 24, idle
+                    // at 24
+                    // Actually: struct { Window window; int state; int kind; unsigned long
+                    // til_or_since; unsigned long idle; unsigned long eventMask; }
                     // On LP64: Window=ulong=8, int=4, padding to 8, ulong=8... let me compute:
                     // window: offset 0, size 8
                     // state: offset 8, size 4
