@@ -130,6 +130,9 @@ public class ItemListView {
         table.setHeaderVisible(false);
         table.setLinesVisible(false);
 
+        TableColumn col = new TableColumn(table, SWT.NONE);
+        table.addListener(SWT.Resize, _ -> col.setWidth(table.getClientArea().width));
+
         for (String key : CATEGORY_KEYS) {
             new TableItem(table, SWT.NONE).setText(i18n(key));
         }

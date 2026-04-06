@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.util;
 
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 public class I18nUtils {
@@ -11,6 +12,6 @@ public class I18nUtils {
     }
 
     public static String i18n(String key, Object... args) {
-        return String.format(bundle.getString(key), args);
+        return MessageFormat.format(bundle.getString(key), args);
     }
 }
