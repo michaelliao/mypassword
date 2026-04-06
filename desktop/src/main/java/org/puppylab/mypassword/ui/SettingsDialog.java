@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -66,6 +67,7 @@ public class SettingsDialog {
         buildPasswordTab(tabs, vaultManager);
 
         shell.open();
+        shell.addListener(SWT.Dispose, _ -> vaultManager.setOnOAuthChanged(null));
         while (!shell.isDisposed()) {
             if (!shell.getDisplay().readAndDispatch())
                 shell.getDisplay().sleep();
@@ -279,22 +281,42 @@ public class SettingsDialog {
         hintGd.horizontalSpan = 2;
         oauthHint.setLayoutData(hintGd);
 
-        buildOAuthList(c, vaultManager);
+        // container for OAuth rows (rebuilt on refresh):
+        Composite oauthContainer = new Composite(c, SWT.NONE);
+        GridLayout containerLayout = new GridLayout(1, false);
+        containerLayout.marginWidth = 0;
+        containerLayout.marginHeight = 0;
+        oauthContainer.setLayout(containerLayout);
+        GridData containerGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        containerGd.horizontalSpan = 2;
+        oauthContainer.setLayoutData(containerGd);
+
+        buildOAuthRows(oauthContainer, vaultManager);
+
+        // register callback so HTTP-thread OAuth completion refreshes the UI:
+        vaultManager.setOnOAuthChanged(() -> {
+            c.getDisplay().asyncExec(() -> {
+                if (c.isDisposed()) return;
+                // dispose old rows and rebuild:
+                for (var child : oauthContainer.getChildren()) {
+                    child.dispose();
+                }
+                buildOAuthRows(oauthContainer, vaultManager);
+                c.layout(true, true);
+            });
+        });
     }
 
-    private void buildOAuthList(Composite parent, VaultManager vaultManager) {
+    private void buildOAuthRows(Composite container, VaultManager vaultManager) {
         List<RecoveryConfig> configs = vaultManager.getRecoveryConfigs();
         for (RecoveryConfig rc : configs) {
-            // row composite: 3 columns — provider, status, button
-            Composite row = new Composite(parent, SWT.NONE);
+            Composite row = new Composite(container, SWT.NONE);
             GridLayout rowLayout = new GridLayout(3, false);
             rowLayout.marginWidth = 0;
             rowLayout.marginHeight = 2;
             rowLayout.horizontalSpacing = 12;
             row.setLayout(rowLayout);
-            GridData rowGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-            rowGd.horizontalSpan = 2;
-            row.setLayoutData(rowGd);
+            row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
             boolean loggedIn = rc.b64_uid_hash != null && !rc.b64_uid_hash.isEmpty();
 
@@ -307,20 +329,10 @@ public class SettingsDialog {
             // logged-in-as status:
             Label statusLabel = new Label(row, SWT.NONE);
             if (loggedIn) {
-                String name = rc.oauth_name != null && !rc.oauth_name.isEmpty() ? rc.oauth_name : "";
-                String email = rc.oauth_email != null && !rc.oauth_email.isEmpty() ? rc.oauth_email : "";
-                if (!name.isEmpty() && !email.isEmpty()) {
-                    statusLabel.setText(name + " <" + email + ">");
-                } else if (!email.isEmpty()) {
-                    statusLabel.setText(email);
-                } else if (!name.isEmpty()) {
-                    statusLabel.setText(name);
-                } else {
-                    statusLabel.setText(i18n("settings.oauth.provider") + " connected");
-                }
+                statusLabel.setText(formatOAuthStatus(rc));
             } else {
                 statusLabel.setText(i18n("settings.oauth.not_logged_in"));
-                statusLabel.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+                statusLabel.setForeground(container.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
             }
             statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
@@ -333,20 +345,17 @@ public class SettingsDialog {
             if (loggedIn) {
                 actionBtn.setText(i18n("settings.oauth.btn.disconnect"));
                 actionBtn.addListener(SWT.Selection, _ -> {
+                    MessageBox mb = new MessageBox(container.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+                    mb.setText(i18n("confirm.title"));
+                    mb.setMessage(i18n("settings.oauth.confirm.disconnect", displayName));
+                    if (mb.open() != SWT.OK) return;
                     vaultManager.disconnectOAuth(rc.oauth_provider);
-                    // refresh UI:
-                    statusLabel.setText(i18n("settings.oauth.not_logged_in"));
-                    statusLabel.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
-                    actionBtn.setText(i18n("settings.oauth.btn.login"));
-                    // re-bind as login:
-                    actionBtn.getListeners(SWT.Selection);
-                    for (var l : actionBtn.getListeners(SWT.Selection)) {
-                        actionBtn.removeListener(SWT.Selection, l);
+                    // dispose and rebuild:
+                    for (var child : container.getChildren()) {
+                        child.dispose();
                     }
-                    actionBtn.addListener(SWT.Selection, __ -> {
-                        Program.launch("http://127.0.0.1:" + Daemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
-                    });
-                    parent.layout(true, true);
+                    buildOAuthRows(container, vaultManager);
+                    container.getParent().layout(true, true);
                 });
             } else {
                 actionBtn.setText(i18n("settings.oauth.btn.login"));
@@ -355,5 +364,18 @@ public class SettingsDialog {
                 });
             }
         }
+    }
+
+    private String formatOAuthStatus(RecoveryConfig rc) {
+        String name = rc.oauth_name != null && !rc.oauth_name.isEmpty() ? rc.oauth_name : "";
+        String email = rc.oauth_email != null && !rc.oauth_email.isEmpty() ? rc.oauth_email : "";
+        if (!name.isEmpty() && !email.isEmpty()) {
+            return name + " <" + email + ">";
+        } else if (!email.isEmpty()) {
+            return email;
+        } else if (!name.isEmpty()) {
+            return name;
+        }
+        return "Connected";
     }
 }

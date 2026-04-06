@@ -26,7 +26,8 @@ public class VaultManager {
 
     private final DbManager dbManager;
 
-    private VaultConfig vaultConfig = null;
+    private VaultConfig       vaultConfig = null;
+    private volatile Runnable onOAuthChanged;
 
     public VaultManager(DbManager dbManager) {
         this.dbManager = dbManager;
@@ -85,6 +86,10 @@ public class VaultManager {
         setSetting(key, String.valueOf(value));
     }
 
+    public void setOnOAuthChanged(Runnable onOAuthChanged) {
+        this.onOAuthChanged = onOAuthChanged;
+    }
+
     public List<RecoveryConfig> getRecoveryConfigs() {
         return dbManager.queryForList(RecoveryConfig.class, "");
     }
@@ -113,6 +118,10 @@ public class VaultManager {
         rc.updated_at = System.currentTimeMillis();
         dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
                 "b64_encrypted_dek_iv", "updated_at");
+        Runnable callback = this.onOAuthChanged;
+        if (callback != null) {
+            callback.run();
+        }
     }
 
     public void disconnectOAuth(String provider) {
