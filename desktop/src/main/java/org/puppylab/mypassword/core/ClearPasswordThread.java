@@ -34,14 +34,14 @@ public class ClearPasswordThread extends Thread {
     }
 
     public static void scheduleClear(String password) {
-        int seconds = vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 60);
-        if (seconds <= 0) {
+        int minutes = vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 1);
+        if (minutes <= 0) {
             return;
         }
         byte[] key = EncryptUtils.generateKey();
         hmacKey = key;
         expectedHash = HashUtils.hmacSha256(password, key);
-        countdown = seconds;
+        countdown = minutes * 60;
         instance.interrupt();
     }
 

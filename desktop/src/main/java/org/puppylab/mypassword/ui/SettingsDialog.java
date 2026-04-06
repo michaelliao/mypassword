@@ -27,9 +27,9 @@ import org.puppylab.mypassword.core.entity.RecoveryConfig;
  * Tab-based settings dialog opened from the tray menu.
  *
  * <ul>
- *   <li><b>General</b> — keep tray icon, language.</li>
- *   <li><b>Security</b> — auto-lock, clipboard clearing.</li>
- *   <li><b>Password</b> — change master password.</li>
+ * <li><b>General</b> — keep tray icon, language.</li>
+ * <li><b>Security</b> — auto-lock, clipboard clearing.</li>
+ * <li><b>Password</b> — change master password.</li>
  * </ul>
  */
 public class SettingsDialog {
@@ -40,10 +40,10 @@ public class SettingsDialog {
     private static final String[] LANGUAGES = { "", "en", "zh" };
 
     /** Auto-lock options in minutes; 0 = Never. */
-    private static final int[] AUTO_LOCK_MINUTES = { 1, 5, 10, 30, 60, 0 };
+    private static final int[] AUTO_LOCK_MINUTES = { 1, 2, 5, 10, 15, 30, 60, 0 };
 
-    /** Clear-clipboard options in seconds; 0 = Never. */
-    private static final int[] CLEAR_CLIPBOARD_SECONDS = { 60, 300, 600, 0 };
+    /** Clear-clipboard options in minutes; 0 = Never. */
+    private static final int[] CLEAR_CLIPBOARD_MINUTES = { 1, 2, 5, 0 };
 
     private final Shell parent;
 
@@ -160,10 +160,10 @@ public class SettingsDialog {
         clearLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         Combo clearCombo = new Combo(c, SWT.READ_ONLY | SWT.DROP_DOWN);
-        for (int s : CLEAR_CLIPBOARD_SECONDS) {
-            clearCombo.add(s == 0 ? i18n("settings.never") : i18n("settings.minutes", s / 60));
+        for (int s : CLEAR_CLIPBOARD_MINUTES) {
+            clearCombo.add(s == 0 ? i18n("settings.never") : i18n("settings.minutes", s));
         }
-        clearCombo.select(indexOf(CLEAR_CLIPBOARD_SECONDS, vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 60)));
+        clearCombo.select(indexOf(CLEAR_CLIPBOARD_MINUTES, vaultManager.getSetting(SettingKey.CLEAR_CLIPBOARD, 1)));
         GridData ccGd = new GridData(SWT.END, SWT.CENTER, false, false);
         ccGd.widthHint = 140;
         clearCombo.setLayoutData(ccGd);
@@ -172,7 +172,7 @@ public class SettingsDialog {
         autoLockCombo.addListener(SWT.Selection, _ -> vaultManager.setSetting(SettingKey.AUTO_LOCK,
                 AUTO_LOCK_MINUTES[autoLockCombo.getSelectionIndex()]));
         clearCombo.addListener(SWT.Selection, _ -> vaultManager.setSetting(SettingKey.CLEAR_CLIPBOARD,
-                CLEAR_CLIPBOARD_SECONDS[clearCombo.getSelectionIndex()]));
+                CLEAR_CLIPBOARD_MINUTES[clearCombo.getSelectionIndex()]));
     }
 
     /** Return index of {@code value} in {@code values}, or 0 if not found. */
@@ -308,7 +308,8 @@ public class SettingsDialog {
         // register callback so HTTP-thread OAuth completion refreshes the UI:
         vaultManager.setOnOAuthChanged(() -> {
             c.getDisplay().asyncExec(() -> {
-                if (c.isDisposed()) return;
+                if (c.isDisposed())
+                    return;
                 // dispose old rows and rebuild:
                 for (var child : oauthContainer.getChildren()) {
                     child.dispose();
@@ -360,7 +361,8 @@ public class SettingsDialog {
                     MessageBox mb = new MessageBox(container.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
                     mb.setText(i18n("confirm.title"));
                     mb.setMessage(i18n("settings.oauth.confirm.disconnect", displayName));
-                    if (mb.open() != SWT.OK) return;
+                    if (mb.open() != SWT.OK)
+                        return;
                     vaultManager.disconnectOAuth(rc.oauth_provider);
                     // dispose and rebuild:
                     for (var child : container.getChildren()) {

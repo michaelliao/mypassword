@@ -23,10 +23,14 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
     private static final String MASKED = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Label      titleValue;
     private Label      usernameValue;
@@ -127,6 +131,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Clipboard cb = new Clipboard(display);
         cb.setContents(new Object[] { plainPassword }, new Transfer[] { TextTransfer.getInstance() });
         cb.dispose();
+        logger.info("password copied.");
         ClearPasswordThread.scheduleClear(plainPassword);
         // show tooltip below copy button:
         ToolTip tip = new ToolTip(composite.getShell(), SWT.BALLOON | SWT.ICON_INFORMATION);
