@@ -42,8 +42,12 @@ import org.puppylab.mypassword.ui.view.NoteDetailView;
 import org.puppylab.mypassword.ui.view.NoteEditView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MainController {
+
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AppState     state = new AppState();
     private final VaultManager vaultManager;
@@ -120,7 +124,8 @@ public class MainController {
                     return;
                 if (!state.unlocked)
                     return;
-                onLock();
+                logger.info("auto lock main window.");
+                lock();
             });
         });
 
@@ -209,6 +214,11 @@ public class MainController {
         loginStore.clear();
         noteStore.clear();
         identityStore.clear();
+        // close any open child shells (e.g. SettingsDialog):
+        Shell mainShell = topContainer.getShell();
+        for (Shell child : mainShell.getShells()) {
+            child.close();
+        }
         topStack.topControl = unlockView.composite;
         topContainer.layout(true, true);
     }
