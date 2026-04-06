@@ -33,9 +33,9 @@ public class ItemListView {
     private static final int SUB_Y_OFF   = 29;                        // y offset for subtitle inside row
 
     // ── category metadata ─────────────────────────────────────────────
-    private static final Category[] CATEGORIES      = { Category.ALL, Category.FAVORITES, Category.LOGINS,
-            Category.NOTES, Category.IDENTITIES, Category.TRASH };
-    private static final String[]   CATEGORY_KEYS   = { "category.all", "category.favorites", "category.logins",
+    private static final Category[] CATEGORIES    = { Category.ALL, Category.FAVORITES, Category.LOGINS, Category.NOTES,
+            Category.IDENTITIES, Category.TRASH };
+    private static final String[]   CATEGORY_KEYS = { "category.all", "category.favorites", "category.logins",
             "category.notes", "category.identities", "category.trash" };
 
     // ── widgets ───────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ public class ItemListView {
         categoryTable = buildCategoryTable(container);
         itemTable = buildItemTable(container);
 
-        itemTable.addListener(SWT.Dispose, e -> {
+        itemTable.addListener(SWT.Dispose, _ -> {
             loginColor.dispose();
             noteColor.dispose();
             identityColor.dispose();
@@ -135,7 +135,7 @@ public class ItemListView {
         }
         table.setSelection(0);
 
-        table.addListener(SWT.Selection, e -> {
+        table.addListener(SWT.Selection, _ -> {
             int idx = table.getSelectionIndex();
             if (idx < 0)
                 return;
@@ -162,13 +162,13 @@ public class ItemListView {
         // width is 0 and PaintItem has no area to draw into.
         TableColumn col = new TableColumn(table, SWT.NONE);
         col.setWidth(240);
-        table.addControlListener(ControlListener.controlResizedAdapter(e -> col.setWidth(table.getClientArea().width)));
+        table.addControlListener(ControlListener.controlResizedAdapter(_ -> col.setWidth(table.getClientArea().width)));
 
         table.addListener(SWT.MeasureItem, e -> e.height = ROW_HEIGHT);
         table.addListener(SWT.EraseItem, this::onEraseItem);
         table.addListener(SWT.PaintItem, this::onPaintItem);
 
-        table.addListener(SWT.Selection, e -> {
+        table.addListener(SWT.Selection, _ -> {
             if (onSelectionChanged == null)
                 return;
             int idx = table.getSelectionIndex();

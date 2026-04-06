@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
-import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.SettingKey;
@@ -372,7 +372,7 @@ public class SettingsDialog {
             } else {
                 actionBtn.setText(i18n("settings.oauth.btn.login"));
                 actionBtn.addListener(SWT.Selection, _ -> {
-                    Program.launch("http://127.0.0.1:" + Daemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
+                    Program.launch("http://127.0.0.1:" + HttpDaemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
                 });
             }
         }

@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
-import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 
@@ -193,7 +193,7 @@ public class UnlockView {
             } else if (!name.isEmpty()) {
                 userInfo = name;
             }
-            String url = "http://127.0.0.1:" + Daemon.PORT + "/oauth/" + provider + "/start?recover=true";
+            String url = "http://127.0.0.1:" + HttpDaemon.PORT + "/oauth/" + provider + "/start?recover=true";
 
             Label providerLabel = new Label(table, SWT.NONE);
             providerLabel.setText(displayProvider);

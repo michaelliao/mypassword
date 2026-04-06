@@ -39,7 +39,7 @@ public class ToolbarView {
         addMenuItem(addMenu, i18n("toolbar.menu.note"), ItemType.NOTE);
         addMenuItem(addMenu, i18n("toolbar.menu.identity"), ItemType.IDENTITY);
 
-        btnAdd.addListener(SWT.Selection, e -> {
+        btnAdd.addListener(SWT.Selection, _ -> {
             Rectangle bounds = btnAdd.getBounds();
             Point loc = btnAdd.getParent().toDisplay(bounds.x, bounds.y + bounds.height);
             addMenu.setLocation(loc);
@@ -50,7 +50,7 @@ public class ToolbarView {
         Text search = new Text(composite, SWT.SEARCH | SWT.ICON_SEARCH);
         search.setMessage(i18n("toolbar.search.placeholder"));
         search.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        search.addModifyListener(e -> {
+        search.addModifyListener(_ -> {
             if (onSearch != null)
                 onSearch.accept(search.getText());
         });
@@ -59,7 +59,7 @@ public class ToolbarView {
         Button btnLock = new Button(composite, SWT.PUSH);
         btnLock.setText(i18n("toolbar.btn.lock"));
         btnLock.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
-        btnLock.addListener(SWT.Selection, e -> {
+        btnLock.addListener(SWT.Selection, _ -> {
             if (onLock != null)
                 onLock.run();
         });
@@ -84,7 +84,7 @@ public class ToolbarView {
     private void addMenuItem(Menu menu, String label, Integer type) {
         MenuItem item = new MenuItem(menu, SWT.PUSH);
         item.setText(label);
-        item.addListener(SWT.Selection, e -> {
+        item.addListener(SWT.Selection, _ -> {
             if (onAddNew != null)
                 onAddNew.accept(type);
         });

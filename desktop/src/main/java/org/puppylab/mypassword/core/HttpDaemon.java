@@ -27,7 +27,7 @@ import com.sun.net.httpserver.HttpServer;
  * vault is locked and a UI prompt is needed, use display.syncExec() from the
  * handler thread.
  */
-public class Daemon implements HttpHandler {
+public class HttpDaemon implements HttpHandler {
 
     public static final int PORT = 27432;
 
@@ -40,7 +40,7 @@ public class Daemon implements HttpHandler {
 
     private HttpServer httpServer;
 
-    public Daemon() {
+    public HttpDaemon() {
     }
 
     public void setVaultManager(VaultManager vaultManager) {
@@ -100,8 +100,9 @@ public class Daemon implements HttpHandler {
     }
 
     private String readRequestBody(HttpExchange exchange) throws IOException {
-        byte[] bytes = exchange.getRequestBody().readAllBytes();
-        return new String(bytes, StandardCharsets.UTF_8);
+        try (var in = exchange.getRequestBody()) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     // -------- cors response --------

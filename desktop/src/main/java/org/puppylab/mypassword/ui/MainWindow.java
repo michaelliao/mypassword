@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.puppylab.mypassword.core.ClearPasswordThread;
-import org.puppylab.mypassword.core.Daemon;
+import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
@@ -49,14 +49,14 @@ public class MainWindow {
 
     public void open() {
         // ── shared services ───────────────────────────────────────────────
-        Daemon daemon = new Daemon();
+        HttpDaemon daemon = new HttpDaemon();
 
         // ── bind port — exit if another instance is already running ──────────
         if (!daemon.listen()) {
             // activate the existing instance's window before exiting:
             try (var client = HttpClient.newHttpClient()) {
                 client.send(
-                        HttpRequest.newBuilder().uri(URI.create("http://127.0.0.1:" + Daemon.PORT + "/activate"))
+                        HttpRequest.newBuilder().uri(URI.create("http://127.0.0.1:" + HttpDaemon.PORT + "/activate"))
                                 .header("Content-Type", "application/json")
                                 .POST(HttpRequest.BodyPublishers.ofString("{}")).build(),
                         HttpResponse.BodyHandlers.discarding());
