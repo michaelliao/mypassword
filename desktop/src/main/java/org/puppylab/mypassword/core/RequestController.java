@@ -13,9 +13,10 @@ import org.puppylab.mypassword.core.web.PathVariable;
 import org.puppylab.mypassword.core.web.PostMapping;
 import org.puppylab.mypassword.core.web.RequestBody;
 import org.puppylab.mypassword.core.web.RequestParam;
+import org.puppylab.mypassword.core.web.pkce.GithubAuthenticator;
 import org.puppylab.mypassword.core.web.pkce.GoogleAuthenticator;
-import org.puppylab.mypassword.core.web.pkce.JwtUser;
 import org.puppylab.mypassword.core.web.pkce.OAuthAuthenticator;
+import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
@@ -61,6 +62,7 @@ public class RequestController {
     }
 
     Map<String, OAuthAuthenticator> authenticators = Map.of( // list all oauth here:
+            "github", new GithubAuthenticator(), // github
             "google", new GoogleAuthenticator() // google
     );
 
@@ -80,9 +82,9 @@ public class RequestController {
             return "<html><body>OAuth provider not found.</body></html>";
         }
         logger.info("exchange code: {}", code);
-        JwtUser user = auth.exchangeOAuthId(code);
-        return "<html><body><p>OAuth OK:<p><p>iss: " + user.iss + "</p><p>email: " + user.email + "</p><p>sub: "
-                + user.sub + "</p></body></html>";
+        OAuthUser user = auth.exchangeOAuthId(code);
+        return "<html><body><p>OAuth OK:<p><p>id: " + user.oauthId + "</p><p>name: " + user.name + "</p><p>email: "
+                + user.email + "</p><p>provider: " + user.provider + "</p></body></html>";
     }
 
     /**

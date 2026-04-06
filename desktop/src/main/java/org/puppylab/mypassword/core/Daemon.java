@@ -7,6 +7,8 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.puppylab.mypassword.core.web.DispatcherService;
+import org.puppylab.mypassword.rpc.BadRequestException;
+import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
@@ -114,7 +116,22 @@ public class Daemon implements HttpHandler {
 
     private void processHttp(HttpExchange exchange, String method, String path, String query, String body)
             throws IOException {
-        Object resp = this.dispatcherService.processHttpRequest(exchange, method, path, query, body);
+        Object resp = null;
+        try {
+            resp = this.dispatcherService.processHttpRequest(exchange, method, path, query, body);
+        } catch (BadRequestException e) {
+            logger.warn("http handle error {}: {}", e.errorCode, e.getMessage());
+            BaseResponse errorResp = new BaseResponse();
+            errorResp.error = e.errorCode;
+            errorResp.errorMessage = e.getMessage();
+            String errorJson = JsonUtils.toJson(errorResp);
+            sendResponse(exchange, "application/json", errorJson);
+            return;
+        } catch (Exception e) {
+            logger.error("http handle exception: " + e.getMessage(), e);
+            exchange.sendResponseHeaders(400, -1);
+            return;
+        }
         if (resp == null) {
             exchange.sendResponseHeaders(200, -1);
             return;

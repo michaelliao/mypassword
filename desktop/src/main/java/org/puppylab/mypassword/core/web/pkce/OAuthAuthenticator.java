@@ -2,11 +2,7 @@ package org.puppylab.mypassword.core.web.pkce;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
@@ -14,6 +10,7 @@ import java.util.Properties;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.HashUtils;
+import org.puppylab.mypassword.util.HttpUtils;
 import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,23 +34,27 @@ public abstract class OAuthAuthenticator {
         this.tokenUrl = loadProperty("oauth." + provider + ".token_url");
         this.clientId = loadProperty("oauth." + provider + ".client_id");
         this.clientSecret = loadProperty("oauth." + provider + ".client_secret");
-        logger.info("Load oauth provider {}: auth: {}, token url: {}", provider, authUrl, tokenUrl);
+        logger.info("Load oauth provider {}: client id: {}, auth: {}, token url: {}", provider, clientId, authUrl,
+                tokenUrl);
     }
 
     public synchronized String startOAuth() {
+        // generate code challenge:
         this.codeVerifier = Base64Utils.b64(EncryptUtils.generateKey());
         byte[] digest = HashUtils.sha256(codeVerifier.getBytes(StandardCharsets.UTF_8));
         String code_challenge = Base64Utils.b64(digest);
         Map<String, String> query = Map.of("client_id", this.clientId, // client id
                 "response_type", "code", // response type
-                "scope", "openid email", // scope
+                "scope", getScope(), // scope
                 "code_challenge", code_challenge, // challenge
                 "code_challenge_method", "S256", // sha-256
                 "redirect_uri", "http://127.0.0.1:27432/oauth/" + this.provider + "/callback");
-        return this.authUrl + '?' + toQueryString(query);
+        return HttpUtils.appendQuery(this.authUrl, query);
     }
 
-    public synchronized JwtUser exchangeOAuthId(String code) {
+    protected abstract String getScope();
+
+    public synchronized OAuthUser exchangeOAuthId(String code) {
         Map<String, String> query = Map.of("client_id", this.clientId, // client id
                 "client_secret", this.clientSecret == null ? "" : this.clientSecret, // ignore if client secret is empty
                 "code", code, // received code
@@ -63,23 +64,23 @@ public abstract class OAuthAuthenticator {
         // clear code verifier after use:
         this.codeVerifier = null;
         // send http post:
-        String result = httpPostForm(this.tokenUrl, query);
+        logger.info("post form: {}", this.tokenUrl);
+        String result = HttpUtils.postForm(this.tokenUrl, query, Map.of("Accept", "application/json"));
         logger.info("Post result: {}", result);
         OAuthResult oauth = JsonUtils.fromJson(result, OAuthResult.class);
-        if (oauth.id_token != null) {
-            String[] parts = oauth.id_token.split("\\.");
-            JwtUser user = decodeJWT(parts[1], JwtUser.class);
-            return user;
-        }
-        return null;
+        OAuthUser user = processOAuthResult(oauth);
+        logger.info("OAuth user: {}", user);
+        return user;
     }
 
-    private <T> T decodeJWT(String s, Class<T> clazz) {
+    protected abstract OAuthUser processOAuthResult(OAuthResult oauth);
+
+    protected <T> T decodeJWT(String s, Class<T> clazz) {
         String payload = new String(Base64Utils.b64(s), StandardCharsets.UTF_8);
         return JsonUtils.fromJson(payload, clazz);
     }
 
-    private String toQueryString(Map<String, String> query) {
+    protected String toQueryString(Map<String, String> query) {
         StringBuilder sb = new StringBuilder();
         for (String key : query.keySet()) {
             String value = query.get(key);
@@ -93,22 +94,8 @@ public abstract class OAuthAuthenticator {
         return sb.toString();
     }
 
-    protected String httpPostForm(String url, Map<String, String> query) {
-        String q = toQueryString(query);
-        logger.info("Post form {}: {}", url, q);
-        try (var client = HttpClient.newHttpClient()) {
-            var request = HttpRequest.newBuilder().uri(URI.create(url))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(HttpRequest.BodyPublishers.ofString(q)).build();
-            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.body();
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @SuppressWarnings("resource")
-    String loadProperty(String key) {
+    protected String loadProperty(String key) {
         if (props == null) {
             Properties p = new Properties();
             try {
