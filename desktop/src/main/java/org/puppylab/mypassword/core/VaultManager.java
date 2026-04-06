@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.core;
 
+import java.util.HexFormat;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -102,22 +103,27 @@ public class VaultManager {
         // generate random HMAC key:
         byte[] hmacKey = EncryptUtils.generateKey();
         byte[] uidHash = HashUtils.sha256(oauthId);
-        // derive AES key = HMAC-SHA256(data=oauthId, key=hmacKey):
-        byte[] aesKeyBytes = HashUtils.hmacSha256(oauthId, hmacKey);
-        SecretKey aesKey = EncryptUtils.bytesToAesKey(aesKeyBytes);
+        // derive AES key = pbe(pbeKey, salt, iterations):
+        int pbe_iterations = 1_000_000;
+        byte[] pbe_salt = EncryptUtils.generateSalt();
+        String password = HexFormat.of().formatHex(HashUtils.hmacSha256(oauthId, hmacKey));
+        byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
+        byte[] encrypted_dek_iv = EncryptUtils.generateIV();
         // encrypt DEK:
-        byte[] iv = EncryptUtils.generateIV();
-        byte[] encryptedDek = EncryptUtils.encrypt(dek.getEncoded(), aesKey, iv);
+        byte[] encryptedDek = EncryptUtils.encrypt(dek.getEncoded(), EncryptUtils.bytesToAesKey(pbe_key),
+                encrypted_dek_iv);
         // update RecoveryConfig:
         rc.oauth_name = name != null ? name : "";
         rc.oauth_email = email != null ? email : "";
         rc.b64_uid_hash = Base64Utils.b64(uidHash);
         rc.b64_uid_hash_hmac = Base64Utils.b64(hmacKey);
+        rc.pbe_iterations = pbe_iterations;
+        rc.b64_pbe_salt = Base64Utils.b64(pbe_salt);
         rc.b64_encrypted_dek = Base64Utils.b64(encryptedDek);
-        rc.b64_encrypted_dek_iv = Base64Utils.b64(iv);
+        rc.b64_encrypted_dek_iv = Base64Utils.b64(encrypted_dek_iv);
         rc.updated_at = System.currentTimeMillis();
-        dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
-                "b64_encrypted_dek_iv", "updated_at");
+        dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "pbe_iterations",
+                "b64_pbe_salt", "b64_encrypted_dek", "b64_encrypted_dek_iv", "updated_at");
         Runnable callback = this.onOAuthChanged;
         if (callback != null) {
             callback.run();

@@ -23,16 +23,18 @@ CREATE TABLE VaultConfig (
 
 -- User oauth recovery:
 CREATE TABLE RecoveryConfig (
-    oauth_provider TEXT PRIMARY KEY NOT NULL,      -- OAuth provider: "google", "github", etc.
-    oauth_client_id TEXT NOT NULL,                 -- OAuth client id
-    oauth_client_secret TEXT NOT NULL,             -- OAuth client secret
-    oauth_name TEXT NOT NULL DEFAULT "",           -- OAuth user display name
-    oauth_email TEXT NOT NULL DEFAULT "",          -- OAuth user email
-    b64_uid_hash TEXT NOT NULL DEFAULT "",         -- OAuth user id hash by HmacSHA256
-    b64_uid_hash_hmac TEXT NOT NULL DEFAULT "",    -- hmac key used
-    b64_encrypted_dek TEXT NOT NULL DEFAULT "",    -- encrypted dek
-    b64_encrypted_dek_iv TEXT NOT NULL DEFAULT "", -- iv used above
-    updated_at INTEGER                             -- updated at timestamp
+    oauth_provider TEXT PRIMARY KEY NOT NULL,        -- OAuth provider: "google", "github", etc.
+    oauth_client_id TEXT NOT NULL,                   -- OAuth client id
+    oauth_client_secret TEXT NOT NULL,               -- OAuth client secret
+    oauth_name TEXT NOT NULL DEFAULT "",             -- OAuth user display name
+    oauth_email TEXT NOT NULL DEFAULT "",            -- OAuth user email
+    b64_uid_hash TEXT NOT NULL DEFAULT "",           -- OAuth user id hash by HmacSHA256
+    b64_uid_hash_hmac TEXT NOT NULL DEFAULT "",      -- hmac key used
+    pbe_iterations INTEGER NOT NULL DEFAULT 1000000, -- iterations
+    b64_pbe_salt TEXT NOT NULL DEFAULT "",           -- salt
+    b64_encrypted_dek TEXT NOT NULL DEFAULT "",      -- encrypted dek
+    b64_encrypted_dek_iv TEXT NOT NULL DEFAULT "",   -- iv used above
+    updated_at INTEGER                               -- updated at timestamp
 );
 
 INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("google", "316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com", "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");
