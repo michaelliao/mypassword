@@ -15,6 +15,7 @@ import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
 import org.puppylab.mypassword.util.EncryptUtils;
+import org.puppylab.mypassword.util.HashUtils;
 import org.puppylab.mypassword.util.IdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,32 @@ public class VaultManager {
         return dbManager.queryForList(RecoveryConfig.class, "");
     }
 
+    public void saveOAuthRecovery(String provider, String name, String email, String oauthId, SecretKey dek) {
+        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
+        if (rc == null) {
+            throw new BadRequestException(ErrorCode.BAD_REQUEST, "OAuth provider not found: " + provider);
+        }
+        // generate random HMAC key:
+        byte[] hmacKey = EncryptUtils.generateKey();
+        byte[] uidHash = HashUtils.sha256(oauthId);
+        // derive AES key = HMAC-SHA256(data=oauthId, key=hmacKey):
+        byte[] aesKeyBytes = HashUtils.hmacSha256(oauthId, hmacKey);
+        SecretKey aesKey = EncryptUtils.bytesToAesKey(aesKeyBytes);
+        // encrypt DEK:
+        byte[] iv = EncryptUtils.generateIV();
+        byte[] encryptedDek = EncryptUtils.encrypt(dek.getEncoded(), aesKey, iv);
+        // update RecoveryConfig:
+        rc.oauth_name = name != null ? name : "";
+        rc.oauth_email = email != null ? email : "";
+        rc.b64_uid_hash = Base64Utils.b64(uidHash);
+        rc.b64_uid_hash_hmac = Base64Utils.b64(hmacKey);
+        rc.b64_encrypted_dek = Base64Utils.b64(encryptedDek);
+        rc.b64_encrypted_dek_iv = Base64Utils.b64(iv);
+        rc.updated_at = System.currentTimeMillis();
+        dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
+                "b64_encrypted_dek_iv", "updated_at");
+    }
+
     public void disconnectOAuth(String provider) {
         RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
         if (rc != null) {
@@ -98,8 +125,8 @@ public class VaultManager {
             rc.b64_encrypted_dek = "";
             rc.b64_encrypted_dek_iv = "";
             rc.updated_at = 0;
-            dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac",
-                    "b64_encrypted_dek", "b64_encrypted_dek_iv", "updated_at");
+            dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
+                    "b64_encrypted_dek_iv", "updated_at");
         }
     }
 
