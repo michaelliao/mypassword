@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.Daemon;
 import org.puppylab.mypassword.core.DbManager;
+import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.ui.controller.MainController;
 import org.puppylab.mypassword.ui.view.EmptyView;
@@ -157,6 +158,9 @@ public class MainWindow {
             MenuItem openItem = new MenuItem(trayMenu, SWT.PUSH);
             openItem.setText(i18n("tray.open"));
             openItem.addListener(SWT.Selection, _ -> activate.run());
+            MenuItem lockItem = new MenuItem(trayMenu, SWT.PUSH);
+            lockItem.setText(i18n("tray.lock"));
+            lockItem.addListener(SWT.Selection, _ -> controller.lock());
             new MenuItem(trayMenu, SWT.SEPARATOR);
             MenuItem settingsItem = new MenuItem(trayMenu, SWT.PUSH);
             settingsItem.setText(i18n("tray.settings"));
@@ -167,7 +171,12 @@ public class MainWindow {
             exitItem.addListener(SWT.Selection, _ -> shell.dispose());
 
             trayItem.addListener(SWT.Selection, _ -> activate.run());
-            trayItem.addListener(SWT.MenuDetect, _ -> trayMenu.setVisible(true));
+            trayItem.addListener(SWT.MenuDetect, _ -> {
+                boolean unlocked = !Session.current().isLocked();
+                lockItem.setEnabled(unlocked);
+                settingsItem.setEnabled(unlocked);
+                trayMenu.setVisible(true);
+            });
 
             // minimize to tray instead of closing:
             shell.addListener(SWT.Close, e -> {

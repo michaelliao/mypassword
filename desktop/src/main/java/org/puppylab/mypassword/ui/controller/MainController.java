@@ -185,6 +185,10 @@ public class MainController {
         switchMode(Mode.EDIT);
     }
 
+    public void lock() {
+        onLock();
+    }
+
     private void onLock() {
         Session.current().lock();
         state.unlocked = false;
