@@ -105,7 +105,7 @@ public class MainWindow {
         StackLayout topStack = new StackLayout();
         topContainer.setLayout(topStack);
 
-        UnlockView unlockView = new UnlockView(topContainer);
+        UnlockView unlockView = new UnlockView(topContainer, vaultManager);
 
         // ── main content (shown after unlock) ─────────────────────────────
         Composite mainContent = new Composite(topContainer, SWT.NONE);

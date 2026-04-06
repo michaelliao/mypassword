@@ -24,6 +24,8 @@ public abstract class OAuthAuthenticator {
     final String clientId;
     final String clientSecret;
 
+    // in recovery mode?
+    boolean isRecover;
     // current code verifier:
     String codeVerifier = null;
 
@@ -34,7 +36,8 @@ public abstract class OAuthAuthenticator {
         logger.info("Load oauth provider {}: client id: {}", provider, clientId);
     }
 
-    public synchronized String startOAuth() {
+    public synchronized String startOAuth(boolean isRecover) {
+        this.isRecover = isRecover;
         // generate code challenge:
         this.codeVerifier = Base64Utils.b64(EncryptUtils.generateKey());
         byte[] digest = HashUtils.sha256(codeVerifier.getBytes(StandardCharsets.UTF_8));
@@ -46,6 +49,10 @@ public abstract class OAuthAuthenticator {
                 "code_challenge_method", "S256", // sha-256
                 "redirect_uri", "http://127.0.0.1:27432/oauth/" + this.provider + "/callback");
         return HttpUtils.appendQuery(getAuthUrl(), query);
+    }
+
+    public boolean isRecoverMode() {
+        return this.isRecover;
     }
 
     protected abstract String getAuthUrl();

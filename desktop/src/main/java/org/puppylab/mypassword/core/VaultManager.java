@@ -11,6 +11,7 @@ import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultSetting;
 import org.puppylab.mypassword.core.exception.EncryptException;
+import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
@@ -93,56 +94,6 @@ public class VaultManager {
 
     public List<RecoveryConfig> getRecoveryConfigs() {
         return dbManager.queryForList(RecoveryConfig.class, "");
-    }
-
-    public void saveOAuthRecovery(String provider, String name, String email, String oauthId, SecretKey dek) {
-        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
-        if (rc == null) {
-            throw new BadRequestException(ErrorCode.BAD_REQUEST, "OAuth provider not found: " + provider);
-        }
-        // generate random HMAC key:
-        byte[] hmacKey = EncryptUtils.generateKey();
-        byte[] uidHash = HashUtils.sha256(oauthId);
-        // derive AES key = pbe(pbeKey, salt, iterations):
-        int pbe_iterations = 1_000_000;
-        byte[] pbe_salt = EncryptUtils.generateSalt();
-        String password = HexFormat.of().formatHex(HashUtils.hmacSha256(oauthId, hmacKey));
-        byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
-        byte[] encrypted_dek_iv = EncryptUtils.generateIV();
-        // encrypt DEK:
-        byte[] encryptedDek = EncryptUtils.encrypt(dek.getEncoded(), EncryptUtils.bytesToAesKey(pbe_key),
-                encrypted_dek_iv);
-        // update RecoveryConfig:
-        rc.oauth_name = name != null ? name : "";
-        rc.oauth_email = email != null ? email : "";
-        rc.b64_uid_hash = Base64Utils.b64(uidHash);
-        rc.b64_uid_hash_hmac = Base64Utils.b64(hmacKey);
-        rc.pbe_iterations = pbe_iterations;
-        rc.b64_pbe_salt = Base64Utils.b64(pbe_salt);
-        rc.b64_encrypted_dek = Base64Utils.b64(encryptedDek);
-        rc.b64_encrypted_dek_iv = Base64Utils.b64(encrypted_dek_iv);
-        rc.updated_at = System.currentTimeMillis();
-        dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "pbe_iterations",
-                "b64_pbe_salt", "b64_encrypted_dek", "b64_encrypted_dek_iv", "updated_at");
-        Runnable callback = this.onOAuthChanged;
-        if (callback != null) {
-            callback.run();
-        }
-    }
-
-    public void disconnectOAuth(String provider) {
-        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
-        if (rc != null) {
-            rc.oauth_name = "";
-            rc.oauth_email = "";
-            rc.b64_uid_hash = "";
-            rc.b64_uid_hash_hmac = "";
-            rc.b64_encrypted_dek = "";
-            rc.b64_encrypted_dek_iv = "";
-            rc.updated_at = 0;
-            dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
-                    "b64_encrypted_dek_iv", "updated_at");
-        }
     }
 
     // nullable:
@@ -284,6 +235,91 @@ public class VaultManager {
             this.dbManager.insert(vc);
         });
         this.vaultConfig = vc;
+    }
+
+    public void saveOAuthRecovery(String provider, String name, String email, String oauthId, SecretKey dek) {
+        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
+        if (rc == null) {
+            throw new BadRequestException(ErrorCode.BAD_REQUEST, "OAuth provider not found: " + provider);
+        }
+        // generate random HMAC key:
+        byte[] hmacKey = EncryptUtils.generateKey();
+        byte[] uidHash = HashUtils.sha256(oauthId);
+        // derive AES key = pbe(pbeKey, salt, iterations):
+        int pbe_iterations = 1_000_000;
+        byte[] pbe_salt = EncryptUtils.generateSalt();
+        String password = HexFormat.of().formatHex(HashUtils.hmacSha256(oauthId, hmacKey));
+        byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
+        byte[] encrypted_dek_iv = EncryptUtils.generateIV();
+        // encrypt DEK:
+        byte[] encryptedDek = EncryptUtils.encrypt(dek.getEncoded(), EncryptUtils.bytesToAesKey(pbe_key),
+                encrypted_dek_iv);
+        // update RecoveryConfig:
+        rc.oauth_name = name != null ? name : "";
+        rc.oauth_email = email != null ? email : "";
+        rc.b64_uid_hash = Base64Utils.b64(uidHash);
+        rc.b64_uid_hash_hmac = Base64Utils.b64(hmacKey);
+        rc.pbe_iterations = pbe_iterations;
+        rc.b64_pbe_salt = Base64Utils.b64(pbe_salt);
+        rc.b64_encrypted_dek = Base64Utils.b64(encryptedDek);
+        rc.b64_encrypted_dek_iv = Base64Utils.b64(encrypted_dek_iv);
+        rc.updated_at = System.currentTimeMillis();
+        dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "pbe_iterations",
+                "b64_pbe_salt", "b64_encrypted_dek", "b64_encrypted_dek_iv", "updated_at");
+        Runnable callback = this.onOAuthChanged;
+        if (callback != null) {
+            callback.run();
+        }
+    }
+
+    public void disconnectOAuth(String provider) {
+        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
+        if (rc != null) {
+            rc.oauth_name = "";
+            rc.oauth_email = "";
+            rc.b64_uid_hash = "";
+            rc.b64_uid_hash_hmac = "";
+            rc.b64_encrypted_dek = "";
+            rc.b64_encrypted_dek_iv = "";
+            rc.updated_at = 0;
+            dbManager.update(rc, "oauth_name", "oauth_email", "b64_uid_hash", "b64_uid_hash_hmac", "b64_encrypted_dek",
+                    "b64_encrypted_dek_iv", "updated_at");
+        }
+    }
+
+    /**
+     * Return null if bad oauth.
+     */
+    public SecretKey unlockVaultByOAuth(OAuthUser oauthUser) {
+        if (!isInitialized()) {
+            throw new IllegalStateException("Vault not initialized.");
+        }
+        RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", oauthUser.provider);
+        if (rc == null || rc.b64_uid_hash.isEmpty() || rc.b64_uid_hash_hmac.isEmpty()) {
+            return null;
+        }
+        // check user id:
+        final String oauthId = oauthUser.oauthId;
+        byte[] uidHash = HashUtils.sha256(oauthId);
+        if (!Base64Utils.b64(uidHash).equals(rc.b64_uid_hash)) {
+            logger.warn("oauth id not match.");
+            return null;
+        }
+        byte[] hmacKey = Base64Utils.b64(rc.b64_uid_hash_hmac);
+        // derive AES key = pbe(pbeKey, salt, iterations):
+        int pbe_iterations = rc.pbe_iterations;
+        byte[] pbe_salt = Base64Utils.b64(rc.b64_pbe_salt);
+        String password = HexFormat.of().formatHex(HashUtils.hmacSha256(oauthId, hmacKey));
+        byte[] pbe_key = EncryptUtils.derivePbeKey(password.toCharArray(), pbe_salt, pbe_iterations);
+        byte[] encrypted_dek_iv = Base64Utils.b64(rc.b64_encrypted_dek_iv);
+        byte[] encrypted_dek = Base64Utils.b64(rc.b64_encrypted_dek);
+        byte[] dek = null;
+        try {
+            dek = EncryptUtils.decrypt(encrypted_dek, EncryptUtils.bytesToAesKey(pbe_key), encrypted_dek_iv);
+        } catch (EncryptException e) {
+            return null;
+        }
+        return EncryptUtils.bytesToAesKey(dek);
     }
 
     /**

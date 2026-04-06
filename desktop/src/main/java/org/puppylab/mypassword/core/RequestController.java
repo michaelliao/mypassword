@@ -81,12 +81,12 @@ public class RequestController {
     }
 
     @GetMapping("/oauth/{provider}/start")
-    public String oauthStart(@PathVariable("provider") String provider) {
+    public String oauthStart(@PathVariable("provider") String provider, @RequestParam("recover") boolean isRecover) {
         OAuthAuthenticator auth = authenticators.get(provider);
         if (auth == null) {
             return "<html><body>OAuth provider not found.</body></html>";
         }
-        return "redirect:" + auth.startOAuth();
+        return "redirect:" + auth.startOAuth(isRecover);
     }
 
     @GetMapping("/oauth/{provider}/callback")
@@ -100,21 +100,34 @@ public class RequestController {
         if (user == null) {
             return "<html><body>OAuth login failed.</body></html>";
         }
-        // check if vault is unlocked (DEK available):
-        SecretKey dek = Session.current().getKey();
-        if (dek == null) {
-            return "<html><body>Vault is locked. Please unlock your vault first.</body></html>";
-        }
-        // save OAuth recovery:
-        vaultManager.saveOAuthRecovery(provider, user.name, user.email, user.oauthId, dek);
-        // display name:
         String displayProvider = Character.toUpperCase(provider.charAt(0)) + provider.substring(1);
-        String displayUser = user.name != null && !user.name.isEmpty() ? user.name : "";
-        String displayEmail = user.email != null && !user.email.isEmpty() ? " &lt;" + user.email + "&gt;" : "";
-        return "<html><body><p>You have successfully logged in " + displayProvider + " account "
-                + displayUser + displayEmail
-                + ".</p><p>You can use your " + displayProvider
-                + " account to unlock your vault for emergency.</p></body></html>";
+        // must check if oauth is used to recover key or encrypt key:
+        if (auth.isRecoverMode()) {
+            logger.info("unlock vault by oauth...");
+            // decrypt dek:
+            SecretKey dek = vaultManager.unlockVaultByOAuth(user);
+            if (dek == null) {
+                return "<html><body><p>Unlock vault by OAuth failed. Make sure you logged in with correct user account.</p></body></html>";
+            }
+            // TODO: unlock:
+            return "<html><body><p>You have successfully logged in " + displayProvider
+                    + " and unlocked your vault.</p><p>Please reset your master password in Settings - Password.</p></body></html>";
+        } else {
+            logger.info("add oauth recovery...");
+            // check if vault is unlocked (DEK available):
+            SecretKey dek = Session.current().getKey();
+            if (dek == null) {
+                return "<html><body>Vault is locked. Please unlock your vault first.</body></html>";
+            }
+            // save OAuth recovery:
+            vaultManager.saveOAuthRecovery(provider, user.name, user.email, user.oauthId, dek);
+            // display name:
+            String displayUser = user.name != null && !user.name.isEmpty() ? user.name : "";
+            String displayEmail = user.email != null && !user.email.isEmpty() ? " &lt;" + user.email + "&gt;" : "";
+            return "<html><body><p>You have successfully logged in " + displayProvider + " account " + displayUser
+                    + displayEmail + ".</p><p>You can use your " + displayProvider
+                    + " account to unlock your vault for emergency.</p></body></html>";
+        }
     }
 
     /**
