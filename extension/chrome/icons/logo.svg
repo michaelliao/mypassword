@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- Reusable asterisk symbol -->
+    <g id="ast">
+      <line x1="-3.8" y1="0"    x2="3.8"  y2="0"    stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="0"    y1="-3.8" x2="0"    y2="3.8"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="-2.7" y1="-2.7" x2="2.7"  y2="2.7"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="2.7"  y1="-2.7" x2="-2.7" y2="2.7"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <!-- Shackle: r=20 > half-distance(17), large-arc=1 sweep=0 → unambiguous upward arch -->
+  <path d="M 33,56 L 33,38 A 20,20 0 1,0 67,38 L 67,56"
+        stroke="#A8A8B8" stroke-width="13" fill="none" stroke-linecap="butt"/>
+
+  <!-- Lock body (golden yellow) -->
+  <rect x="10" y="44" width="80" height="53" rx="9" fill="#F5C030"/>
+
+  <!-- Blue password panel, vertically centered in body -->
+  <rect x="16" y="61" width="68" height="20" rx="4" fill="#4BBFD0"/>
+
+  <!-- Single password row, centered in panel (y=71) -->
+  <use href="#ast" transform="translate(25, 71)"/>
+  <use href="#ast" transform="translate(38, 71)"/>
+  <use href="#ast" transform="translate(51, 71)"/>
+  <use href="#ast" transform="translate(64, 71)"/>
+  <line x1="70" y1="75" x2="79" y2="75" stroke="#C8E8F0" stroke-width="2" stroke-linecap="round"/>
+</svg>

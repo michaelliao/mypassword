@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyPassword</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Loading view -->
+  <div id="view-loading" class="view">
+    <div class="spinner"></div>
+    <p class="loading-text">Connecting...</p>
+  </div>
+
+  <!-- Error view -->
+  <div id="view-error" class="view hidden">
+    <div class="error-icon">⚠</div>
+    <p id="error-message" class="error-text">Could not connect to daemon.</p>
+    <button id="btn-retry" class="btn btn-primary">Retry</button>
+  </div>
+
+  <!-- Unlock view -->
+  <div id="view-unlock" class="view hidden">
+    <div class="header">
+      <span class="app-title">MyPassword</span>
+    </div>
+    <div class="unlock-body">
+      <p class="unlock-hint">Enter master password to unlock vault</p>
+      <input id="input-password" type="password" placeholder="Master password" class="text-input" autocomplete="current-password">
+      <p id="unlock-error" class="field-error hidden"></p>
+      <button id="btn-unlock" class="btn btn-primary btn-full">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Items view -->
+  <div id="view-items" class="view hidden">
+    <div class="header">
+      <span class="app-title">MyPassword</span>
+      <button id="btn-lock" class="btn btn-icon" title="Lock vault">🔒</button>
+    </div>
+    <div class="search-bar">
+      <input id="input-search" type="text" placeholder="Search..." class="text-input search-input">
+    </div>
+    <div id="items-container" class="items-container"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
