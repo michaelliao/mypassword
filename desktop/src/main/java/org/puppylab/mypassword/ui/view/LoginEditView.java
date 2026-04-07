@@ -3,18 +3,40 @@ package org.puppylab.mypassword.ui.view;
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.util.PasswordUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class LoginEditView extends AbstractEditView<LoginItemData> {
 
-    private Text titleField;
-    private Text usernameField;
-    private Text passwordField;
+    private static final int MIN_PASSWORD_LENGTH     = 8;
+    private static final int MAX_PASSWORD_LENGTH     = 32;
+    private static final int DEFAULT_PASSWORD_LENGTH = 16;
+
+    private Text    titleField;
+    private Text    usernameField;
+    private Text    passwordField;
+    private Button    eyeBtn;
+    private Button    toggleGenBtn;
+    private Composite genArea;
+    private boolean   passwordVisible = false;
+
+    private Button  radioAlphaNum;
+    private Button  radioAlpha;
+    private Button  radioNum;
+    private Button  radioSymbol;
+    private Scale   lengthScale;
+    private Spinner lengthSpinner;
+
     private Text memoField;
 
     private MultiText websitesMultiFields;
@@ -29,9 +51,148 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     protected void createFields() {
         titleField = createField(i18n("field.title"), SWT.BORDER);
         usernameField = createField(i18n("field.username"), SWT.BORDER);
-        passwordField = createField(i18n("field.password"), SWT.BORDER | SWT.PASSWORD);
+        createPasswordRow();
+        createGenerateRow();
         websitesMultiFields = createMultiTextFields(i18n("field.websites"));
         memoField = createAreaField(i18n("field.memo"));
+    }
+
+    private void createPasswordRow() {
+        Composite row = new Composite(content, SWT.NONE);
+        GridLayout gl = new GridLayout(4, false);
+        row.setLayout(gl);
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        org.eclipse.swt.widgets.Label lbl = new org.eclipse.swt.widgets.Label(row, SWT.NONE);
+        lbl.setText(i18n("field.password"));
+        GridData ld = new GridData();
+        ld.widthHint = LABEL_WIDTH;
+        lbl.setLayoutData(ld);
+
+        passwordField = new Text(row, SWT.BORDER | SWT.PASSWORD);
+        passwordField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        eyeBtn = new Button(row, SWT.PUSH);
+        eyeBtn.setText("\uD83D\uDC41");
+        GridData eyeGd = new GridData();
+        eyeGd.widthHint = 32;
+        eyeBtn.setLayoutData(eyeGd);
+        eyeBtn.addListener(SWT.Selection, _ -> {
+            passwordVisible = !passwordVisible;
+            passwordField.setEchoChar(passwordVisible ? '\0' : '\u2022');
+            eyeBtn.setText(passwordVisible ? "\uD83D\uDE48" : "\uD83D\uDC41");
+        });
+
+        toggleGenBtn = new Button(row, SWT.PUSH);
+        toggleGenBtn.setText("\u25BC");
+        GridData toggleGd = new GridData();
+        toggleGd.widthHint = 32;
+        toggleGenBtn.setLayoutData(toggleGd);
+        toggleGenBtn.addListener(SWT.Selection, _ -> setGenAreaVisible(!genArea.getVisible()));
+    }
+
+    private void createGenerateRow() {
+        genArea = new Composite(content, SWT.NONE);
+        GridLayout genLayout = new GridLayout(1, false);
+        genLayout.marginHeight = 0;
+        genLayout.marginWidth = 0;
+        genArea.setLayout(genLayout);
+        genArea.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        // Row 1: radio buttons
+        Composite radioRow = new Composite(genArea, SWT.NONE);
+        radioRow.setLayout(new GridLayout(2, false));
+        radioRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        org.eclipse.swt.widgets.Label spacer1 = new org.eclipse.swt.widgets.Label(radioRow, SWT.NONE);
+        GridData spacer1Gd = new GridData();
+        spacer1Gd.widthHint = LABEL_WIDTH;
+        spacer1.setLayoutData(spacer1Gd);
+
+        Composite radios = new Composite(radioRow, SWT.NONE);
+        GridLayout rl = new GridLayout(4, false);
+        rl.marginHeight = 0;
+        rl.marginWidth = 0;
+        radios.setLayout(rl);
+        radios.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        radioAlphaNum = new Button(radios, SWT.RADIO);
+        radioAlphaNum.setText(i18n("password.gen.alpha_num"));
+        radioAlphaNum.setSelection(true);
+
+        radioAlpha = new Button(radios, SWT.RADIO);
+        radioAlpha.setText(i18n("password.gen.alpha"));
+
+        radioNum = new Button(radios, SWT.RADIO);
+        radioNum.setText(i18n("password.gen.num"));
+
+        radioSymbol = new Button(radios, SWT.RADIO);
+        radioSymbol.setText(i18n("password.gen.symbol"));
+
+        // Row 2: slider + spinner + generate button
+        Composite sliderRow = new Composite(genArea, SWT.NONE);
+        sliderRow.setLayout(new GridLayout(2, false));
+        sliderRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        org.eclipse.swt.widgets.Label spacer2 = new org.eclipse.swt.widgets.Label(sliderRow, SWT.NONE);
+        GridData spacer2Gd = new GridData();
+        spacer2Gd.widthHint = LABEL_WIDTH;
+        spacer2.setLayoutData(spacer2Gd);
+
+        Composite controls = new Composite(sliderRow, SWT.NONE);
+        GridLayout cl = new GridLayout(3, false);
+        cl.marginHeight = 0;
+        cl.marginWidth = 0;
+        controls.setLayout(cl);
+        controls.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        lengthScale = new Scale(controls, SWT.HORIZONTAL);
+        lengthScale.setMinimum(MIN_PASSWORD_LENGTH);
+        lengthScale.setMaximum(MAX_PASSWORD_LENGTH);
+        lengthScale.setSelection(DEFAULT_PASSWORD_LENGTH);
+        lengthScale.setIncrement(1);
+        lengthScale.setPageIncrement(4);
+        lengthScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        lengthScale.addListener(SWT.Selection, _ -> lengthSpinner.setSelection(lengthScale.getSelection()));
+
+        lengthSpinner = new Spinner(controls, SWT.BORDER);
+        lengthSpinner.setMinimum(MIN_PASSWORD_LENGTH);
+        lengthSpinner.setMaximum(MAX_PASSWORD_LENGTH);
+        lengthSpinner.setSelection(DEFAULT_PASSWORD_LENGTH);
+        lengthSpinner.setIncrement(1);
+        lengthSpinner.addListener(SWT.Selection, _ -> lengthScale.setSelection(lengthSpinner.getSelection()));
+
+        Button genBtn = new Button(controls, SWT.PUSH);
+        genBtn.setText(i18n("password.gen.btn"));
+        genBtn.addListener(SWT.Selection, _ -> {
+            int style = getSelectedStyle();
+            int len = lengthSpinner.getSelection();
+            String password = PasswordUtils.generatePassword(len, style);
+            passwordField.setText(password);
+            if (!passwordVisible) {
+                passwordVisible = true;
+                passwordField.setEchoChar('\0');
+                eyeBtn.setText("\uD83D\uDE48");
+            }
+        });
+    }
+
+    private void setGenAreaVisible(boolean visible) {
+        genArea.setVisible(visible);
+        ((GridData) genArea.getLayoutData()).exclude = !visible;
+        toggleGenBtn.setText(visible ? "\u25B2" : "\u25BC");
+        content.layout(true, true);
+        sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
+    }
+
+    private int getSelectedStyle() {
+        if (radioAlpha.getSelection())
+            return PasswordUtils.STYLE_ALPHABET;
+        if (radioNum.getSelection())
+            return PasswordUtils.STYLE_NUMBER;
+        if (radioSymbol.getSelection())
+            return PasswordUtils.STYLE_ALPHABET_NUMBER_SYMBOL;
+        return PasswordUtils.STYLE_ALPHABET_NUMBER;
     }
 
     @Override
@@ -40,6 +201,15 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         websitesMultiFields.disposeFields();
 
         editingItem = item;
+        passwordVisible = false;
+        passwordField.setEchoChar('\u2022');
+        eyeBtn.setText("\uD83D\uDC41");
+        radioAlphaNum.setSelection(true);
+        radioAlpha.setSelection(false);
+        radioNum.setSelection(false);
+        radioSymbol.setSelection(false);
+        lengthScale.setSelection(DEFAULT_PASSWORD_LENGTH);
+        lengthSpinner.setSelection(DEFAULT_PASSWORD_LENGTH);
         if (item == null) {
             titleField.setText("");
             usernameField.setText("");
@@ -53,6 +223,9 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             setMultiTextValues(websitesMultiFields, item.data.websites);
             memoField.setText(StringUtils.normalize(item.data.memo));
         }
+        // show generate area if password is empty, hide if not
+        boolean hasPassword = !passwordField.getText().isEmpty();
+        setGenAreaVisible(!hasPassword);
         updateMultiTextAddButton(websitesMultiFields);
     }
 
