@@ -7,6 +7,7 @@
   const ITEM_TYPE_LOGIN = 1;
 
   let cachedItems = null;  // items list, cached per page load
+  let vaultLocked = false;
   let activeDropdown = null;
 
   // ---- Credential field detection ----
@@ -101,7 +102,11 @@
     if (cachedItems !== null) return cachedItems;
     try {
       const info = await daemonRequest('/info', {});
-      if (info.data?.locked !== false) return [];
+      if (info.data?.locked !== false) {
+        vaultLocked = true;
+        return [];
+      }
+      vaultLocked = false;
       const list = await daemonRequest('/items/list?type=1', null, 'GET');
       cachedItems = (list.items || []).filter((i) => !i.deleted);
       return cachedItems;
@@ -128,7 +133,7 @@
     }
   }
 
-  function createDropdown(matches, pwField, userField) {
+  function createDropdown(matches, anchorField, pwField, userField) {
     removeDropdown();
     if (matches.length === 0) return;
 
@@ -148,7 +153,6 @@
       overflow: hidden;
     `;
 
-    const anchorField = pwField || userField;
     const rect = anchorField.getBoundingClientRect();
     dropdown.style.top = `${window.scrollY + rect.bottom + 4}px`;
     dropdown.style.left = `${window.scrollX + rect.left}px`;
@@ -204,17 +208,46 @@
 
   // ---- Field focus listeners ----
 
-  async function onFieldFocus(pwField, userField) {
+  async function onFieldFocus(focusedField, pwField, userField) {
     const items = await loadItems();
+    if (vaultLocked) {
+      createLockedDropdown(focusedField);
+      return;
+    }
     const hostname = location.hostname;
     const matches = items.filter((i) => matchesHostname(i, hostname));
-    createDropdown(matches, pwField, userField);
+    createDropdown(matches, focusedField, pwField, userField);
+  }
+
+  function createLockedDropdown(anchorField) {
+    removeDropdown();
+    const dropdown = document.createElement('div');
+    dropdown.className = 'mypassword-dropdown';
+    dropdown.style.cssText = `
+      position: absolute;
+      z-index: 2147483647;
+      background: #fff;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      min-width: 220px;
+      padding: 10px 14px;
+      color: #888;
+    `;
+    const rect = anchorField.getBoundingClientRect();
+    dropdown.style.top = `${window.scrollY + rect.bottom + 4}px`;
+    dropdown.style.left = `${window.scrollX + rect.left}px`;
+    dropdown.textContent = 'Please unlock MyPassword';
+    document.body.appendChild(dropdown);
+    activeDropdown = dropdown;
   }
 
   function attachListeners(fields) {
     for (const { pwField, userField } of fields) {
       const addFocusBlur = (field) => {
-        field.addEventListener('focus', () => onFieldFocus(pwField, userField));
+        field.addEventListener('focus', () => onFieldFocus(field, pwField, userField));
         field.addEventListener('blur', () => setTimeout(removeDropdown, 150));
       };
       if (pwField) addFocusBlur(pwField);
