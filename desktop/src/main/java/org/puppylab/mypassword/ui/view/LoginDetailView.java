@@ -3,9 +3,6 @@ package org.puppylab.mypassword.ui.view;
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
@@ -20,8 +17,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
-import org.puppylab.mypassword.core.ClearPasswordThread;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,12 +124,9 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     private void copyPassword() {
         if (plainPassword.isEmpty())
             return;
+        ClipboardUtils.copyPassword(plainPassword);
         Display display = Display.getCurrent();
-        Clipboard cb = new Clipboard(display);
-        cb.setContents(new Object[] { plainPassword }, new Transfer[] { TextTransfer.getInstance() });
-        cb.dispose();
         logger.info("password copied.");
-        ClearPasswordThread.scheduleClear(plainPassword);
         // show tooltip below copy button:
         ToolTip tip = new ToolTip(composite.getShell(), SWT.ICON_INFORMATION);
         tip.setMessage(i18n("password.tip.copied"));

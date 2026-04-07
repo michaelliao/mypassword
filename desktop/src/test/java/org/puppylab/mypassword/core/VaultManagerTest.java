@@ -25,7 +25,7 @@ import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.NoteFieldsData;
 import org.puppylab.mypassword.core.data.NoteItemData;
-import org.puppylab.mypassword.rpc.BadRequestException;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 
 public class VaultManagerTest {
@@ -117,7 +117,7 @@ public class VaultManagerTest {
 
     @Test
     void testGetItemNotFound() {
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.getItem(key, 999L));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.getItem(key, 999L));
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 
@@ -129,7 +129,7 @@ public class VaultManagerTest {
         login.item_type = ItemType.LOGIN;
         login.data = null;
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.createItem(key, login));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.createItem(key, login));
         assertEquals(ErrorCode.BAD_FIELD, ex.errorCode);
     }
 
@@ -137,7 +137,7 @@ public class VaultManagerTest {
     void testCreateItemBlankTitle() {
         LoginItemData login = newLogin("", "user", "pass");
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.createItem(key, login));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.createItem(key, login));
         assertEquals(ErrorCode.BAD_FIELD, ex.errorCode);
     }
 
@@ -165,7 +165,7 @@ public class VaultManagerTest {
         login.id = 999L;
         login.item_type = ItemType.LOGIN;
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.updateItem(key, login));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.updateItem(key, login));
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 
@@ -177,7 +177,7 @@ public class VaultManagerTest {
         note.id = created.id;
         note.item_type = ItemType.NOTE;
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.updateItem(key, note));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.updateItem(key, note));
         assertEquals(ErrorCode.BAD_FIELD, ex.errorCode);
     }
 
@@ -202,7 +202,7 @@ public class VaultManagerTest {
 
     @Test
     void testDeleteItemNotFound() {
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.deleteItem(key, 999L));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.deleteItem(key, 999L));
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 
@@ -225,7 +225,7 @@ public class VaultManagerTest {
 
     @Test
     void testRestoreItemNotFound() {
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> vaultManager.restoreItem(key, 999L));
+        VaultException ex = assertThrows(VaultException.class, () -> vaultManager.restoreItem(key, 999L));
         assertEquals(ErrorCode.DATA_NOT_FOUND, ex.errorCode);
     }
 

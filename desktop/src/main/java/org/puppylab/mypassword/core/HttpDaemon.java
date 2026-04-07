@@ -7,7 +7,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.puppylab.mypassword.core.web.DispatcherService;
-import org.puppylab.mypassword.rpc.BadRequestException;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.JsonUtils;
@@ -115,7 +115,7 @@ public class HttpDaemon implements HttpHandler {
         Object resp = null;
         try {
             resp = this.dispatcherService.processHttpRequest(exchange, method, path, query, body);
-        } catch (BadRequestException e) {
+        } catch (VaultException e) {
             logger.warn("http handle error {}: {}", e.errorCode, e.getMessage());
             BaseResponse errorResp = new BaseResponse();
             errorResp.error = e.errorCode;

@@ -172,11 +172,11 @@ public class DispatcherService {
             if (classType == String.class) {
                 return s;
             } else if (classType == boolean.class || classType == Boolean.class) {
-                return Boolean.valueOf(s);
+                return s == null ? Boolean.FALSE : Boolean.valueOf(s);
             } else if (classType == int.class || classType == Integer.class) {
-                return Integer.valueOf(s);
+                return s == null ? Integer.valueOf(0) : Integer.valueOf(s);
             } else if (classType == long.class || classType == Long.class) {
-                return Long.valueOf(s);
+                return s == null ? Long.valueOf(0) : Long.valueOf(s);
             } else {
                 throw new IllegalArgumentException("Could not determine argument type: " + classType);
             }

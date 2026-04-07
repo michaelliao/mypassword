@@ -12,7 +12,7 @@ import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultSetting;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.core.web.pkce.OAuthUser;
-import org.puppylab.mypassword.rpc.BadRequestException;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
@@ -127,7 +127,7 @@ public class VaultManager {
     public AbstractItemData getItem(SecretKey key, long id) {
         Item item = getItem(id);
         if (item == null) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
         }
         return ConvertUtils.toItemData(key, item);
     }
@@ -136,8 +136,16 @@ public class VaultManager {
         return getRawItems().stream().map(it -> ConvertUtils.toItemData(key, it)).toList();
     }
 
+    public List<AbstractItemData> getItems(SecretKey key, int type) {
+        return getRawItems(type).stream().map(it -> ConvertUtils.toItemData(key, it)).toList();
+    }
+
     public List<Item> getRawItems() {
         return this.dbManager.queryForList(Item.class, "");
+    }
+
+    public List<Item> getRawItems(int type) {
+        return this.dbManager.queryForList(Item.class, "WHERE item_type = ?", type);
     }
 
     /**
@@ -147,11 +155,11 @@ public class VaultManager {
     public AbstractItemData createItem(SecretKey key, AbstractItemData data) {
         // check:
         if (data.fields() == null) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Missing fields.");
+            throw new VaultException(ErrorCode.BAD_FIELD, "Missing fields.");
         }
         String errField = data.fields().check();
         if (errField != null) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
+            throw new VaultException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
         }
         // prepare entity:
         Item item = new Item();
@@ -172,7 +180,7 @@ public class VaultManager {
     public AbstractItemData deleteItem(SecretKey key, long id) {
         Item item = getItem(id);
         if (item == null) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
         }
         if (!item.deleted) {
             item.deleted = true;
@@ -188,7 +196,7 @@ public class VaultManager {
     public AbstractItemData restoreItem(SecretKey key, long id) {
         Item item = getItem(id);
         if (item == null) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + id);
         }
         if (item.deleted) {
             item.deleted = false;
@@ -205,14 +213,14 @@ public class VaultManager {
     public AbstractItemData updateItem(SecretKey key, AbstractItemData data) {
         String errField = data.fields().check();
         if (errField != null) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
+            throw new VaultException(ErrorCode.BAD_FIELD, "Invalid field: " + errField);
         }
         Item item = getItem(data.id);
         if (item == null) {
-            throw new BadRequestException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + data.id);
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Item not found: " + data.id);
         }
         if (item.item_type != data.item_type) {
-            throw new BadRequestException(ErrorCode.BAD_FIELD, "Item type not match: " + data.item_type);
+            throw new VaultException(ErrorCode.BAD_FIELD, "Item type not match: " + data.item_type);
         }
         ConvertUtils.encrypt(key, item, data.fields());
         item.updated_at = System.currentTimeMillis();
@@ -263,7 +271,7 @@ public class VaultManager {
     public void saveOAuthRecovery(String provider, String name, String email, String oauthId, SecretKey dek) {
         RecoveryConfig rc = dbManager.queryFirst(RecoveryConfig.class, "where oauth_provider = ?", provider);
         if (rc == null) {
-            throw new BadRequestException(ErrorCode.BAD_REQUEST, "OAuth provider not found: " + provider);
+            throw new VaultException(ErrorCode.BAD_REQUEST, "OAuth provider not found: " + provider);
         }
         // generate random HMAC key:
         byte[] hmacKey = EncryptUtils.generateKey();

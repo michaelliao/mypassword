@@ -8,7 +8,9 @@ import javax.crypto.SecretKey;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
 import org.puppylab.mypassword.core.web.PathVariable;
@@ -17,10 +19,10 @@ import org.puppylab.mypassword.core.web.RequestBody;
 import org.puppylab.mypassword.core.web.RequestParam;
 import org.puppylab.mypassword.core.web.pkce.OAuthAuthenticator;
 import org.puppylab.mypassword.core.web.pkce.OAuthUser;
-import org.puppylab.mypassword.rpc.BadRequestException;
 import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
@@ -62,7 +64,7 @@ public class RequestController {
     SecretKey getKey() {
         SecretKey key = Session.getCurrent().getKey();
         if (key == null) {
-            throw new BadRequestException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
+            throw new VaultException(ErrorCode.VAULT_LOCKED, "Vault is locked.");
         }
         return key;
     }
@@ -133,17 +135,18 @@ public class RequestController {
     /**
      * Get all items.
      */
-    @PostMapping("/items/list")
-    public BaseResponse list(@RequestBody BaseRequest request) {
+    @GetMapping("/items/list")
+    public ItemsResponse list(@RequestParam("type") int type) {
         SecretKey key = getKey();
-        List<AbstractItemData> items = VaultManager.getCurrent().getItems(key);
+        List<AbstractItemData> items = type == 0 ? VaultManager.getCurrent().getItems(key)
+                : VaultManager.getCurrent().getItems(key, type);
         var response = new ItemsResponse();
         response.items = items;
         return response;
     }
 
     @PostMapping("/items/create")
-    public BaseResponse create(@RequestBody ItemRequest request) {
+    public ItemResponse create(@RequestBody ItemRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().createItem(key, request.item);
@@ -151,7 +154,7 @@ public class RequestController {
     }
 
     @PostMapping("/items/{id}/get")
-    public BaseResponse itemGet(@PathVariable("id") long id, @RequestBody BaseRequest request) {
+    public ItemResponse itemGet(@PathVariable("id") long id, @RequestBody BaseRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().getItem(key, id);
@@ -159,7 +162,7 @@ public class RequestController {
     }
 
     @PostMapping("/items/{id}/update")
-    public BaseResponse itemUpdate(@PathVariable("id") long id, @RequestBody ItemRequest request) {
+    public ItemResponse itemUpdate(@PathVariable("id") long id, @RequestBody ItemRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
         request.item.id = id;
@@ -167,8 +170,20 @@ public class RequestController {
         return response;
     }
 
+    @PostMapping("/items/{id}/copy")
+    public BaseResponse itemCopy(@PathVariable("id") long id) {
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
+        if (!(item.fields() instanceof LoginFieldsData login) || login.password == null || login.password.isEmpty()) {
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Item has no password.");
+        }
+        ClipboardUtils.copyPassword(login.password);
+        logger.info("password copied from extension.");
+        return new BaseResponse();
+    }
+
     @PostMapping("/items/{id}/delete")
-    public BaseResponse itemDelete(@PathVariable("id") long id, @RequestBody BaseRequest request) {
+    public ItemResponse itemDelete(@PathVariable("id") long id, @RequestBody BaseRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().deleteItem(key, id);
@@ -176,9 +191,9 @@ public class RequestController {
     }
 
     @PostMapping("/vault/lock")
-    public BaseResponse vaultLock() {
+    public InfoResponse vaultLock() {
         if (!VaultManager.getCurrent().isInitialized()) {
-            return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
         Session.getCurrent().lock();
         return info();
@@ -187,14 +202,14 @@ public class RequestController {
     @PostMapping("/vault/unlock")
     public BaseResponse vaultUnlock(@RequestBody VaultPasswordRequest request) {
         if (!VaultManager.getCurrent().isInitialized()) {
-            return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
         if (request.password == null || request.password.length() < Constants.PASSWORD_MIN_LENGTH) {
-            return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
+            throw new VaultException(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
         SecretKey dek = VaultManager.getCurrent().unlockVault(request.password.toCharArray());
         if (dek == null) {
-            return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
+            throw new VaultException(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
         Session.getCurrent().setKey(Session.UnlockType.PASSWORD, dek);
         VaultManager.getCurrent().fireVaultUnlocked();
