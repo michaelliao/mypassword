@@ -187,6 +187,10 @@ public class Session {
     public synchronized void lock() {
         this.unlockType = null;
         this.dek = null;
+        Runnable callback = this.onAutoLocked;
+        if (callback != null) {
+            callback.run();
+        }
     }
 
     public synchronized void setKey(UnlockType unlockType, SecretKey key) {

@@ -37,8 +37,8 @@ CREATE TABLE RecoveryConfig (
     updated_at INTEGER                               -- updated at timestamp
 );
 
+-- NOTE: client_secret is required by Google desktop oauth but not treat as confidential:
 INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("google", "316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com", "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");
-INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("github", "Ov23liFEn9C7XEvQlOeR", "2fdfa08c8f88da4271a9154e84e8e132f448a5b8");
 
 CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id

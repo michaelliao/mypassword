@@ -180,7 +180,7 @@ public class RequestController {
         if (!VaultManager.getCurrent().isInitialized()) {
             return ErrorUtils.error(ErrorCode.BAD_REQUEST, "Vault is not initialized.");
         }
-        Session.getCurrent().setKey(null, null);
+        Session.getCurrent().lock();
         return info();
     }
 
@@ -197,6 +197,7 @@ public class RequestController {
             return ErrorUtils.error(ErrorCode.BAD_PASSWORD, "Bad password.");
         }
         Session.getCurrent().setKey(Session.UnlockType.PASSWORD, dek);
+        VaultManager.getCurrent().fireVaultUnlocked();
         return info();
     }
 
