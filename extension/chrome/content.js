@@ -14,12 +14,31 @@
   function findCredentialFields() {
     const passwordFields = Array.from(document.querySelectorAll('input[type="password"]'));
     const result = [];
+    const usedUserFields = new Set();
     for (const pwField of passwordFields) {
       if (!isVisible(pwField)) continue;
       const userField = findAdjacentUsernameField(pwField);
+      if (userField) usedUserFields.add(userField);
       result.push({ userField, pwField });
     }
+    // Standalone username/email fields (no visible password field on page, e.g. multi-step login)
+    if (result.length === 0) {
+      const userInputs = document.querySelectorAll('input[type="text"], input[type="email"], input:not([type])');
+      for (const inp of userInputs) {
+        if (!isVisible(inp) || usedUserFields.has(inp)) continue;
+        if (isLikelyUsernameField(inp)) {
+          result.push({ userField: inp, pwField: null });
+        }
+      }
+    }
     return result;
+  }
+
+  function isLikelyUsernameField(inp) {
+    const hints = ['user', 'email', 'login', 'account', 'identifier', 'webauthn'];
+    const text = (inp.name + ' ' + inp.id + ' ' + inp.placeholder + ' ' + (inp.getAttribute('aria-label') || '')
+        + ' ' + (inp.getAttribute('autocomplete') || '')).toLowerCase();
+    return hints.some((h) => text.includes(h));
   }
 
   function isVisible(el) {
@@ -129,7 +148,8 @@
       overflow: hidden;
     `;
 
-    const rect = pwField.getBoundingClientRect();
+    const anchorField = pwField || userField;
+    const rect = anchorField.getBoundingClientRect();
     dropdown.style.top = `${window.scrollY + rect.bottom + 4}px`;
     dropdown.style.left = `${window.scrollX + rect.left}px`;
 
@@ -193,17 +213,12 @@
 
   function attachListeners(fields) {
     for (const { pwField, userField } of fields) {
-      pwField.addEventListener('focus', () => onFieldFocus(pwField, userField));
-      pwField.addEventListener('blur', () => {
-        // delay so mousedown on dropdown fires first
-        setTimeout(removeDropdown, 150);
-      });
-      if (userField) {
-        userField.addEventListener('focus', () => onFieldFocus(pwField, userField));
-        userField.addEventListener('blur', () => {
-          setTimeout(removeDropdown, 150);
-        });
-      }
+      const addFocusBlur = (field) => {
+        field.addEventListener('focus', () => onFieldFocus(pwField, userField));
+        field.addEventListener('blur', () => setTimeout(removeDropdown, 150));
+      };
+      if (pwField) addFocusBlur(pwField);
+      if (userField) addFocusBlur(userField);
     }
   }
 
