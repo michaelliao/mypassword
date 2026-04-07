@@ -27,17 +27,15 @@ public class UnlockView {
 
     public final Composite composite;
 
-    private final VaultManager vaultManager;
-    private final Composite    card;
-    private final Text         passwordText;
-    private final Button       unlockBtn;
-    private final Label        errorLabel;
-    private Composite          oauthContainer;
+    private final Composite card;
+    private final Text      passwordText;
+    private final Button    unlockBtn;
+    private final Label     errorLabel;
+    private Composite       oauthContainer;
 
     private Consumer<String> onSubmit;
 
-    public UnlockView(Composite parent, VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
+    public UnlockView(Composite parent) {
 
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -158,7 +156,7 @@ public class UnlockView {
     // ── helpers ───────────────────────────────────────────────────────
 
     private void buildOAuthRows() {
-        List<RecoveryConfig> configured = vaultManager.getRecoveryConfigs().stream()
+        List<RecoveryConfig> configured = VaultManager.getCurrent().getRecoveryConfigs().stream()
                 .filter(rc -> rc.b64_uid_hash != null && !rc.b64_uid_hash.isEmpty()).toList();
         if (configured.isEmpty()) {
             return;

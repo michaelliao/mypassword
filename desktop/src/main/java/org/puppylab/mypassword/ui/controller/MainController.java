@@ -49,8 +49,7 @@ public class MainController {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final AppState     state = new AppState();
-    private final VaultManager vaultManager;
+    private final AppState state = new AppState();
 
     // ── unlock layer ──────────────────────────────────────────────────
     private final UnlockView  unlockView;
@@ -80,12 +79,11 @@ public class MainController {
     private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
     private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
 
-    public MainController(VaultManager vaultManager, UnlockView unlockView, Composite topContainer,
-            StackLayout topStack, Composite mainContent, ToolbarView toolbar, ItemListView listView,
-            EmptyView emptyView, LoginDetailView loginDetailView, NoteDetailView noteDetailView,
-            IdentityDetailView identityDetailView, LoginEditView loginEditView, NoteEditView noteEditView,
-            IdentityEditView identityEditView, Composite rightContainer, StackLayout rightStack) {
-        this.vaultManager = vaultManager;
+    public MainController(UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
+            ToolbarView toolbar, ItemListView listView, EmptyView emptyView, LoginDetailView loginDetailView,
+            NoteDetailView noteDetailView, IdentityDetailView identityDetailView, LoginEditView loginEditView,
+            NoteEditView noteEditView, IdentityEditView identityEditView, Composite rightContainer,
+            StackLayout rightStack) {
         this.unlockView = unlockView;
         this.topContainer = topContainer;
         this.topStack = topStack;
@@ -109,7 +107,7 @@ public class MainController {
         topContainer.layout(true, true);
 
         // register OAuth unlock callback (fired from HTTP thread):
-        vaultManager.setOnVaultUnlocked(() -> {
+        VaultManager.getCurrent().setOnVaultUnlocked(() -> {
             topContainer.getDisplay().asyncExec(() -> {
                 if (topContainer.isDisposed())
                     return;
@@ -157,7 +155,7 @@ public class MainController {
     // ── unlock ────────────────────────────────────────────────────────
 
     private void onUnlockSubmit(String password) {
-        SecretKey dek = vaultManager.unlockVault(password.toCharArray());
+        SecretKey dek = VaultManager.getCurrent().unlockVault(password.toCharArray());
         if (dek == null) {
             unlockView.showError(i18n("unlock.error.wrong_password"));
             return;
@@ -311,9 +309,9 @@ public class MainController {
         boolean isNew = data.id == 0;
         AbstractItemData saved;
         if (isNew) {
-            saved = vaultManager.createItem(key, data);
+            saved = VaultManager.getCurrent().createItem(key, data);
         } else {
-            saved = vaultManager.updateItem(key, data);
+            saved = VaultManager.getCurrent().updateItem(key, data);
         }
         switch (saved) {
         case LoginItemData d -> {
@@ -350,9 +348,9 @@ public class MainController {
             return;
         AbstractItemData updated;
         if (state.selectedItem.deleted) {
-            updated = vaultManager.restoreItem(key, id);
+            updated = VaultManager.getCurrent().restoreItem(key, id);
         } else {
-            updated = vaultManager.deleteItem(key, id);
+            updated = VaultManager.getCurrent().deleteItem(key, id);
         }
         state.allItems.removeIf(i -> i.id == id);
         state.deletedItems.removeIf(i -> i.id == id);
@@ -396,7 +394,7 @@ public class MainController {
         SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
-        List<AbstractItemData> items = vaultManager.getItems(key);
+        List<AbstractItemData> items = VaultManager.getCurrent().getItems(key);
         state.allItems.clear();
         state.deletedItems.clear();
         loginStore.clear();

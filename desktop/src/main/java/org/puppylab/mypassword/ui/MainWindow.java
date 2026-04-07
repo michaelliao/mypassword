@@ -110,7 +110,7 @@ public class MainWindow {
         StackLayout topStack = new StackLayout();
         topContainer.setLayout(topStack);
 
-        UnlockView unlockView = new UnlockView(topContainer, vaultManager);
+        UnlockView unlockView = new UnlockView(topContainer);
 
         // ── main content (shown after unlock) ─────────────────────────────
         Composite mainContent = new Composite(topContainer, SWT.NONE);
@@ -138,9 +138,9 @@ public class MainWindow {
         NoteEditView noteEditView = new NoteEditView(rightContainer);
         IdentityEditView identityEditView = new IdentityEditView(rightContainer);
 
-        MainController controller = new MainController(vaultManager, unlockView, topContainer, topStack, mainContent,
-                toolbar, listView, emptyView, loginDetailView, noteDetailView, identityDetailView, loginEditView,
-                noteEditView, identityEditView, rightContainer, rightStack);
+        MainController controller = new MainController(unlockView, topContainer, topStack, mainContent, toolbar,
+                listView, emptyView, loginDetailView, noteDetailView, identityDetailView, loginEditView, noteEditView,
+                identityEditView, rightContainer, rightStack);
         controller.init();
 
         // ── activate window action (shared by tray and /activate) ───────
@@ -168,7 +168,7 @@ public class MainWindow {
             new MenuItem(trayMenu, SWT.SEPARATOR);
             MenuItem settingsItem = new MenuItem(trayMenu, SWT.PUSH);
             settingsItem.setText(i18n("tray.settings"));
-            settingsItem.addListener(SWT.Selection, _ -> new SettingsDialog(shell).open(vaultManager));
+            settingsItem.addListener(SWT.Selection, _ -> new SettingsDialog(shell).open());
             new MenuItem(trayMenu, SWT.SEPARATOR);
             MenuItem exitItem = new MenuItem(trayMenu, SWT.PUSH);
             exitItem.setText(i18n("tray.exit"));

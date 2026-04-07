@@ -51,7 +51,7 @@ public class SettingsDialog {
         this.parent = parent;
     }
 
-    public void open(VaultManager vaultManager) {
+    public void open() {
         Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         shell.setText(i18n("settings.title"));
         shell.setSize(500, 520);
@@ -68,7 +68,7 @@ public class SettingsDialog {
         buildPasswordTab(tabs);
 
         shell.open();
-        shell.addListener(SWT.Dispose, _ -> vaultManager.setOnOAuthChanged(null));
+        shell.addListener(SWT.Dispose, _ -> VaultManager.getCurrent().setOnOAuthChanged(null));
         while (!shell.isDisposed()) {
             if (!shell.getDisplay().readAndDispatch())
                 shell.getDisplay().sleep();

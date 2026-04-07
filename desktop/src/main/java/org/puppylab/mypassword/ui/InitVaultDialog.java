@@ -138,7 +138,7 @@ public class InitVaultDialog {
                 return;
             }
             SecretKey key = VaultManager.getCurrent().initVault(pw);
-            insertSampleData(VaultManager.getCurrent(), key);
+            insertSampleData(key);
             result[0] = true;
             shell.close();
         };
@@ -164,7 +164,8 @@ public class InitVaultDialog {
         return result[0];
     }
 
-    private static void insertSampleData(VaultManager vm, SecretKey key) {
+    private static void insertSampleData(SecretKey key) {
+        VaultManager vm = VaultManager.getCurrent();
         // logins:
         vm.createItem(key, newLogin("Google", "michael@gmail.com", "secret-google",
                 List.of("https://google.com", "https://gmail.com"), true));
