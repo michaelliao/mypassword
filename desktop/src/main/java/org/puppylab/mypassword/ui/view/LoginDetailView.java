@@ -38,8 +38,10 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     private String  plainPassword   = "";
     private boolean passwordVisible = false;
 
-    private MenuItem showHideItem;
-    private Button   copyBtn;
+    private MenuItem  showHideItem;
+    private Button    copyBtn;
+    private Button    arrowBtn;
+    private Composite btnGroup;
 
     public LoginDetailView(Composite parent) {
         super(parent);
@@ -78,7 +80,8 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         passwordValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         // Copy button with dropdown arrow:
-        Composite btnGroup = new Composite(valueCell, SWT.NONE);
+        btnGroup = new Composite(valueCell, SWT.NONE);
+        btnGroup.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         GridLayout btnGl = new GridLayout(2, false);
         btnGl.marginWidth = 0;
         btnGl.marginHeight = 0;
@@ -89,7 +92,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         copyBtn.setText(i18n("password.btn.copy"));
         copyBtn.addListener(SWT.Selection, _ -> copyPassword());
 
-        Button arrowBtn = new Button(btnGroup, SWT.PUSH);
+        arrowBtn = new Button(btnGroup, SWT.PUSH);
         arrowBtn.setText("\u25BE");
 
         Menu menu = new Menu(arrowBtn);
@@ -117,6 +120,10 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         passwordVisible = false;
         passwordValue.setText(plainPassword.isEmpty() ? "" : MASKED);
         showHideItem.setText(i18n("password.menu.show"));
+        boolean hasPassword = !plainPassword.isEmpty();
+        btnGroup.setVisible(hasPassword);
+        ((GridData) btnGroup.getLayoutData()).exclude = !hasPassword;
+        btnGroup.getParent().layout(true, true);
         websitesContainer.setValues(item.data.websites);
         memoValue.setText(StringUtils.normalize(item.data.memo));
     }
