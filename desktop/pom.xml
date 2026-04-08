@@ -213,7 +213,7 @@
 								<argument>--type</argument>
 								<argument>${jpackage.type}</argument>
 								<argument>--name</argument>
-								<argument>${app.name}</argument>
+								<argument>${app.name}-${project.version}</argument>
 								<argument>--input</argument>
 								<argument>${jpackage.input}</argument>
 								<argument>--main-jar</argument>
