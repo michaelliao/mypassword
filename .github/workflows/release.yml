@@ -1,0 +1,46 @@
+name: Release MyPassword
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: MyPassword-windows
+          - os: macos-latest
+            artifact: MyPassword-macos
+          - os: ubuntu-latest
+            artifact: MyPassword-linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - run: mvn clean package
+        working-directory: desktop
+      - name: Zip app-image
+        shell: bash
+        run: cd desktop/target/dist && zip -r ../../../${{ matrix.artifact }}.zip */
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: "*.zip"
