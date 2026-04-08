@@ -85,8 +85,16 @@ public class DbManager {
         }));
     }
 
-    public VaultVersion queryVaultVersion() {
-        return queryUnique(VaultVersion.class, "WHERE id = ?", 1);
+    public int queryAppVersion() {
+        return queryUnique(VaultVersion.class, "WHERE id = ?", VaultVersion.ID_APP_VERSION).version;
+    }
+
+    public void incDataVersion() {
+        execute("UPDATE VaultVersion SET version = version + 1 WHERE id = ?", VaultVersion.ID_DATA_VERSION);
+    }
+
+    public int queryDataVersion() {
+        return queryUnique(VaultVersion.class, "WHERE id = ?", VaultVersion.ID_DATA_VERSION).version;
     }
 
     public VaultConfig queryVaultConfig() {

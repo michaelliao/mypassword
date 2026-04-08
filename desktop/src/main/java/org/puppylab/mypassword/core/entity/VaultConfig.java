@@ -2,6 +2,9 @@ package org.puppylab.mypassword.core.entity;
 
 import jakarta.persistence.Id;
 
+/**
+ * Derive PBE key from master password.
+ */
 public class VaultConfig {
 
     @Id

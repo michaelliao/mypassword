@@ -15,6 +15,10 @@ public class InfoResponse extends BaseResponse {
         // is vault locked?
         public boolean locked;
 
+        public int appVersion;
+
+        public int dataVersion;
+
         // vault settings: public Map<String,String> settings;
     }
 

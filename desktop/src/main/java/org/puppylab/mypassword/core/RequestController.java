@@ -8,7 +8,6 @@ import javax.crypto.SecretKey;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
@@ -28,6 +27,7 @@ import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
+import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +75,8 @@ public class RequestController {
         data.initialized = VaultManager.getCurrent().isInitialized();
         data.locked = Session.getCurrent().isLocked();
         data.database = FileUtils.getDbFile().toString();
+        data.appVersion = VaultManager.getCurrent().getAppVersion();
+        data.dataVersion = VaultManager.getCurrent().getDataVersion();
         var info = new InfoResponse();
         info.data = data;
         return info;

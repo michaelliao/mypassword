@@ -1,11 +1,12 @@
 ---------- Schema for mypassword ----------
 
 CREATE TABLE VaultVersion (
-    id INTEGER PRIMARY KEY CHECK (id = 1), -- only 1 record
+    id INTEGER PRIMARY KEY,
     version INTEGER
 );
 
-INSERT INTO VaultVersion (id, version) VALUES(1, 1);
+INSERT INTO VaultVersion (id, version) VALUES(1, 0); -- data version = 0
+INSERT INTO VaultVersion (id, version) VALUES(2, 1); -- app version = 1
 
 CREATE TABLE VaultSetting (
     setting_key TEXT PRIMARY KEY NOT NULL, -- lock.time

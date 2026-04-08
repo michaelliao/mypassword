@@ -12,8 +12,8 @@ import org.puppylab.mypassword.core.entity.VaultConfig;
 import org.puppylab.mypassword.core.entity.VaultSetting;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.core.web.pkce.OAuthUser;
-import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.ConvertUtils;
 import org.puppylab.mypassword.util.EncryptUtils;
@@ -96,6 +96,19 @@ public class VaultManager {
         setSetting(key, String.valueOf(value));
     }
 
+    private int appVersion = 0;
+
+    public int getAppVersion() {
+        if (appVersion == 0) {
+            appVersion = this.dbManager.queryAppVersion();
+        }
+        return appVersion;
+    }
+
+    public int getDataVersion() {
+        return this.dbManager.queryDataVersion();
+    }
+
     public void setOnOAuthChanged(Runnable onOAuthChanged) {
         this.onOAuthChanged = onOAuthChanged;
     }
@@ -171,6 +184,7 @@ public class VaultManager {
         // encrypt fields and set to item:
         ConvertUtils.encrypt(key, item, data.fields());
         this.dbManager.insert(item);
+        this.dbManager.incDataVersion();
         return ConvertUtils.toItemData(key, item);
     }
 
@@ -186,6 +200,7 @@ public class VaultManager {
             item.deleted = true;
             item.updated_at = System.currentTimeMillis();
             this.dbManager.update(item, "deleted", "updated_at");
+            this.dbManager.incDataVersion();
         }
         return ConvertUtils.toItemData(key, item);
     }
@@ -202,6 +217,7 @@ public class VaultManager {
             item.deleted = false;
             item.updated_at = System.currentTimeMillis();
             this.dbManager.update(item, "deleted", "updated_at");
+            this.dbManager.incDataVersion();
         }
         return ConvertUtils.toItemData(key, item);
     }
@@ -231,6 +247,7 @@ public class VaultManager {
                             + ", id, b64_encrypted_data, b64_encrypted_data_iv, updated_at FROM Item where id = ?",
                     item.id);
             this.dbManager.update(item, "b64_encrypted_data", "b64_encrypted_data_iv", "updated_at");
+            this.dbManager.incDataVersion();
         });
         return ConvertUtils.toItemData(key, item);
     }

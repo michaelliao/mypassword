@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.VaultConfig;
-import org.puppylab.mypassword.core.entity.VaultVersion;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.IdUtils;
@@ -39,9 +38,18 @@ public class DbManagerTest {
     }
 
     @Test
-    void testQueryVersion() {
-        VaultVersion vv = dbManager.queryVaultVersion();
-        assertEquals(1, vv.version);
+    void testQueryAppVersion() {
+        int v = dbManager.queryAppVersion();
+        assertEquals(1, v);
+    }
+
+    @Test
+    void testQueryDataVersion() {
+        int v1 = dbManager.queryDataVersion();
+        assertEquals(0, v1);
+        dbManager.incDataVersion();
+        int v2 = dbManager.queryDataVersion();
+        assertEquals(1, v2);
     }
 
     @Test
