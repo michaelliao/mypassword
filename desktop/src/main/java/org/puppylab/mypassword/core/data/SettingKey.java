@@ -37,9 +37,4 @@ public interface SettingKey {
      */
     String LANGUAGE = "language";
 
-    /**
-     * OAuth client id.
-     */
-    String OAUTH_GOOGLE  = "oauth_google";
-    String OAUTH_DISCORD = "oauth_discord";
 }
