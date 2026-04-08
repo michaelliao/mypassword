@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
+import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
 import org.puppylab.mypassword.core.web.PathVariable;
@@ -135,15 +136,39 @@ public class RequestController {
     }
 
     /**
-     * Get all items.
+     * Get all items without password.
      */
     @GetMapping("/items/list")
     public ItemsResponse list(@RequestParam("type") int type) {
         SecretKey key = getKey();
         List<AbstractItemData> items = type == 0 ? VaultManager.getCurrent().getItems(key)
                 : VaultManager.getCurrent().getItems(key, type);
+        // clear password in response:
+        for (AbstractItemData item : items) {
+            if (item instanceof LoginItemData login) {
+                String pwd = login.data.password;
+                if (pwd != null && !pwd.isEmpty()) {
+                    // has password, clear it:
+                    login.data.password = "";
+                } else {
+                    // no password:
+                    login.data.password = null;
+                }
+            }
+        }
         var response = new ItemsResponse();
         response.items = items;
+        return response;
+    }
+
+    /**
+     * Get item by id with password.
+     */
+    @GetMapping("/items/{id}/get")
+    public ItemResponse itemGet(@PathVariable("id") long id) {
+        SecretKey key = getKey();
+        var response = new ItemResponse();
+        response.item = VaultManager.getCurrent().getItem(key, id);
         return response;
     }
 
@@ -152,14 +177,6 @@ public class RequestController {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().createItem(key, request.item);
-        return response;
-    }
-
-    @PostMapping("/items/{id}/get")
-    public ItemResponse itemGet(@PathVariable("id") long id, @RequestBody BaseRequest request) {
-        SecretKey key = getKey();
-        var response = new ItemResponse();
-        response.item = VaultManager.getCurrent().getItem(key, id);
         return response;
     }
 

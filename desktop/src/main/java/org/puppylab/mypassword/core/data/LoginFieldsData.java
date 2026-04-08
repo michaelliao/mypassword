@@ -2,11 +2,16 @@ package org.puppylab.mypassword.core.data;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class LoginFieldsData extends AbstractFields {
 
-    public String       title;
-    public String       username;
-    public String       password;
+    public String title;
+    public String username;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String password;
+
     public List<String> websites;
     public String       ga;
     public String       memo;
@@ -18,5 +23,4 @@ public class LoginFieldsData extends AbstractFields {
         }
         return null;
     }
-
 }
