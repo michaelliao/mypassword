@@ -4,6 +4,7 @@ theme:
   features:
     - navigation.tabs
     - toc.follow
+    - toc.integrate
     - navigation.top
   hide:
     - navigation
