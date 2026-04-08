@@ -22,7 +22,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 25
-      - run: mvn clean package
+          cache: maven
+      - run: mvn -B clean package
         working-directory: desktop
       - name: Zip app-image
         shell: bash
