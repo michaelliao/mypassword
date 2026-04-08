@@ -10,6 +10,7 @@
   let cachedDataVersion = -1;
   let vaultLocked = false;
   let activeDropdown = null;
+  let activeDropdownFields = null; // { pwField, userField } associated with current dropdown
   let activeSavePanel = null;
   let pendingUsername = null; // for multi-page login: cache username from page 1
 
@@ -137,7 +138,15 @@
     if (activeDropdown) {
       activeDropdown.remove();
       activeDropdown = null;
+      activeDropdownFields = null;
     }
+  }
+
+  function shouldKeepDropdown() {
+    if (!activeDropdown || !activeDropdownFields) return false;
+    const active = document.activeElement;
+    const { pwField, userField } = activeDropdownFields;
+    return active === pwField || active === userField;
   }
 
   function createDropdown(matches, anchorField, pwField, userField) {
@@ -190,6 +199,7 @@
 
     document.body.appendChild(dropdown);
     activeDropdown = dropdown;
+    activeDropdownFields = { pwField, userField };
   }
 
   function escapeHtml(str) {
@@ -235,7 +245,7 @@
   async function onFieldFocus(focusedField, pwField, userField) {
     const items = await loadItems();
     if (vaultLocked) {
-      createLockedDropdown(focusedField);
+      createLockedDropdown(focusedField, pwField, userField);
       return;
     }
     const hostname = location.hostname;
@@ -243,7 +253,7 @@
     createDropdown(matches, focusedField, pwField, userField);
   }
 
-  function createLockedDropdown(anchorField) {
+  function createLockedDropdown(anchorField, pwField, userField) {
     removeDropdown();
     const dropdown = document.createElement('div');
     dropdown.className = 'mypassword-dropdown';
@@ -266,18 +276,36 @@
     dropdown.textContent = 'Please unlock MyPassword';
     document.body.appendChild(dropdown);
     activeDropdown = dropdown;
+    activeDropdownFields = { pwField, userField };
   }
 
   function attachListeners(fields) {
     for (const { pwField, userField } of fields) {
       const addFocusBlur = (field) => {
         field.addEventListener('focus', () => onFieldFocus(field, pwField, userField));
-        field.addEventListener('blur', () => setTimeout(removeDropdown, 150));
+        field.addEventListener('blur', () => {
+          setTimeout(() => {
+            if (!shouldKeepDropdown()) {
+              removeDropdown();
+            }
+          }, 150);
+        });
       };
       if (pwField) addFocusBlur(pwField);
       if (userField) addFocusBlur(userField);
     }
   }
+
+  // Dismiss dropdown when clicking outside it and associated fields
+  document.addEventListener('mousedown', (e) => {
+    if (!activeDropdown) return;
+    if (activeDropdown.contains(e.target)) return;
+    if (activeDropdownFields) {
+      const { pwField, userField } = activeDropdownFields;
+      if (e.target === pwField || e.target === userField) return;
+    }
+    removeDropdown();
+  }, true);
 
   // ---- Form submit interception ----
 
