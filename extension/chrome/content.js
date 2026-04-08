@@ -182,7 +182,7 @@
       row.addEventListener('mouseleave', () => { row.style.background = ''; });
       row.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        fillFields(item, pwField, userField);
+        fetchAndFill(item, pwField, userField);
         removeDropdown();
       });
       dropdown.appendChild(row);
@@ -209,8 +209,25 @@
   }
 
   function fillFields(item, pwField, userField) {
-    if (pwField) setNativeValue(pwField, item.data?.password || '');
     if (userField) setNativeValue(userField, item.data?.username || '');
+    if (pwField && item.data?.password) setNativeValue(pwField, item.data.password);
+  }
+
+  async function fetchAndFill(item, pwField, userField) {
+    let fullItem = item;
+    if (item.data?.password === '') {
+      try {
+        const resp = await daemonRequest(`/items/${item.id}/get`, null, 'GET');
+        if (resp.item) fullItem = resp.item;
+      } catch {}
+    }
+    // re-find fields after async fetch in case DOM changed
+    const fields = findCredentialFields();
+    if (fields.length > 0) {
+      pwField = fields[0].pwField;
+      userField = fields[0].userField;
+    }
+    fillFields(fullItem, pwField, userField);
   }
 
   // ---- Field focus listeners ----

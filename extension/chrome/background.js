@@ -35,10 +35,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'FILL_CREDENTIALS') {
-    const tabId = sender.tab?.id;
-    if (tabId != null) {
-      chrome.tabs.sendMessage(tabId, { type: 'DO_FILL', item: msg.item });
-    }
+    // fetch full item (with password) before sending to content script
+    daemonRequest(`/items/${msg.item.id}/get`, null, 'GET')
+      .then((data) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, { type: 'DO_FILL', item: data.item });
+          }
+        });
+      })
+      .catch(() => {});
     return false;
   }
 });
