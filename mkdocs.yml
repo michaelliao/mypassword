@@ -1,0 +1,12 @@
+site_name: MyPassword
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - toc.follow
+    - navigation.top
+
+nav:
+  - Home: guide.md
+  - Security: key-gen.md
+  - Backup: backup.md
