@@ -152,7 +152,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>mypassword-${project.artifactId}</finalName>
+		<finalName>mypassword</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
