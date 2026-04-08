@@ -2,7 +2,7 @@ name: Release MyPassword
 
 on:
   push:
-    tags: ["v*"]
+    branches: ["main"]
 
 jobs:
   build:
