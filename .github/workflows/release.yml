@@ -7,12 +7,15 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
             artifact: MyPassword-windows
           - os: macos-latest
-            artifact: MyPassword-macos
+            artifact: MyPassword-macos-arm64
+          - os: macos-13
+            artifact: MyPassword-macos-x64
           - os: ubuntu-latest
             artifact: MyPassword-linux
     runs-on: ${{ matrix.os }}

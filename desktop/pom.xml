@@ -66,9 +66,24 @@
 			</activation>
 			<properties>
 				<os.type>mac-aarch64</os.type>
-				<jpackage.type>dmg</jpackage.type>
+				<jpackage.type>app-image</jpackage.type>
 				<path.sep>:</path.sep>
 				<swt.artifactId>org.eclipse.swt.cocoa.macosx.aarch64</swt.artifactId>
+			</properties>
+		</profile>
+		<profile>
+			<id>macos-x64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>x86_64</arch>
+				</os>
+			</activation>
+			<properties>
+				<os.type>mac-x86_64</os.type>
+				<jpackage.type>app-image</jpackage.type>
+				<path.sep>:</path.sep>
+				<swt.artifactId>org.eclipse.swt.cocoa.macosx.x86_64</swt.artifactId>
 			</properties>
 		</profile>
 		<profile>
