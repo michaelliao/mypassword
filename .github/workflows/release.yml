@@ -28,9 +28,14 @@ jobs:
           cache: maven
       - run: mvn -B clean package
         working-directory: desktop
-      - name: Zip app-image
-        shell: bash
+      - name: Zip app-image (Unix)
+        if: runner.os != 'Windows'
         run: cd desktop/target/dist && zip -r ../../../${{ matrix.artifact }}.zip */
+        shell: bash
+      - name: Zip app-image (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path desktop/target/dist/* -DestinationPath ${{ matrix.artifact }}.zip
+        shell: pwsh
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
