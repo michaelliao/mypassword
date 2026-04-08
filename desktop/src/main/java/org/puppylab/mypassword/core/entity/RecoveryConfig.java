@@ -6,8 +6,7 @@ public class RecoveryConfig {
 
     @Id
     public String oauth_provider;
-    public String oauth_client_id;
-    public String oauth_client_secret;
+    public String oauth_config_json;
 
     public String oauth_name;
     public String oauth_email;

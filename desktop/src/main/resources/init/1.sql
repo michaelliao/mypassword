@@ -24,8 +24,7 @@ CREATE TABLE VaultConfig (
 -- User oauth recovery:
 CREATE TABLE RecoveryConfig (
     oauth_provider TEXT PRIMARY KEY NOT NULL,        -- OAuth provider: "google", "github", etc.
-    oauth_client_id TEXT NOT NULL,                   -- OAuth client id
-    oauth_client_secret TEXT NOT NULL,               -- OAuth client secret
+    oauth_config_json TEXT NOT NULL,                 -- OAuth config json
     oauth_name TEXT NOT NULL DEFAULT "",             -- OAuth user display name
     oauth_email TEXT NOT NULL DEFAULT "",            -- OAuth user email
     b64_uid_hash TEXT NOT NULL DEFAULT "",           -- OAuth user id hash by HmacSHA256
@@ -38,7 +37,8 @@ CREATE TABLE RecoveryConfig (
 );
 
 -- NOTE: client_secret is required by Google desktop oauth but not treat as confidential:
-INSERT INTO RecoveryConfig (oauth_provider, oauth_client_id, oauth_client_secret) VALUES("google", "316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com", "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");
+INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('google', '{"client_id":"316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com","client_secret":"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"}');
+INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('microsoft', '{"client_id":"983c29d1-7261-4827-a1a9-a00603a15367"}');
 
 CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id

@@ -1,6 +1,6 @@
 package org.puppylab.mypassword.core.web.pkce;
 
-public class GoogleAuthenticator extends OAuthAuthenticator {
+public class MicrosoftAuthenticator extends OAuthAuthenticator {
 
     @Override
     protected String getScope() {
@@ -9,11 +9,11 @@ public class GoogleAuthenticator extends OAuthAuthenticator {
 
     @Override
     protected String getAuthUrl() {
-        return "https://accounts.google.com/o/oauth2/v2/auth";
+        return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
     }
 
     @Override
     protected String getTokenUrl() {
-        return "https://oauth2.googleapis.com/token";
+        return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     }
 }
