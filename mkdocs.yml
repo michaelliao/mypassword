@@ -5,6 +5,8 @@ theme:
     - navigation.tabs
     - toc.follow
     - navigation.top
+  hide:
+    - navigation
 
 nav:
   - Home: index.md
