@@ -3,6 +3,7 @@ theme:
   name: material
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - toc.follow
     - toc.integrate
     - navigation.top
