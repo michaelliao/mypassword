@@ -33,8 +33,10 @@
 		<maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
 		<exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
 		<maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
-		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
-		<jpackage-maven-plugin.version>0.1.5</jpackage-maven-plugin.version>
+		<app.name>MyPassword</app.name>
+		<jpackage.input>${project.build.directory}/jpackage-input</jpackage.input>
+		<jlink.runtime>${project.build.directory}/jlink-runtime</jlink.runtime>
+		<jlink.modules>java.base,java.desktop,java.net.http,java.sql,jdk.httpserver</jlink.modules>
 	</properties>
 
 	<profiles>
@@ -142,24 +144,90 @@
 				<version>${maven-compiler-plugin.version}</version>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>${exec-maven-plugin.version}</version>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${jpackage.input}/lib</outputDirectory>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${mainClass}</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+						</manifest>
+					</archive>
+					<outputDirectory>${jpackage.input}</outputDirectory>
+				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.github.akman</groupId>
-				<artifactId>jpackage-maven-plugin</artifactId>
-				<version>${jpackage-maven-plugin.version}</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>${exec-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>jlink</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>jlink</executable>
+							<arguments>
+								<argument>--add-modules</argument>
+								<argument>${jlink.modules}</argument>
+								<argument>--output</argument>
+								<argument>${jlink.runtime}</argument>
+								<argument>--no-header-files</argument>
+								<argument>--no-man-pages</argument>
+								<argument>--strip-debug</argument>
+								<argument>--compress</argument>
+								<argument>zip-9</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jpackage</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>jpackage</executable>
+							<arguments>
+								<argument>--type</argument>
+								<argument>${jpackage.type}</argument>
+								<argument>--name</argument>
+								<argument>${app.name}</argument>
+								<argument>--input</argument>
+								<argument>${jpackage.input}</argument>
+								<argument>--main-jar</argument>
+								<argument>${project.build.finalName}.jar</argument>
+								<argument>--main-class</argument>
+								<argument>${mainClass}</argument>
+								<argument>--runtime-image</argument>
+								<argument>${jlink.runtime}</argument>
+								<argument>--dest</argument>
+								<argument>${project.build.directory}/dist</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
