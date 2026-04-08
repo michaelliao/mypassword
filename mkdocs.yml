@@ -7,6 +7,7 @@ theme:
     - navigation.top
 
 nav:
-  - Home: guide.md
+  - Home: index.md
+  - Guide: guide.md
   - Security: key-gen.md
   - Backup: backup.md
