@@ -33,6 +33,7 @@
 		<maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
 		<exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
 		<maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
+		<maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
 		<app.name>MyPassword</app.name>
 		<jpackage.input>${project.build.directory}/jpackage-input</jpackage.input>
 		<jlink.runtime>${project.build.directory}/jlink-runtime</jlink.runtime>
@@ -164,6 +165,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
 				<configuration>
 					<archive>
 						<manifest>
