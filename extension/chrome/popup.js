@@ -131,7 +131,7 @@ async function getDeviceInfo() {
 async function sendPairRequest() {
   try {
     const device = await getDeviceInfo();
-    const resp = await daemonRequest('/pair', { name: 'Chrome Extension', device });
+    const resp = await daemonRequest('/pair', { name: 'MyPassword Chrome Extension', device });
     if (resp.error) {
       pairStatus.textContent = 'Error: ' + (resp.errorMessage || resp.error);
       pairStatus.classList.remove('hidden');
