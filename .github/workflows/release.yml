@@ -53,6 +53,5 @@ jobs:
       - run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: tag-${{ env.SHORT_SHA }}
           name: Build MyPassword ${{ env.SHORT_SHA }}
           files: "*.zip"
