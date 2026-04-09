@@ -363,6 +363,24 @@ public class SettingsDialog {
         sep.setLayoutData(sepGd);
 
         buildExtensionRows(c);
+
+        // description with clickable link:
+        Label desc = new Label(c, SWT.NONE);
+        desc.setText("To get extensions please visit:");
+        desc.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+        GridData descGd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        descGd.horizontalSpan = 3;
+        descGd.verticalIndent = 8;
+        desc.setLayoutData(descGd);
+
+        Label link = new Label(c, SWT.NONE);
+        link.setText("https://mypassword.puppylab.org/extension/");
+        link.setForeground(c.getDisplay().getSystemColor(SWT.COLOR_LINK_FOREGROUND));
+        link.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+        GridData linkGd = new GridData(SWT.LEFT, SWT.TOP, true, false);
+        linkGd.horizontalSpan = 3;
+        link.setLayoutData(linkGd);
+        link.addListener(SWT.MouseUp, _ -> Program.launch("https://mypassword.puppylab.org/extension/"));
     }
 
     private void buildExtensionRows(Composite container) {
