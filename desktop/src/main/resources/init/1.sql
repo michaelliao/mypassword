@@ -22,6 +22,14 @@ CREATE TABLE VaultConfig (
     b64_encrypted_dek_iv TEXT NOT NULL              -- iv used above
 );
 
+CREATE TABLE ExtensionConfig (
+    id INTEGER PRIMARY KEY NOT NULL,
+    approve INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    device TEXT NOT NULL,
+    seed TEXT NOT NULL
+);
+
 -- User oauth recovery:
 CREATE TABLE RecoveryConfig (
     oauth_provider TEXT PRIMARY KEY NOT NULL,        -- OAuth provider: "google", "github", etc.

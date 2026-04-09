@@ -1,5 +1,6 @@
 package org.puppylab.mypassword.rpc.response;
 
+import org.puppylab.mypassword.core.Extension;
 import org.puppylab.mypassword.rpc.BaseResponse;
 
 public class InfoResponse extends BaseResponse {
@@ -18,6 +19,8 @@ public class InfoResponse extends BaseResponse {
         public int appVersion;
 
         public int dataVersion;
+
+        public Extension caller;
 
         // vault settings: public Map<String,String> settings;
     }

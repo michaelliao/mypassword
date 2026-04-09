@@ -4,6 +4,8 @@ public enum ErrorCode {
 
     VAULT_LOCKED,
 
+    UNKNOWN_EXTENSION,
+
     DATA_NOT_FOUND,
 
     BAD_FIELD,

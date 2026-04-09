@@ -11,6 +11,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.core.data.PairRequest;
+import org.puppylab.mypassword.core.data.PairResponse;
+import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
 import org.puppylab.mypassword.core.web.PathVariable;
@@ -78,9 +81,20 @@ public class RequestController {
         data.database = FileUtils.getDbFile().toString();
         data.appVersion = VaultManager.getCurrent().getAppVersion();
         data.dataVersion = VaultManager.getCurrent().getDataVersion();
+        data.caller = Extension.getCurrent();
         var info = new InfoResponse();
         info.data = data;
         return info;
+    }
+
+    @PostMapping("/pair")
+    public PairResponse requestPair(@RequestBody PairRequest pr) {
+        ExtensionConfig ec = VaultManager.getCurrent().saveExtensionRequest(pr.name, pr.device);
+        PairResponse resp = new PairResponse();
+        resp.data = new PairResponse.PairResponseData();
+        resp.data.id = ec.id;
+        resp.data.seed = ec.seed;
+        return resp;
     }
 
     @GetMapping("/oauth/{provider}/start")

@@ -6,6 +6,7 @@ import java.util.List;
 import javax.crypto.SecretKey;
 
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.Item;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.entity.VaultConfig;
@@ -19,6 +20,8 @@ import org.puppylab.mypassword.util.ConvertUtils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.HashUtils;
 import org.puppylab.mypassword.util.IdUtils;
+import org.puppylab.mypassword.util.PasswordUtils;
+import org.puppylab.mypassword.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,6 +124,38 @@ public class VaultManager {
         Runnable callback = this.onVaultUnlocked;
         if (callback != null) {
             callback.run();
+        }
+    }
+
+    public ExtensionConfig getExtension(long id) {
+        return dbManager.queryFirst(ExtensionConfig.class, "WHERE id = ?", id);
+    }
+
+    public List<ExtensionConfig> getExtensions() {
+        return dbManager.queryForList(ExtensionConfig.class, "");
+    }
+
+    public ExtensionConfig saveExtensionRequest(String name, String device) {
+        ExtensionConfig ec = new ExtensionConfig();
+        ec.id = IdUtils.nextId();
+        ec.approve = false;
+        ec.name = StringUtils.checkNotEmpty("name", name);
+        ec.device = StringUtils.checkNotEmpty("device", device);
+        ec.seed = PasswordUtils.generatePassword(16, PasswordUtils.STYLE_ALPHABET_NUMBER);
+        dbManager.insert(ec);
+        return ec;
+    }
+
+    public void approveExtension(long id, boolean approve) {
+        ExtensionConfig ec = dbManager.queryFirst(ExtensionConfig.class, "WHERE id = ?", id);
+        if (ec == null) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Extension request not found.");
+        }
+        if (approve) {
+            ec.approve = approve;
+            dbManager.update(ec, "approve");
+        } else {
+            dbManager.delete(ec);
         }
     }
 

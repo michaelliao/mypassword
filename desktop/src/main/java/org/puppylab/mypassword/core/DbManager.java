@@ -193,6 +193,19 @@ public class DbManager {
         }
     }
 
+    public void delete(Object obj) {
+        Class<?> clazz = obj.getClass();
+        Mapping mapping = getMapping(clazz);
+        StringBuilder sb = new StringBuilder(128);
+        sb.append("DELETE FROM ").append(clazz.getSimpleName()).append(" WHERE ").append(mapping.idField.getName())
+                .append(" = ?");
+        try {
+            execute(sb.toString(), mapping.idField.get(obj));
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void update(Object obj, String... fields) {
         Class<?> clazz = obj.getClass();
         Mapping mapping = getMapping(clazz);

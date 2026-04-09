@@ -7,9 +7,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.puppylab.mypassword.core.web.DispatcherService;
-import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +113,13 @@ public class HttpDaemon implements HttpHandler {
     private void processHttp(HttpExchange exchange, String method, String path, String query, String body)
             throws IOException {
         Object resp = null;
+        boolean validExtension = Extension.trySetExtension(exchange.getRequestHeaders());
         try {
+            if (!validExtension) {
+                if (!path.equals("/info") && !path.equals("/pair")) {
+                    throw new VaultException(ErrorCode.UNKNOWN_EXTENSION, "Unknown extension.");
+                }
+            }
             resp = this.dispatcherService.processHttpRequest(exchange, method, path, query, body);
         } catch (VaultException e) {
             logger.warn("http handle error {}: {}", e.errorCode, e.getMessage());
@@ -127,6 +133,10 @@ public class HttpDaemon implements HttpHandler {
             logger.error("http handle exception: " + e.getMessage(), e);
             exchange.sendResponseHeaders(400, -1);
             return;
+        } finally {
+            if (validExtension) {
+                Extension.remove();
+            }
         }
         if (resp == null) {
             exchange.sendResponseHeaders(200, -1);
