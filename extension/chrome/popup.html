@@ -20,6 +20,22 @@
     <button id="btn-retry" class="btn btn-primary">Retry</button>
   </div>
 
+  <!-- Pair view -->
+  <div id="view-pair" class="view hidden">
+    <div class="header">
+      <span class="app-title">MyPassword</span>
+    </div>
+    <div class="pair-body">
+      <p class="pair-hint" id="pair-hint">This extension is not paired with the desktop app. Click below to request pairing.</p>
+      <button id="btn-pair" class="btn btn-primary btn-full">Pair with App</button>
+      <div id="pair-actions" class="pair-actions hidden">
+        <button id="btn-pair-check" class="btn btn-primary">Check Status</button>
+        <button id="btn-pair-retry" class="btn btn-secondary">Retry</button>
+      </div>
+      <p id="pair-status" class="pair-status hidden"></p>
+    </div>
+  </div>
+
   <!-- Unlock view -->
   <div id="view-unlock" class="view hidden">
     <div class="header">

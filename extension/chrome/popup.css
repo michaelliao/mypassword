@@ -86,6 +86,35 @@ body {
   line-height: 1.4;
 }
 
+/* Pair */
+.pair-body {
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pair-hint {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.pair-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pair-actions .btn {
+  flex: 1;
+}
+
+.pair-status {
+  color: #888;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 /* Unlock */
 .unlock-body {
   padding: 16px 16px 20px;

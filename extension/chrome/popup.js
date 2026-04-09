@@ -16,11 +16,18 @@ const TYPE_LABELS = {
 const views = {
   loading: document.getElementById('view-loading'),
   error: document.getElementById('view-error'),
+  pair: document.getElementById('view-pair'),
   unlock: document.getElementById('view-unlock'),
   items: document.getElementById('view-items'),
 };
 const errorMessage = document.getElementById('error-message');
 const btnRetry = document.getElementById('btn-retry');
+const btnPair = document.getElementById('btn-pair');
+const pairActions = document.getElementById('pair-actions');
+const btnPairCheck = document.getElementById('btn-pair-check');
+const btnPairRetry = document.getElementById('btn-pair-retry');
+const pairHint = document.getElementById('pair-hint');
+const pairStatus = document.getElementById('pair-status');
 const inputPassword = document.getElementById('input-password');
 const btnUnlock = document.getElementById('btn-unlock');
 const unlockError = document.getElementById('unlock-error');
@@ -39,8 +46,16 @@ function daemonRequest(path, body, method = 'POST') {
         reject(new Error(chrome.runtime.lastError.message));
         return;
       }
-      if (resp?.ok) resolve(resp.data);
-      else reject(new Error(resp?.error || 'Request failed'));
+      if (resp?.ok) {
+        if (resp.data?.error === 'UNKNOWN_EXTENSION') {
+          chrome.storage.local.remove(['extensionId', 'extensionSeed']).then(() => {
+            showPairInitial();
+          });
+          reject(new Error('Extension unpaired. Please pair again.'));
+          return;
+        }
+        resolve(resp.data);
+      } else reject(new Error(resp?.error || 'Request failed'));
     });
   });
 }
@@ -62,7 +77,18 @@ async function init() {
       return;
     }
     if (!info.data?.initialized) {
-      showError('Vault is not initialized. Please set up via the CLI first.');
+      showError('Vault is not initialized. Please set up via the desktop app first.');
+      return;
+    }
+    // Check if extension is paired (caller present in response)
+    if (!info.data.caller) {
+      const creds = await chrome.storage.local.get(['extensionId', 'extensionSeed']);
+      if (creds.extensionId && creds.extensionSeed) {
+        // Credentials exist but not yet approved — show waiting state
+        showPairWaiting();
+      } else {
+        showView('pair');
+      }
       return;
     }
     if (info.data.locked) {
@@ -74,6 +100,103 @@ async function init() {
   } catch (e) {
     showError(e.message);
   }
+}
+
+// ---- Pairing ----
+function showPairWaiting() {
+  pairHint.textContent = 'Waiting for approval in the desktop app...';
+  btnPair.classList.add('hidden');
+  pairActions.classList.remove('hidden');
+  btnPairCheck.disabled = false;
+  btnPairRetry.disabled = false;
+  pairStatus.classList.add('hidden');
+  showView('pair');
+}
+
+function showPairInitial() {
+  pairHint.textContent = 'This extension is not paired with the desktop app. Click below to request pairing.';
+  btnPair.classList.remove('hidden');
+  btnPair.disabled = false;
+  btnPair.textContent = 'Pair with App';
+  pairActions.classList.add('hidden');
+  pairStatus.classList.add('hidden');
+  showView('pair');
+}
+
+async function getDeviceInfo() {
+  const info = await chrome.runtime.getPlatformInfo();
+  return info.os + ' ' + info.arch;
+}
+
+async function sendPairRequest() {
+  try {
+    const device = await getDeviceInfo();
+    const resp = await daemonRequest('/pair', { name: 'Chrome Extension', device });
+    if (resp.error) {
+      pairStatus.textContent = 'Error: ' + (resp.errorMessage || resp.error);
+      pairStatus.classList.remove('hidden');
+      return false;
+    }
+    await chrome.storage.local.set({
+      extensionId: resp.data.id,
+      extensionSeed: resp.data.seed,
+    });
+    return true;
+  } catch (e) {
+    pairStatus.textContent = 'Error: ' + e.message;
+    pairStatus.classList.remove('hidden');
+    return false;
+  }
+}
+
+async function doPair() {
+  btnPair.disabled = true;
+  btnPair.textContent = 'Pairing...';
+  pairStatus.classList.add('hidden');
+  if (await sendPairRequest()) {
+    showPairWaiting();
+  } else {
+    btnPair.disabled = false;
+    btnPair.textContent = 'Pair with App';
+  }
+}
+
+async function doPairCheck() {
+  btnPairCheck.disabled = true;
+  btnPairCheck.textContent = 'Checking...';
+  pairStatus.classList.add('hidden');
+  try {
+    const info = await daemonRequest('/info', {});
+    if (info.data?.caller) {
+      if (info.data.locked) {
+        showView('unlock');
+        inputPassword.focus();
+      } else {
+        await loadAndShowItems();
+      }
+      return;
+    }
+    pairStatus.textContent = 'Not yet approved. Please approve in the desktop app.';
+    pairStatus.classList.remove('hidden');
+  } catch (e) {
+    pairStatus.textContent = 'Error: ' + e.message;
+    pairStatus.classList.remove('hidden');
+  } finally {
+    btnPairCheck.disabled = false;
+    btnPairCheck.textContent = 'Check Status';
+  }
+}
+
+async function doPairRetry() {
+  btnPairRetry.disabled = true;
+  btnPairRetry.textContent = 'Retrying...';
+  pairStatus.classList.add('hidden');
+  if (await sendPairRequest()) {
+    pairStatus.textContent = 'New pairing request sent. Please approve in the desktop app.';
+    pairStatus.classList.remove('hidden');
+  }
+  btnPairRetry.disabled = false;
+  btnPairRetry.textContent = 'Retry';
 }
 
 function showError(msg) {
@@ -290,6 +413,9 @@ function onSearch() {
 
 // ---- Event listeners ----
 btnRetry.addEventListener('click', init);
+btnPair.addEventListener('click', doPair);
+btnPairCheck.addEventListener('click', doPairCheck);
+btnPairRetry.addEventListener('click', doPairRetry);
 btnUnlock.addEventListener('click', doUnlock);
 inputPassword.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') doUnlock();

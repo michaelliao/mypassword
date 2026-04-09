@@ -3,11 +3,38 @@
 
 const BASE_URL = 'http://127.0.0.1:27432';
 
+async function getExtensionCredentials() {
+  const result = await chrome.storage.local.get(['extensionId', 'extensionSeed']);
+  if (result.extensionId && result.extensionSeed) {
+    return { id: result.extensionId, seed: result.extensionSeed };
+  }
+  return null;
+}
+
+async function computeSignature(timestamp, seed) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(seed), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(timestamp));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function daemonRequest(path, body, method = 'POST') {
-  const options = { method };
+  const options = { method, headers: {} };
   if (method === 'POST') {
-    options.headers = { 'Content-Type': 'application/json' };
+    options.headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(body);
+  }
+  // Add extension auth headers if paired (skip for /pair itself)
+  if (path !== '/pair') {
+    const creds = await getExtensionCredentials();
+    if (creds) {
+      const ts = String(Date.now());
+      options.headers['X-Extension-Id'] = String(creds.id);
+      options.headers['X-Extension-Timestamp'] = ts;
+      options.headers['X-Extension-Signature'] = await computeSignature(ts, creds.seed);
+    }
   }
   const resp = await fetch(BASE_URL + path, options);
   if (!resp.ok) {
