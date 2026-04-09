@@ -50,8 +50,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      - run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
       - uses: softprops/action-gh-release@v2
         with:
-          name: Build MyPassword ${{ env.SHORT_SHA }}
+          name: MyPassword ${{ github.ref_name }}
           files: "*.zip"
