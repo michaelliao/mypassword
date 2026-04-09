@@ -103,6 +103,7 @@ public class MainController {
 
     public void init() {
         unlockView.setOnSubmit(this::onUnlockSubmit);
+        unlockView.refreshOAuth();
         topStack.topControl = unlockView.composite;
         topContainer.layout(true, true);
 
@@ -217,6 +218,7 @@ public class MainController {
         for (Shell child : mainShell.getShells()) {
             child.close();
         }
+        unlockView.refreshOAuth();
         topStack.topControl = unlockView.composite;
         topContainer.layout(true, true);
     }
