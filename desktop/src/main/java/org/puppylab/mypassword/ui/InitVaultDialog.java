@@ -201,23 +201,14 @@ public class InitVaultDialog {
         vm.createItem(key, newLogin("Digital Ocean", "michael@gmail.com", "secret-do",
                 List.of("https://digitalocean.com"), false));
         // notes:
-        vm.createItem(key,
-                newNote("Wi-Fi Password", "Router: TP-Link AX3000\nSSID: Home-5G\nPassword: xK9#mP2$vL", true));
-        vm.createItem(key,
-                newNote("Server SSH Keys", "prod-01: ssh michael@10.0.0.1\nprod-02: ssh michael@10.0.0.2", false));
-        vm.createItem(key, newNote("Recovery Codes — Gmail", "1. 4829-3810\n2. 9271-5028\n3. 1847-6392", false));
-        vm.createItem(key,
-                newNote("API Keys", "Stripe live key: sk_live_abc123\nStripe test key: sk_test_xyz789", false));
-        vm.createItem(key, newNote("Software Licenses", "JetBrains: ABCD-EFGH-IJKL\nSublime: 1234-5678-9012", false));
-        vm.createItem(key, newNote("Home Alarm Code", "Front door: 8432\nGarage: 1597", true));
-        vm.createItem(key, newNote("Bank Account Details", "IBAN: GB29 NWBK 6016 1331 9268 19", false));
-        vm.createItem(key, newNote("Emergency Contacts", "Police: 110, Fire: 119, Ambulance: 120", false));
+        vm.createItem(key, newNote("Wi-Fi Password", "SSID: Home-5G\nPassword: 12345678"));
+        vm.createItem(key, newNote("MyPassword",
+                "MyPassword is a free, open source desktop password manager.\nSource: https://github.com/michaelliao/mypassword\nLicense: GPLv3"));
         // identities:
-        vm.createItem(key, newIdentity("Personal Passport", "Michael Liao", "E12345678", null,
-                List.of("+86 138-0000-1234"), true));
-        vm.createItem(key, newIdentity("Work ID", "Michael Liao", null, null, List.of("+86 138-0000-1234"), false));
-        vm.createItem(key, newIdentity("Driver License", "Michael Liao", null, null, null, false));
-        vm.createItem(key, newIdentity("National ID", "Michael Liao", null, "110101199001011234", null, false));
+        vm.createItem(key,
+                newIdentity("Homer Simpson", "ChunkyLover53@aol.com", "E-1234567890", "ID-1234567890",
+                        List.of("+1 123456789"), "742 Evergreen Terrace, Springfield", "58008",
+                        "an overweight, lazy, and often ignorant, yet deeply devoted man."));
     }
 
     private static LoginItemData newLogin(String title, String username, String password, List<String> websites,
@@ -233,26 +224,28 @@ public class InitVaultDialog {
         return d;
     }
 
-    private static NoteItemData newNote(String title, String content, boolean fav) {
+    private static NoteItemData newNote(String title, String content) {
         NoteItemData d = new NoteItemData();
         d.item_type = ItemType.NOTE;
-        d.favorite = fav;
         d.data = new NoteFieldsData();
         d.data.title = title;
         d.data.content = content;
         return d;
     }
 
-    private static IdentityItemData newIdentity(String name, String fullName, String passport, String idNumber,
-            List<String> mobiles, boolean fav) {
+    private static IdentityItemData newIdentity(String name, String email, String passport, String idNumber,
+            List<String> mobiles, String address, String zipCode, String memo) {
         IdentityItemData d = new IdentityItemData();
         d.item_type = ItemType.IDENTITY;
-        d.favorite = fav;
         d.data = new IdentityFieldsData();
         d.data.name = name;
+        d.data.email = email;
         d.data.passport_number = passport;
         d.data.identity_number = idNumber;
         d.data.mobiles = mobiles;
+        d.data.address = address;
+        d.data.zip_code = zipCode;
+        d.data.memo = memo;
         return d;
     }
 

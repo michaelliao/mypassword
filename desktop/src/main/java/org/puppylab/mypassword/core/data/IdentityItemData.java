@@ -26,6 +26,9 @@ public class IdentityItemData extends AbstractItemData {
             if (s == null && data.telephones != null && !data.telephones.isEmpty()) {
                 s = data.telephones.get(0);
             }
+            if (s == null && data.email != null && !data.email.isEmpty()) {
+                s = data.email;
+            }
         }
         return StringUtils.normalize(s);
     }

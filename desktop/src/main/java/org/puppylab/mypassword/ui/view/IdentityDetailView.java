@@ -10,11 +10,15 @@ import org.puppylab.mypassword.util.StringUtils;
 public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
 
     private Label      nameValue;
+    private Label      emailValue;
     private Label      passportValue;
     private Label      identityNumberValue;
     private Label      taxNumberValue;
     private MultiLabel telephonesValue;
     private MultiLabel mobilesValue;
+    private Label      addressValue;
+    private Label      zipCodeValue;
+    private Label      memoValue;
 
     public IdentityDetailView(Composite parent) {
         super(parent);
@@ -23,20 +27,28 @@ public class IdentityDetailView extends AbstractDetailView<IdentityItemData> {
     @Override
     protected void createFields() {
         nameValue = createField(i18n("field.name"));
+        emailValue = createField(i18n("field.email"));
         passportValue = createField(i18n("field.passport"));
         identityNumberValue = createField(i18n("field.id_number"));
         taxNumberValue = createField(i18n("field.tax_number"));
         telephonesValue = createMultiValueField(i18n("field.telephones"));
         mobilesValue = createMultiValueField(i18n("field.mobiles"));
+        addressValue = createField(i18n("field.address"));
+        zipCodeValue = createField(i18n("field.zip_code"));
+        memoValue = createField(i18n("field.memo"));
     }
 
     @Override
     protected void setData(IdentityItemData item) {
         nameValue.setText(StringUtils.normalize(item.data.name));
+        emailValue.setText(StringUtils.normalize(item.data.email));
         passportValue.setText(StringUtils.normalize(item.data.passport_number));
         identityNumberValue.setText(StringUtils.normalize(item.data.identity_number));
         taxNumberValue.setText(StringUtils.normalize(item.data.tax_number));
         telephonesValue.setValues(item.data.telephones);
         mobilesValue.setValues(item.data.mobiles);
+        addressValue.setText(StringUtils.normalize(item.data.address));
+        zipCodeValue.setText(StringUtils.normalize(item.data.zip_code));
+        memoValue.setText(StringUtils.normalize(item.data.memo));
     }
 }
