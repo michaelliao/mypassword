@@ -6,7 +6,9 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
@@ -89,7 +91,32 @@ public class RequestController {
 
     @PostMapping("/pair")
     public PairResponse requestPair(@RequestBody PairRequest pr) {
+        getKey(); // make sure vault is unlocked
         ExtensionConfig ec = VaultManager.getCurrent().saveExtensionRequest(pr.name, pr.device);
+        // Show approve/reject dialog asynchronously on the UI thread:
+        Display display = Display.getDefault();
+        display.asyncExec(() -> {
+            Shell shell = display.getActiveShell();
+            if (shell == null) {
+                Shell[] shells = display.getShells();
+                if (shells.length > 0) {
+                    shell = shells[0];
+                }
+            }
+            if (shell == null) {
+                return;
+            }
+            shell.setMinimized(false);
+            shell.setActive();
+            shell.forceActive();
+            MessageBox mb = new MessageBox(shell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+            mb.setText("Extension Pairing Request");
+            mb.setMessage("Extension \"" + ec.name + "\" on device \"" + ec.device
+                    + "\" is requesting to pair with this app.\n\nDo you want to approve?");
+            int result = mb.open();
+            VaultManager.getCurrent().approveExtension(ec.id, result == SWT.OK);
+            logger.info("extension pair request {}: {}", ec.id, result == SWT.OK ? "approved" : "rejected");
+        });
         PairResponse resp = new PairResponse();
         resp.data = new PairResponse.PairResponseData();
         resp.data.id = ec.id;

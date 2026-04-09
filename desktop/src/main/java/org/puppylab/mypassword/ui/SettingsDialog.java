@@ -21,6 +21,7 @@ import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.SettingKey;
+import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 
 /**
@@ -54,7 +55,7 @@ public class SettingsDialog {
     public void open() {
         Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         shell.setText(i18n("settings.title"));
-        shell.setSize(500, 520);
+        shell.setSize(580, 520);
         GridLayout gl = new GridLayout(1, false);
         gl.marginWidth = 12;
         gl.marginHeight = 12;
@@ -66,6 +67,7 @@ public class SettingsDialog {
         buildGeneralTab(tabs);
         buildSecurityTab(tabs);
         buildPasswordTab(tabs);
+        buildExtensionTab(tabs);
 
         shell.open();
         shell.addListener(SWT.Dispose, _ -> VaultManager.getCurrent().setOnOAuthChanged(null));
@@ -320,6 +322,129 @@ public class SettingsDialog {
                 c.layout(true, true);
             });
         });
+    }
+
+    // ── Extension tab ─────────────────────────────────────────────────
+    private void buildExtensionTab(TabFolder tabs) {
+        TabItem item = new TabItem(tabs, SWT.NONE);
+        item.setText("Extension");
+
+        Composite c = new Composite(tabs, SWT.NONE);
+        GridLayout gl = new GridLayout(3, false);
+        gl.marginWidth = 16;
+        gl.marginHeight = 16;
+        gl.horizontalSpacing = 12;
+        gl.verticalSpacing = 6;
+        c.setLayout(gl);
+        item.setControl(c);
+
+        // header row:
+        Label nameHeader = new Label(c, SWT.NONE);
+        nameHeader.setText("Name");
+        GridData nameHGd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        nameHGd.widthHint = 200;
+        nameHeader.setLayoutData(nameHGd);
+
+        Label deviceHeader = new Label(c, SWT.NONE);
+        deviceHeader.setText("Device");
+        deviceHeader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        // placeholder for action column:
+        Label actionHeader = new Label(c, SWT.NONE);
+        actionHeader.setText("");
+        GridData actionGd = new GridData(SWT.END, SWT.CENTER, false, false);
+        actionGd.widthHint = 160;
+        actionHeader.setLayoutData(actionGd);
+
+        // separator:
+        Label sep = new Label(c, SWT.SEPARATOR | SWT.HORIZONTAL);
+        GridData sepGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        sepGd.horizontalSpan = 3;
+        sep.setLayoutData(sepGd);
+
+        buildExtensionRows(c);
+    }
+
+    private void buildExtensionRows(Composite container) {
+        List<ExtensionConfig> extensions = VaultManager.getCurrent().getExtensions();
+        if (extensions.isEmpty()) {
+            Label empty = new Label(container, SWT.NONE);
+            empty.setText("No extensions paired.");
+            empty.setForeground(container.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+            GridData emptyGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+            emptyGd.horizontalSpan = 3;
+            empty.setLayoutData(emptyGd);
+            return;
+        }
+        for (ExtensionConfig ec : extensions) {
+            Label nameLabel = new Label(container, SWT.NONE);
+            nameLabel.setText(ec.name);
+            GridData nameGd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+            nameGd.widthHint = 200;
+            nameLabel.setLayoutData(nameGd);
+
+            Label deviceLabel = new Label(container, SWT.NONE);
+            deviceLabel.setText(ec.device);
+            deviceLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+            Composite btnComposite = new Composite(container, SWT.NONE);
+            GridLayout btnLayout = new GridLayout(2, false);
+            btnLayout.marginWidth = 0;
+            btnLayout.marginHeight = 0;
+            btnLayout.horizontalSpacing = 4;
+            btnComposite.setLayout(btnLayout);
+            GridData btnContainerGd = new GridData(SWT.END, SWT.CENTER, false, false);
+            btnContainerGd.widthHint = 160;
+            btnComposite.setLayoutData(btnContainerGd);
+
+            if (ec.approve) {
+                Button unpairBtn = new Button(btnComposite, SWT.PUSH);
+                unpairBtn.setText("Unpair");
+                GridData unpairGd = new GridData(SWT.END, SWT.CENTER, true, false);
+                unpairGd.widthHint = 75;
+                unpairBtn.setLayoutData(unpairGd);
+                unpairBtn.addListener(SWT.Selection, _ -> {
+                    MessageBox mb = new MessageBox(container.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+                    mb.setText(i18n("confirm.title"));
+                    mb.setMessage("Unpair extension \"" + ec.name + "\"?");
+                    if (mb.open() != SWT.OK)
+                        return;
+                    VaultManager.getCurrent().approveExtension(ec.id, false);
+                    rebuildExtensionRows(container);
+                });
+            } else {
+                Button approveBtn = new Button(btnComposite, SWT.PUSH);
+                approveBtn.setText("Approve");
+                GridData approveGd = new GridData(SWT.END, SWT.CENTER, false, false);
+                approveGd.widthHint = 75;
+                approveBtn.setLayoutData(approveGd);
+
+                Button rejectBtn = new Button(btnComposite, SWT.PUSH);
+                rejectBtn.setText("Reject");
+                GridData rejectGd = new GridData(SWT.END, SWT.CENTER, false, false);
+                rejectGd.widthHint = 75;
+                rejectBtn.setLayoutData(rejectGd);
+
+                approveBtn.addListener(SWT.Selection, _ -> {
+                    VaultManager.getCurrent().approveExtension(ec.id, true);
+                    rebuildExtensionRows(container);
+                });
+                rejectBtn.addListener(SWT.Selection, _ -> {
+                    VaultManager.getCurrent().approveExtension(ec.id, false);
+                    rebuildExtensionRows(container);
+                });
+            }
+        }
+    }
+
+    private void rebuildExtensionRows(Composite container) {
+        // dispose only data rows (skip header labels and separator = first 4 children)
+        var children = container.getChildren();
+        for (int i = 4; i < children.length; i++) {
+            children[i].dispose();
+        }
+        buildExtensionRows(container);
+        container.layout(true, true);
     }
 
     private void buildOAuthRows(Composite container) {

@@ -106,7 +106,7 @@ public class HttpDaemon implements HttpHandler {
         var headers = exchange.getResponseHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        headers.add("Access-Control-Allow-Headers", "Content-Type");
+        headers.add("Access-Control-Allow-Headers", "Content-Type, X-Extension-Id, X-Extension-Timestamp, X-Extension-Signature");
         exchange.sendResponseHeaders(204, -1);
     }
 
