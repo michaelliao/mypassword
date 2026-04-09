@@ -106,7 +106,8 @@ public class HttpDaemon implements HttpHandler {
         var headers = exchange.getResponseHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        headers.add("Access-Control-Allow-Headers", "Content-Type, X-Extension-Id, X-Extension-Timestamp, X-Extension-Signature");
+        headers.add("Access-Control-Allow-Headers",
+                "Content-Type, X-Extension-Id, X-Extension-Timestamp, X-Extension-Signature");
         exchange.sendResponseHeaders(204, -1);
     }
 
@@ -116,7 +117,7 @@ public class HttpDaemon implements HttpHandler {
         boolean validExtension = Extension.trySetExtension(exchange.getRequestHeaders());
         try {
             if (!validExtension) {
-                if (!path.equals("/info") && !path.equals("/pair")) {
+                if (!path.startsWith("/oauth/") && !path.equals("/info") && !path.equals("/pair")) {
                     throw new VaultException(ErrorCode.UNKNOWN_EXTENSION, "Unknown extension.");
                 }
             }
