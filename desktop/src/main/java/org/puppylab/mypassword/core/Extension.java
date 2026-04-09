@@ -52,23 +52,26 @@ public class Extension {
             long id = Long.parseLong(sid);
             long ts = Long.parseLong(sts);
             if (Math.abs(ts - System.currentTimeMillis()) > 30_000L) {
-                logger.warn("Invalid timestamp: " + ts);
+                logger.warn("Extension: invalid timestamp: " + ts);
+                return false;
             }
             ExtensionConfig ec = VaultManager.getCurrent().getExtension(id);
             if (ec == null || !ec.approve) {
+                logger.warn("Extension: not paired.");
                 return false;
             }
             // check signature:
             byte[] hash = HashUtils.hmacSha256(sts, ec.seed.getBytes(StandardCharsets.UTF_8));
             String hexHash = HexFormat.of().formatHex(hash);
             if (!sig.equals(hexHash)) {
+                logger.warn("Extension: invalid signature.");
                 return false;
             }
-            logger.info("validated extension: {} @ {}", ec.name, ec.device);
+            logger.info("Extension: validated ok: {} @ {}", ec.name, ec.device);
             current.set(new Extension(ec.id, ec.name, ec.device));
             return true;
         } catch (Exception e) {
-            logger.warn("validate extension failed by: " + e.getClass().getName() + ": " + e.getMessage());
+            logger.warn("Extension: validate failed by: " + e.getClass().getName() + ": " + e.getMessage());
         }
         return false;
     }
