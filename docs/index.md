@@ -2,6 +2,10 @@
 
 MyPassword is a free, open-source, offline password manager. All data is encrypted with AES-256-GCM and stored locally — nothing is sent to the cloud.
 
+## Download
+
+Pre-compiled release can be downloaded from [GitHub](https://github.com/michaelliao/mypassword/releases). Source code can also be get from [GitHub](https://github.com/michaelliao/mypassword).
+
 ## Key Features
 
 - **Offline & local** — your vault never leaves your device

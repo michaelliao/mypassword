@@ -16,3 +16,6 @@ nav:
   - Security: key-gen.md
   - Extension: extension.md
   - Backup: backup.md
+
+copyright: |
+  <p>Copyright &copy; 2026 <a href="https://github.com/michaelliao/mypassword">Open Source</a>.</p>
