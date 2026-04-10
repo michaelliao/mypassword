@@ -498,7 +498,7 @@
       body.appendChild(userLine);
 
       const createBtnRow = document.createElement('div');
-      createBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+      createBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-start;';
       body.appendChild(createBtnRow);
 
       const createCancelBtn = makeSecondaryBtn('Cancel', removeSavePanel);
@@ -526,8 +526,8 @@
           createBtn.disabled = false;
         }
       });
-      createBtnRow.appendChild(createCancelBtn);
       createBtnRow.appendChild(createBtn);
+      createBtnRow.appendChild(createCancelBtn);
     }
 
     // "Update existing" sections (one per match)
@@ -551,7 +551,7 @@
       body.appendChild(existingUser);
 
       const updateBtnRow = document.createElement('div');
-      updateBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+      updateBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-start;';
       body.appendChild(updateBtnRow);
 
       const updateCancelBtn = makeSecondaryBtn('Cancel', removeSavePanel);
@@ -575,8 +575,8 @@
           updateBtn.disabled = false;
         }
       });
-      updateBtnRow.appendChild(updateCancelBtn);
       updateBtnRow.appendChild(updateBtn);
+      updateBtnRow.appendChild(updateCancelBtn);
     }
 
     panel.appendChild(body);
