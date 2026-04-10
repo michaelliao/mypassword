@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * Auto-lock is based on OS-level idle time (keyboard/mouse inactivity) queried
  * via platform-specific APIs. The timeout is read from VaultManager settings.
  */
+@SuppressWarnings("resource")
 public class Session {
 
     public static enum UnlockType {

@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
-import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PairRequest;
 import org.puppylab.mypassword.core.data.PairResponse;
@@ -33,7 +32,6 @@ import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
-import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,14 +211,33 @@ public class RequestController {
         return response;
     }
 
+    /**
+     * Request json does not need id, favorite, deleted:
+     * 
+     * <code>
+     * {
+     *     "item": {
+     *         "item_type": 1,
+     *         "data": {
+     *             "name": "Gmail",
+     *             "username": "example@gmail.com",
+     *             "password": "12345678"
+     *         }
+     *     }
+     * }
+     * </code>
+     */
     @PostMapping("/items/create")
-    public ItemResponse create(@RequestBody ItemRequest request) {
+    public ItemResponse itemCreate(@RequestBody ItemRequest request) {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().createItem(key, request.item);
         return response;
     }
 
+    /**
+     * Request json does not need id, deleted:
+     */
     @PostMapping("/items/{id}/update")
     public ItemResponse itemUpdate(@PathVariable("id") long id, @RequestBody ItemRequest request) {
         SecretKey key = getKey();
@@ -228,18 +245,6 @@ public class RequestController {
         request.item.id = id;
         response.item = VaultManager.getCurrent().updateItem(key, request.item);
         return response;
-    }
-
-    @PostMapping("/items/{id}/copy")
-    public BaseResponse itemCopy(@PathVariable("id") long id) {
-        SecretKey key = getKey();
-        AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
-        if (!(item.fields() instanceof LoginFieldsData login) || login.password == null || login.password.isEmpty()) {
-            throw new VaultException(ErrorCode.BAD_REQUEST, "Item has no password.");
-        }
-        ClipboardUtils.copyPassword(login.password);
-        logger.info("password copied from extension.");
-        return new BaseResponse();
     }
 
     @PostMapping("/items/{id}/delete")
