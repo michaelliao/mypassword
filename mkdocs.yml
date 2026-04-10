@@ -2,6 +2,8 @@ site_name: MyPassword
 theme:
   name: material
   logo: logo.svg
+  palette:
+    primary: light-green
   features:
     - navigation.tabs
     - navigation.tabs.sticky
