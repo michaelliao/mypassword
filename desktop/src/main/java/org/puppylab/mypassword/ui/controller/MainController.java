@@ -3,9 +3,7 @@ package org.puppylab.mypassword.ui.controller;
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -74,11 +72,6 @@ public class MainController {
     private Composite activeDetailComposite;
     private Composite activeEditComposite;
 
-    // ── per-type in-memory stores (keyed by id) ───────────────────────
-    private final Map<Long, LoginItemData>    loginStore    = new LinkedHashMap<>();
-    private final Map<Long, NoteItemData>     noteStore     = new LinkedHashMap<>();
-    private final Map<Long, IdentityItemData> identityStore = new LinkedHashMap<>();
-
     public MainController(UnlockView unlockView, Composite topContainer, StackLayout topStack, Composite mainContent,
             ToolbarView toolbar, ItemListView listView, EmptyView emptyView, LoginDetailView loginDetailView,
             NoteDetailView noteDetailView, IdentityDetailView identityDetailView, LoginEditView loginEditView,
@@ -125,6 +118,12 @@ public class MainController {
                 if (!state.unlocked)
                     return;
                 loadItems();
+                // Re-bind the detail view with the fresh instance so it
+                // shows the extension's update. EDIT mode is left alone —
+                // the user's in-progress edits must not be clobbered.
+                if (state.mode == Mode.DETAIL) {
+                    showDetail();
+                }
             });
         });
 
@@ -222,9 +221,6 @@ public class MainController {
         state.allItems.clear();
         state.deletedItems.clear();
         state.selectedItem = null;
-        loginStore.clear();
-        noteStore.clear();
-        identityStore.clear();
         // close any open child shells (e.g. SettingsDialog):
         Shell mainShell = topContainer.getShell();
         for (Shell child : mainShell.getShells()) {
@@ -265,50 +261,23 @@ public class MainController {
                 triggerCurrentSave();
         }
         state.selectedItem = item;
-        if (item == null) {
-            switchMode(Mode.EMPTY);
-            return;
-        }
-        switch (item.item_type) {
-        case ItemType.LOGIN -> {
-            LoginItemData d = loginStore.get(item.id);
-            if (d != null)
-                loginDetailView.show(d);
-            activeDetailComposite = loginDetailView.composite;
-        }
-        case ItemType.NOTE -> {
-            NoteItemData d = noteStore.get(item.id);
-            if (d != null)
-                noteDetailView.show(d);
-            activeDetailComposite = noteDetailView.composite;
-        }
-        case ItemType.IDENTITY -> {
-            IdentityItemData d = identityStore.get(item.id);
-            if (d != null)
-                identityDetailView.show(d);
-            activeDetailComposite = identityDetailView.composite;
-        }
-        default -> {
-            showError("Invalid item type: " + item.item_type);
-        }
-        }
-        switchMode(Mode.DETAIL);
+        showDetail();
     }
 
     private void onEditCurrent() {
         if (state.selectedItem == null)
             return;
-        switch (state.selectedItem.item_type) {
-        case ItemType.LOGIN -> {
-            loginEditView.edit(loginStore.get(state.selectedItem.id));
+        switch (state.selectedItem) {
+        case LoginItemData d -> {
+            loginEditView.edit(d);
             activeEditComposite = loginEditView.composite;
         }
-        case ItemType.NOTE -> {
-            noteEditView.edit(noteStore.get(state.selectedItem.id));
+        case NoteItemData d -> {
+            noteEditView.edit(d);
             activeEditComposite = noteEditView.composite;
         }
-        case ItemType.IDENTITY -> {
-            identityEditView.edit(identityStore.get(state.selectedItem.id));
+        case IdentityItemData d -> {
+            identityEditView.edit(d);
             activeEditComposite = identityEditView.composite;
         }
         default -> showError("Invalid item type: " + state.selectedItem.item_type);
@@ -327,28 +296,15 @@ public class MainController {
         } else {
             saved = VaultManager.getCurrent().updateItem(key, data);
         }
-        switch (saved) {
-        case LoginItemData d -> {
-            loginStore.put(d.id, d);
-            loginDetailView.show(d);
-            activeDetailComposite = loginDetailView.composite;
-        }
-        case NoteItemData d -> {
-            noteStore.put(d.id, d);
-            noteDetailView.show(d);
-            activeDetailComposite = noteDetailView.composite;
-        }
-        case IdentityItemData d -> {
-            identityStore.put(d.id, d);
-            identityDetailView.show(d);
-            activeDetailComposite = identityDetailView.composite;
-        }
-        default -> {
-            showError("Invalid item type: " + saved.item_type);
-        }
-        }
-        commitItem(saved, isNew);
-        switchMode(Mode.DETAIL);
+        // Reload the full list from DB. Any concurrent RPC update to this
+        // item has already been overwritten by the user's save above; we
+        // accept that race because it is extremely unlikely in practice.
+        long savedId = saved.id;
+        state.selectedItem = null;
+        loadItems();
+        state.selectedItem = findItem(savedId);
+        listView.selectItem(savedId);
+        showDetail();
     }
 
     private void onDeleteCurrent() {
@@ -360,50 +316,29 @@ public class MainController {
         SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
-        AbstractItemData updated;
         if (state.selectedItem.deleted) {
-            updated = VaultManager.getCurrent().restoreItem(key, id);
+            VaultManager.getCurrent().restoreItem(key, id);
         } else {
-            updated = VaultManager.getCurrent().deleteItem(key, id);
-        }
-        state.allItems.removeIf(i -> i.id == id);
-        state.deletedItems.removeIf(i -> i.id == id);
-        if (updated.deleted) {
-            state.deletedItems.add(updated);
-        } else {
-            state.allItems.add(updated);
-        }
-        switch (updated) {
-        case LoginItemData d -> loginStore.put(d.id, d);
-        case NoteItemData d -> noteStore.put(d.id, d);
-        case IdentityItemData d -> identityStore.put(d.id, d);
-        default -> {
-            showError("Invalid item type: " + updated.item_type);
-        }
+            VaultManager.getCurrent().deleteItem(key, id);
         }
         state.selectedItem = null;
-        refreshListView();
+        loadItems();
         switchMode(Mode.EMPTY);
     }
 
     private void onCancel() {
-        switchMode(state.selectedItem != null ? Mode.DETAIL : Mode.EMPTY);
+        showDetail();
     }
 
     // ── helpers ───────────────────────────────────────────────────────
 
-    private void commitItem(AbstractItemData vaultItem, boolean isNew) {
-        state.selectedItem = vaultItem;
-        if (isNew) {
-            state.allItems.add(vaultItem);
-            refreshListView();
-            listView.selectItem(vaultItem.id);
-        } else {
-            state.allItems.replaceAll(i -> i.id == vaultItem.id ? vaultItem : i);
-            listView.updateItem(vaultItem);
-        }
-    }
-
+    /**
+     * Reload the full item list from the DB. This is the single
+     * authoritative refresh path: it rebuilds {@code state.allItems} and
+     * {@code state.deletedItems}, re-points {@code state.selectedItem} at
+     * the fresh instance (or clears it if removed), and repopulates the
+     * list view.
+     */
     private void loadItems() {
         SecretKey key = Session.getCurrent().getKey();
         if (key == null)
@@ -411,24 +346,66 @@ public class MainController {
         List<AbstractItemData> items = VaultManager.getCurrent().getItems(key);
         state.allItems.clear();
         state.deletedItems.clear();
-        loginStore.clear();
-        noteStore.clear();
-        identityStore.clear();
         for (AbstractItemData item : items) {
             if (item.deleted) {
                 state.deletedItems.add(item);
             } else {
                 state.allItems.add(item);
             }
-            switch (item) {
-            case LoginItemData d -> loginStore.put(d.id, d);
-            case NoteItemData d -> noteStore.put(d.id, d);
-            case IdentityItemData d -> identityStore.put(d.id, d);
-            default -> {
-            }
-            }
+        }
+        // sort by natural order (title, then subtitle) — see AbstractItemData#compareTo
+        state.allItems.sort(null);
+        state.deletedItems.sort(null);
+        // re-point selectedItem at the fresh instance
+        if (state.selectedItem != null) {
+            state.selectedItem = findItem(state.selectedItem.id);
         }
         refreshListView();
+    }
+
+    /** Look up an item by id in {@code allItems} then {@code deletedItems}. */
+    private AbstractItemData findItem(long id) {
+        for (AbstractItemData i : state.allItems) {
+            if (i.id == id)
+                return i;
+        }
+        for (AbstractItemData i : state.deletedItems) {
+            if (i.id == id)
+                return i;
+        }
+        return null;
+    }
+
+    /**
+     * Bind the currently selected item to its detail view and switch to
+     * DETAIL mode. Falls back to EMPTY mode when nothing is selected.
+     */
+    private void showDetail() {
+        AbstractItemData item = state.selectedItem;
+        if (item == null) {
+            switchMode(Mode.EMPTY);
+            return;
+        }
+        switch (item) {
+        case LoginItemData d -> {
+            loginDetailView.show(d);
+            activeDetailComposite = loginDetailView.composite;
+        }
+        case NoteItemData d -> {
+            noteDetailView.show(d);
+            activeDetailComposite = noteDetailView.composite;
+        }
+        case IdentityItemData d -> {
+            identityDetailView.show(d);
+            activeDetailComposite = identityDetailView.composite;
+        }
+        default -> {
+            showError("Invalid item type: " + item.item_type);
+            switchMode(Mode.EMPTY);
+            return;
+        }
+        }
+        switchMode(Mode.DETAIL);
     }
 
     private List<AbstractItemData> getAllAndDeletedItems() {
@@ -440,6 +417,9 @@ public class MainController {
 
     private void refreshListView() {
         listView.setAllItems(getAllAndDeletedItems());
+        if (state.selectedItem != null) {
+            listView.selectItem(state.selectedItem.id);
+        }
     }
 
     private boolean askConfirm(String message) {

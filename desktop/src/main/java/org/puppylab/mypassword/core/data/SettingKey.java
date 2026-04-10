@@ -24,6 +24,13 @@ public interface SettingKey {
     String KEEP_TRAY_ICON = "keep_tray_icon";
 
     /**
+     * Delete items in trash after N days.
+     * 
+     * Example: 90 = 90 days, 0 = never.
+     */
+    String DELETE_AFTER = "delete_after";
+
+    /**
      * Hot key to activate app.
      * 
      * Value: "alt+p", or "" = no hot key.
