@@ -223,7 +223,7 @@ public class RequestController {
      * }
      * </code>
      * 
-     * Set json as {} to use default len and style.
+     * Set json as {} to use default len=16 and style=0.
      */
     @PostMapping("/generate/password")
     public StringResponse generatePassword(@RequestBody GeneratePasswordRequest req) {
