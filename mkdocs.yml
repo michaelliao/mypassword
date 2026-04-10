@@ -1,6 +1,7 @@
 site_name: MyPassword
 theme:
   name: material
+  logo: logo.svg
   features:
     - navigation.tabs
     - navigation.tabs.sticky
