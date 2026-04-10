@@ -167,42 +167,13 @@ public class InitVaultDialog {
     private static void insertSampleData(SecretKey key) {
         VaultManager vm = VaultManager.getCurrent();
         // logins:
-        vm.createItem(key, newLogin("Google", "michael@gmail.com", "secret-google",
-                List.of("https://google.com", "https://gmail.com"), true));
-        vm.createItem(key, newLogin("GitHub", "michael-liao", "secret-github", List.of("https://github.com"), false));
-        vm.createItem(key,
-                newLogin("Amazon", "michael@gmail.com", "secret-amazon", List.of("https://amazon.com"), false));
-        vm.createItem(key,
-                newLogin("Netflix", "michael@gmail.com", "secret-netflix", List.of("https://netflix.com"), false));
-        vm.createItem(key, newLogin("Twitter / X", "michael_liao", "secret-twitter", List.of("https://x.com"), false));
-        vm.createItem(key, newLogin("LinkedIn", "michael.liao@work.com", "secret-linkedin",
-                List.of("https://linkedin.com"), true));
-        vm.createItem(key,
-                newLogin("Dropbox", "michael@gmail.com", "secret-dropbox", List.of("https://dropbox.com"), false));
-        vm.createItem(key,
-                newLogin("Apple ID", "michael@icloud.com", "secret-apple", List.of("https://apple.com"), false));
-        vm.createItem(key,
-                newLogin("Microsoft", "michael@outlook.com", "secret-ms", List.of("https://microsoft.com"), false));
-        vm.createItem(key,
-                newLogin("Steam", "michael_games", "secret-steam", List.of("https://store.steampowered.com"), false));
-        vm.createItem(key,
-                newLogin("Spotify", "michael@gmail.com", "secret-spotify", List.of("https://spotify.com"), true));
-        vm.createItem(key,
-                newLogin("PayPal", "michael@gmail.com", "secret-paypal", List.of("https://paypal.com"), false));
-        vm.createItem(key,
-                newLogin("Slack", "michael.liao@work.com", "secret-slack", List.of("https://slack.com"), false));
-        vm.createItem(key,
-                newLogin("Notion", "michael.liao@work.com", "secret-notion", List.of("https://notion.so"), false));
-        vm.createItem(key, newLogin("Adobe", "michael@gmail.com", "secret-adobe", List.of("https://adobe.com"), false));
-        vm.createItem(key,
-                newLogin("Figma", "michael.liao@work.com", "secret-figma", List.of("https://figma.com"), false));
-        vm.createItem(key,
-                newLogin("Cloudflare", "michael@gmail.com", "secret-cf", List.of("https://cloudflare.com"), false));
-        vm.createItem(key, newLogin("Digital Ocean", "michael@gmail.com", "secret-do",
-                List.of("https://digitalocean.com"), false));
+        vm.createItem(key, newLogin("MyPassword", "example@puppylab.org", "my-password-for-test-1",
+                List.of("https://mypassword.puppylab.org/"), true));
+        vm.createItem(key, newLogin("MyPassword", "test@puppylab.org", "my-password-for-test-2",
+                List.of("https://mypassword.puppylab.org/"), false));
         // notes:
         vm.createItem(key, newNote("Wi-Fi Password", "SSID: Home-5G\nPassword: 12345678"));
-        vm.createItem(key, newNote("MyPassword",
+        vm.createItem(key, newNote("Software License",
                 "MyPassword is a free, open source desktop password manager.\nSource: https://github.com/michaelliao/mypassword\nLicense: GPLv3"));
         // identities:
         vm.createItem(key,

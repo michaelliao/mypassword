@@ -22,9 +22,9 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     private static final int MAX_PASSWORD_LENGTH     = 32;
     private static final int DEFAULT_PASSWORD_LENGTH = 16;
 
-    private Text    titleField;
-    private Text    usernameField;
-    private Text    passwordField;
+    private Text      titleField;
+    private Text      usernameField;
+    private Text      passwordField;
     private Button    eyeBtn;
     private Button    toggleGenBtn;
     private Composite genArea;
