@@ -530,10 +530,10 @@
             item: {
               item_type: ITEM_TYPE_LOGIN,
               data: {
-                title: hostname,
+                title: document.title || hostname,
                 username: username || '',
                 password: password,
-                websites: [hostname],
+                websites: ['https://' + hostname],
                 memo: ''
               }
             }
