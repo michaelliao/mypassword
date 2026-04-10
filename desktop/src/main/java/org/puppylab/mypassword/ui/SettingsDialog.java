@@ -46,6 +46,9 @@ public class SettingsDialog {
     /** Clear-clipboard options in minutes; 0 = Never. */
     private static final int[] CLEAR_CLIPBOARD_MINUTES = { 1, 2, 5, 0 };
 
+    /** Delete-trashed-items options in days; 0 = Never. */
+    private static final int[] DELETE_AFTER_DAYS = { 7, 14, 30, 90, 180, 0 };
+
     private final Shell parent;
 
     public SettingsDialog(Shell parent) {
@@ -121,11 +124,28 @@ public class SettingsDialog {
         langGd.widthHint = 180;
         langCombo.setLayoutData(langGd);
 
+        // delete items in trash after:
+        Label deleteAfterLabel = new Label(c, SWT.NONE);
+        deleteAfterLabel.setText(i18n("settings.delete_after"));
+        deleteAfterLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        Combo deleteAfterCombo = new Combo(c, SWT.READ_ONLY | SWT.DROP_DOWN);
+        for (int d : DELETE_AFTER_DAYS) {
+            deleteAfterCombo.add(d == 0 ? i18n("settings.never") : i18n("settings.days", d));
+        }
+        deleteAfterCombo
+                .select(indexOf(DELETE_AFTER_DAYS, VaultManager.getCurrent().getSetting(SettingKey.DELETE_AFTER, 90)));
+        GridData daGd = new GridData(SWT.END, SWT.CENTER, false, false);
+        daGd.widthHint = 180;
+        deleteAfterCombo.setLayoutData(daGd);
+
         // persist immediately on change:
         trayCheck.addListener(SWT.Selection,
                 _ -> VaultManager.getCurrent().setSetting(SettingKey.KEEP_TRAY_ICON, trayCheck.getSelection() ? 1 : 0));
         langCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.LANGUAGE,
                 LANGUAGES[langCombo.getSelectionIndex()]));
+        deleteAfterCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.DELETE_AFTER,
+                DELETE_AFTER_DAYS[deleteAfterCombo.getSelectionIndex()]));
     }
 
     // ── Security tab ─────────────────────────────────────────────────────
