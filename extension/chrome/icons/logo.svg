@@ -1,28 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <!-- Reusable asterisk symbol -->
-    <g id="ast">
-      <line x1="-3.8" y1="0"    x2="3.8"  y2="0"    stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="0"    y1="-3.8" x2="0"    y2="3.8"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="-2.7" y1="-2.7" x2="2.7"  y2="2.7"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="2.7"  y1="-2.7" x2="-2.7" y2="2.7"  stroke="#C8E8F0" stroke-width="1.8" stroke-linecap="round"/>
+<?xml version="1.0"?>
+<svg enable-background="new 0 0 512 512" id="Layer_1" version="1.1" viewBox="0 0 512 512"
+    xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g>
+        <g>
+            <linearGradient gradientUnits="userSpaceOnUse" id="SVGID_1_" x1="0.0000083" x2="512" y1="256" y2="256">
+                <stop offset="0" style="stop-color:#33B49D"/>
+                <stop offset="1" style="stop-color:#00A185"/>
+            </linearGradient>
+            <circle cx="256" cy="256" fill="url(#SVGID_1_)" r="256"/>
+                <linearGradient gradientUnits="userSpaceOnUse" id="SVGID_2_" x1="42.6666756" x2="469.333313" y1="256.0005188" y2="256.0005188">
+                <stop offset="0" style="stop-color:#00A185"/>
+                <stop offset="1" style="stop-color:#33B49D"/>
+            </linearGradient>
+            <path d="M256,469.3338623c-117.6309204,0-213.3333282-95.7018738-213.3333282-213.3333435    c0-117.6309204,95.7024078-213.333313,213.3333282-213.333313c117.636261,0,213.333313,95.7024002,213.333313,213.333313    C469.333313,373.6319885,373.636261,469.3338623,256,469.3338623z" fill="url(#SVGID_2_)"/>
+        </g>
+        
+        <path d="M332.979187,246.7263947v-33.7445221C332.979187,174.9466705,302.0335999,144,263.9983826,144   c-38.0351715,0-68.9813232,30.9466705-68.9813232,68.9818726v33.7445221h-31.0474548V384h200.060791V246.7263947H332.979187z    M227.8677368,212.9818726c0-19.9226685,16.2090607-36.1312103,36.1306458-36.1312103s36.1306763,16.2085419,36.1306763,36.1312103   v33.7445221h-72.261322V212.9818726z" opacity="0.3"/>
+        <path d="M324.979187,238.7263947v-33.7445221C324.979187,166.9466705,294.0335999,136,255.9983978,136   s-68.9813385,30.9466705-68.9813385,68.9818726v33.7445221h-31.0474548V376h200.060791V238.7263947H324.979187z    M219.8677368,204.9818726c0-19.9226685,16.2090607-36.1312103,36.130661-36.1312103s36.130661,16.2085419,36.130661,36.1312103   v33.7445221h-72.261322V204.9818726z" fill="#FFFFFF"/>
     </g>
-  </defs>
-
-  <!-- Shackle: r=20 > half-distance(17), large-arc=1 sweep=0 → unambiguous upward arch -->
-  <path d="M 33,56 L 33,38 A 20,20 0 1,0 67,38 L 67,56"
-        stroke="#A8A8B8" stroke-width="13" fill="none" stroke-linecap="butt"/>
-
-  <!-- Lock body (golden yellow) -->
-  <rect x="10" y="44" width="80" height="53" rx="9" fill="#F5C030"/>
-
-  <!-- Blue password panel, vertically centered in body -->
-  <rect x="16" y="61" width="68" height="20" rx="4" fill="#4BBFD0"/>
-
-  <!-- Single password row, centered in panel (y=71) -->
-  <use href="#ast" transform="translate(25, 71)"/>
-  <use href="#ast" transform="translate(38, 71)"/>
-  <use href="#ast" transform="translate(51, 71)"/>
-  <use href="#ast" transform="translate(64, 71)"/>
-  <line x1="70" y1="75" x2="79" y2="75" stroke="#C8E8F0" stroke-width="2" stroke-linecap="round"/>
 </svg>
