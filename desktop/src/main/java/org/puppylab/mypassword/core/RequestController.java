@@ -23,7 +23,6 @@ import org.puppylab.mypassword.core.web.RequestBody;
 import org.puppylab.mypassword.core.web.RequestParam;
 import org.puppylab.mypassword.core.web.pkce.OAuthAuthenticator;
 import org.puppylab.mypassword.core.web.pkce.OAuthUser;
-import org.puppylab.mypassword.rpc.BaseRequest;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
@@ -233,6 +232,8 @@ public class RequestController {
         SecretKey key = getKey();
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().createItem(key, request.item);
+        // notify the UI to reload its in-memory item list
+        VaultManager.getCurrent().fireItemsChanged();
         return response;
     }
 
@@ -245,16 +246,20 @@ public class RequestController {
         var response = new ItemResponse();
         request.item.id = id;
         response.item = VaultManager.getCurrent().updateItem(key, request.item);
+        // notify the UI to reload its in-memory item list
+        VaultManager.getCurrent().fireItemsChanged();
         return response;
     }
 
-    @PostMapping("/items/{id}/delete")
-    public ItemResponse itemDelete(@PathVariable("id") long id, @RequestBody BaseRequest request) {
-        SecretKey key = getKey();
-        var response = new ItemResponse();
-        response.item = VaultManager.getCurrent().deleteItem(key, id);
-        return response;
-    }
+    // // disable delete from rpc:
+    // @PostMapping("/items/{id}/delete")
+    // public ItemResponse itemDelete(@PathVariable("id") long id, @RequestBody
+    // BaseRequest request) {
+    // SecretKey key = getKey();
+    // var response = new ItemResponse();
+    // response.item = VaultManager.getCurrent().deleteItem(key, id);
+    // return response;
+    // }
 
     @PostMapping("/vault/lock")
     public InfoResponse vaultLock() {

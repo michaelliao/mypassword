@@ -116,6 +116,18 @@ public class MainController {
             });
         });
 
+        // register items-changed callback (fired from HTTP thread when
+        // the extension creates or updates an item):
+        VaultManager.getCurrent().setOnItemsChanged(() -> {
+            topContainer.getDisplay().asyncExec(() -> {
+                if (topContainer.isDisposed())
+                    return;
+                if (!state.unlocked)
+                    return;
+                loadItems();
+            });
+        });
+
         // register auto-lock callback (fired from auto-lock thread):
         Session.getCurrent().setOnAutoLocked(() -> {
             topContainer.getDisplay().asyncExec(() -> {

@@ -346,10 +346,39 @@
       username = pendingUsername;
       pendingUsername = null;
     }
-    const items = await loadItems();
     const hostname = location.hostname;
+    // Persist to session storage so the save panel survives form submission / navigation.
+    // Fire-and-forget — the write completes before the new page's content script runs.
+    chrome.storage.session.set({
+      pendingCredential: { hostname, username, password, timestamp: Date.now() }
+    });
+    const items = await loadItems();
     const matched = items.filter((i) => matchesHostname(i, hostname));
-    showSavePanel(hostname, username, password, matched);
+    await preparePanelAndShow(hostname, username, password, matched);
+  }
+
+  function hostnameRelated(a, b) {
+    return a === b || a.endsWith('.' + b) || b.endsWith('.' + a);
+  }
+
+  async function checkPendingCredential() {
+    try {
+      const stored = await chrome.storage.session.get(['pendingCredential']);
+      const pc = stored.pendingCredential;
+      if (!pc) return;
+      // Expire after 60 seconds so stale creds don't resurrect later
+      if (Date.now() - pc.timestamp > 60_000) {
+        chrome.storage.session.remove(['pendingCredential']);
+        return;
+      }
+      if (!hostnameRelated(pc.hostname, location.hostname)) return;
+      // Consume the pending credential immediately so it only shows once
+      chrome.storage.session.remove(['pendingCredential']);
+      const items = await loadItems();
+      if (vaultLocked) return;
+      const matched = items.filter((i) => matchesHostname(i, pc.hostname));
+      await preparePanelAndShow(pc.hostname, pc.username, pc.password, matched);
+    } catch {}
   }
 
   // Cache username for multi-page login (page with only username field)
@@ -371,7 +400,49 @@
     }
   }
 
-  function showSavePanel(hostname, username, password, matchedItems) {
+  // Decide what (if anything) to show based on existing matches.
+  //
+  // Rules:
+  // - If no existing login has the same username  → offer "Create".
+  // - If a login matches by username but the password is different → offer "Update".
+  // - If a login matches by username AND has the same password → show nothing
+  //   (nothing to save).
+  //
+  // Cached items from /items/list don't include passwords, so for username
+  // matches we must fetch the full item via /items/{id}/get to compare.
+  async function preparePanelAndShow(hostname, username, password, hostnameMatches) {
+    const usernameMatches = hostnameMatches.filter(
+      (i) => (i.data?.username || '') === (username || '')
+    );
+
+    if (usernameMatches.length === 0) {
+      showSavePanel(hostname, username, password, true, []);
+      return;
+    }
+
+    const updateItems = [];
+    for (const item of usernameMatches) {
+      try {
+        const resp = await daemonRequest(`/items/${item.id}/get`, null, 'GET');
+        const fullItem = resp.item;
+        if ((fullItem.data?.password || '') !== password) {
+          updateItems.push(fullItem);
+        }
+      } catch {
+        // fetch failed — fall back to offering update with stale data
+        updateItems.push(item);
+      }
+    }
+
+    if (updateItems.length === 0) {
+      // same username + same password already stored — nothing to save
+      return;
+    }
+
+    showSavePanel(hostname, username, password, false, updateItems);
+  }
+
+  function showSavePanel(hostname, username, password, showCreate, updateItems) {
     removeSavePanel();
 
     const panel = document.createElement('div');
@@ -410,122 +481,31 @@
     header.appendChild(closeBtn);
     panel.appendChild(header);
 
-    // options list
-    const list = document.createElement('div');
-    list.style.cssText = 'max-height: 240px; overflow-y: auto;';
-
-    // "Create new" option
-    const createRow = makeOptionRow(
-      `Create new login for ${hostname}`,
-      null,
-      () => showConfirmPanel('save', hostname, username, password, null)
-    );
-    list.appendChild(createRow);
-
-    // "Update existing" options
-    for (const item of matchedItems) {
-      const label = `Update ${item.data?.title || hostname} ${item.data?.username || ''}`.trim();
-      const updateRow = makeOptionRow(
-        label,
-        item.data?.username,
-        () => showConfirmPanel('update', hostname, username, password, item)
-      );
-      list.appendChild(updateRow);
-    }
-
-    panel.appendChild(list);
-    document.body.appendChild(panel);
-    activeSavePanel = panel;
-  }
-
-  function makeOptionRow(text, subtitle, onClick) {
-    const row = document.createElement('div');
-    row.style.cssText = `
-      padding: 10px 14px;
-      cursor: pointer;
-      border-bottom: 1px solid #f0f0f0;
-    `;
-    const titleSpan = document.createElement('div');
-    titleSpan.style.cssText = 'color: #222;';
-    titleSpan.textContent = text;
-    row.appendChild(titleSpan);
-    if (subtitle) {
-      const sub = document.createElement('div');
-      sub.style.cssText = 'color: #888; font-size: 11px; margin-top: 2px;';
-      sub.textContent = subtitle;
-      row.appendChild(sub);
-    }
-    row.addEventListener('mouseenter', () => { row.style.background = '#f5f7ff'; });
-    row.addEventListener('mouseleave', () => { row.style.background = ''; });
-    row.addEventListener('click', onClick);
-    return row;
-  }
-
-  function showConfirmPanel(action, hostname, username, password, existingItem) {
-    removeSavePanel();
-
-    const panel = document.createElement('div');
-    panel.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 2147483647;
-      background: #fff;
-      border: 1px solid #d0d0d0;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 13px;
-      width: 320px;
-      overflow: hidden;
-    `;
-
-    const isSave = action === 'save';
-    const title = isSave ? `Save login for ${hostname}?` : `Update login for ${hostname}?`;
-
-    // header
-    const header = document.createElement('div');
-    header.style.cssText = `
-      padding: 10px 14px;
-      background: #4a90e2;
-      color: #fff;
-      font-weight: 600;
-      font-size: 14px;
-    `;
-    header.textContent = title;
-    panel.appendChild(header);
-
     // body
     const body = document.createElement('div');
     body.style.cssText = 'padding: 14px;';
-    const userLine = document.createElement('div');
-    userLine.style.cssText = 'color: #444; margin-bottom: 14px;';
-    userLine.textContent = `User: ${username || '(empty)'}`;
-    body.appendChild(userLine);
 
-    // buttons
-    const btnRow = document.createElement('div');
-    btnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+    // "Create new" section — only if the submitted username isn't already saved
+    if (showCreate) {
+      const createLabel = document.createElement('div');
+      createLabel.style.cssText = 'color: #222; font-weight: 500; margin-bottom: 6px;';
+      createLabel.textContent = `Create new login for ${hostname}`;
+      body.appendChild(createLabel);
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
-    cancelBtn.style.cssText = `
-      padding: 6px 16px; border: 1px solid #d0d0d0; border-radius: 5px;
-      background: #fff; color: #444; cursor: pointer; font-size: 13px;
-    `;
-    cancelBtn.addEventListener('click', removeSavePanel);
+      const userLine = document.createElement('div');
+      userLine.style.cssText = 'color: #888; font-size: 11px; margin-bottom: 10px;';
+      userLine.textContent = `User: ${username || '(empty)'}`;
+      body.appendChild(userLine);
 
-    const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = isSave ? 'Save' : 'Update';
-    confirmBtn.style.cssText = `
-      padding: 6px 16px; border: none; border-radius: 5px;
-      background: #4a90e2; color: #fff; cursor: pointer; font-size: 13px; font-weight: 500;
-    `;
-    confirmBtn.addEventListener('click', async () => {
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = isSave ? 'Saving...' : 'Updating...';
-      try {
-        if (isSave) {
+      const createBtnRow = document.createElement('div');
+      createBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+      body.appendChild(createBtnRow);
+
+      const createCancelBtn = makeSecondaryBtn('Cancel', removeSavePanel);
+      const createBtn = makePrimaryBtn('Create', async () => {
+        createBtn.disabled = true;
+        createBtn.textContent = 'Saving...';
+        try {
           await daemonRequest('/items/create', {
             item: {
               item_type: ITEM_TYPE_LOGIN,
@@ -538,34 +518,92 @@
               }
             }
           });
-        } else {
-          // update existing item's password (and username if changed)
-          const updatedData = { ...existingItem.data, password: password };
+          cachedItems = null;
+          cachedDataVersion = -1;
+          showSuccessPanel('Login saved!');
+        } catch (e) {
+          createBtn.textContent = 'Error: ' + e.message;
+          createBtn.disabled = false;
+        }
+      });
+      createBtnRow.appendChild(createCancelBtn);
+      createBtnRow.appendChild(createBtn);
+    }
+
+    // "Update existing" sections (one per match)
+    for (let idx = 0; idx < updateItems.length; idx++) {
+      const item = updateItems[idx];
+      // Only add separator if something came before this update section
+      if (showCreate || idx > 0) {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'border-top: 1px solid #eee; margin: 14px -14px;';
+        body.appendChild(sep);
+      }
+
+      const updateLabel = document.createElement('div');
+      updateLabel.style.cssText = 'color: #222; font-weight: 500; margin-bottom: 6px;';
+      updateLabel.textContent = `Update ${item.data?.title || hostname}`;
+      body.appendChild(updateLabel);
+
+      const existingUser = document.createElement('div');
+      existingUser.style.cssText = 'color: #888; font-size: 11px; margin-bottom: 10px;';
+      existingUser.textContent = `User: ${item.data?.username || '(empty)'}`;
+      body.appendChild(existingUser);
+
+      const updateBtnRow = document.createElement('div');
+      updateBtnRow.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end;';
+      body.appendChild(updateBtnRow);
+
+      const updateCancelBtn = makeSecondaryBtn('Cancel', removeSavePanel);
+      const updateBtn = makePrimaryBtn('Update', async () => {
+        updateBtn.disabled = true;
+        updateBtn.textContent = 'Updating...';
+        try {
+          const updatedData = { ...item.data, password: password };
           if (username) updatedData.username = username;
-          await daemonRequest(`/items/${existingItem.id}/update`, {
+          await daemonRequest(`/items/${item.id}/update`, {
             item: {
               item_type: ITEM_TYPE_LOGIN,
               data: updatedData
             }
           });
+          cachedItems = null;
+          cachedDataVersion = -1;
+          showSuccessPanel('Login updated!');
+        } catch (e) {
+          updateBtn.textContent = 'Error: ' + e.message;
+          updateBtn.disabled = false;
         }
-        // invalidate cache so next fill picks up changes
-        cachedItems = null;
-        cachedDataVersion = -1;
-        showSuccessPanel(isSave ? 'Login saved!' : 'Login updated!');
-      } catch (e) {
-        confirmBtn.textContent = 'Error: ' + e.message;
-        confirmBtn.disabled = false;
-      }
-    });
+      });
+      updateBtnRow.appendChild(updateCancelBtn);
+      updateBtnRow.appendChild(updateBtn);
+    }
 
-    btnRow.appendChild(cancelBtn);
-    btnRow.appendChild(confirmBtn);
-    body.appendChild(btnRow);
     panel.appendChild(body);
-
     document.body.appendChild(panel);
     activeSavePanel = panel;
+  }
+
+  function makePrimaryBtn(text, onClick) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.style.cssText = `
+      padding: 6px 16px; border: none; border-radius: 5px;
+      background: #4a90e2; color: #fff; cursor: pointer; font-size: 13px; font-weight: 500;
+    `;
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function makeSecondaryBtn(text, onClick) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.style.cssText = `
+      padding: 6px 16px; border: 1px solid #d0d0d0; border-radius: 5px;
+      background: #fff; color: #444; cursor: pointer; font-size: 13px;
+    `;
+    btn.addEventListener('click', onClick);
+    return btn;
   }
 
   function showSuccessPanel(message) {
@@ -617,6 +655,9 @@
     } catch {}
 
     interceptFormSubmit();
+
+    // Check if a previous page submitted a login form — resurrect the save panel.
+    checkPendingCredential();
 
     const fields = findCredentialFields();
     if (fields.length > 0) {

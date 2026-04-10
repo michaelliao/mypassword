@@ -3,6 +3,12 @@
 
 const BASE_URL = 'http://127.0.0.1:27432';
 
+// Expose chrome.storage.session to content scripts (required since MV3).
+// Without this, storage.session.get/set from content.js silently fails.
+chrome.storage.session.setAccessLevel({
+  accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
+}).catch(() => {});
+
 async function getExtensionCredentials() {
   const result = await chrome.storage.local.get(['extensionId', 'extensionSeed']);
   if (result.extensionId && result.extensionSeed) {

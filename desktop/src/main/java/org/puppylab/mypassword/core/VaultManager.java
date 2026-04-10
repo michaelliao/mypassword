@@ -34,6 +34,7 @@ public class VaultManager {
     private VaultConfig       vaultConfig = null;
     private volatile Runnable onOAuthChanged;
     private volatile Runnable onVaultUnlocked;
+    private volatile Runnable onItemsChanged;
 
     private static VaultManager instance = null;
 
@@ -122,6 +123,17 @@ public class VaultManager {
 
     void fireVaultUnlocked() {
         Runnable callback = this.onVaultUnlocked;
+        if (callback != null) {
+            callback.run();
+        }
+    }
+
+    public void setOnItemsChanged(Runnable onItemsChanged) {
+        this.onItemsChanged = onItemsChanged;
+    }
+
+    void fireItemsChanged() {
+        Runnable callback = this.onItemsChanged;
         if (callback != null) {
             callback.run();
         }
