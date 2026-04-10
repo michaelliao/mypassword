@@ -28,6 +28,7 @@ import org.puppylab.mypassword.core.DbManager;
 import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.Session;
 import org.puppylab.mypassword.core.VaultManager;
+import org.puppylab.mypassword.core.data.SettingKey;
 import org.puppylab.mypassword.ui.controller.MainController;
 import org.puppylab.mypassword.ui.view.EmptyView;
 import org.puppylab.mypassword.ui.view.IdentityDetailView;
@@ -40,6 +41,7 @@ import org.puppylab.mypassword.ui.view.NoteEditView;
 import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
 import org.puppylab.mypassword.util.FileUtils;
+import org.puppylab.mypassword.util.I18nUtils;
 
 public class MainWindow {
 
@@ -69,6 +71,9 @@ public class MainWindow {
         Path dbFile = FileUtils.getDbFile();
         DbManager dbManager = new DbManager(dbFile);
         VaultManager vaultManager = new VaultManager(dbManager);
+        // initialise i18n with the saved language setting before any UI
+        // string is loaded (InitVaultDialog / MainWindow shell / views).
+        I18nUtils.init(vaultManager.getSetting(SettingKey.LANGUAGE, ""));
         Session.getCurrent().startAutoLockThread();
         daemon.initDispatcher();
 
