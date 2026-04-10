@@ -168,16 +168,16 @@ public class InitVaultDialog {
         VaultManager vm = VaultManager.getCurrent();
         // logins:
         vm.createItem(key, newLogin("MyPassword", "example@puppylab.org", "my-password-for-test-1",
-                List.of("https://mypassword.puppylab.org/"), true));
+                List.of("https://mypassword.puppylab.org/login.html"), true));
         vm.createItem(key, newLogin("MyPassword", "test@puppylab.org", "my-password-for-test-2",
-                List.of("https://mypassword.puppylab.org/"), false));
+                List.of("https://mypassword.puppylab.org/login.html"), false));
         // notes:
         vm.createItem(key, newNote("Wi-Fi Password", "SSID: Home-5G\nPassword: 12345678"));
         vm.createItem(key, newNote("Software License",
                 "MyPassword is a free, open source desktop password manager.\nSource: https://github.com/michaelliao/mypassword\nLicense: GPLv3"));
         // identities:
         vm.createItem(key,
-                newIdentity("Homer Simpson", "ChunkyLover53@aol.com", "E-1234567890", "ID-1234567890",
+                newIdentity("Simpson", "ChunkyLover53@aol.com", "E-1234567890", "ID-1234567890",
                         List.of("+1 123456789"), "742 Evergreen Terrace, Springfield", "58008",
                         "an overweight, lazy, and often ignorant, yet deeply devoted man."));
     }
