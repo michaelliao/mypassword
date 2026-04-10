@@ -4,9 +4,9 @@ import java.security.SecureRandom;
 
 public class PasswordUtils {
 
-    public static final int STYLE_ALPHABET               = 0;
-    public static final int STYLE_NUMBER                 = 1;
-    public static final int STYLE_ALPHABET_NUMBER        = 2;
+    public static final int STYLE_ALPHABET_NUMBER        = 0;
+    public static final int STYLE_ALPHABET               = 1;
+    public static final int STYLE_NUMBER                 = 2;
     public static final int STYLE_ALPHABET_NUMBER_SYMBOL = 3;
 
     static final String ALPHABET               = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -21,7 +21,7 @@ public class PasswordUtils {
         if (len < 4 || len > 100) {
             throw new IllegalArgumentException("Invalid length.");
         }
-        if (style < STYLE_ALPHABET || style > STYLE_ALPHABET_NUMBER_SYMBOL) {
+        if (style < STYLE_ALPHABET_NUMBER || style > STYLE_ALPHABET_NUMBER_SYMBOL) {
             throw new IllegalArgumentException("Invalid style.");
         }
         return switch (style) {

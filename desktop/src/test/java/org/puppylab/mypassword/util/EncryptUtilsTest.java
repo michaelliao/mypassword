@@ -1,4 +1,4 @@
-package org.puppylab.mypassword.utils;
+package org.puppylab.mypassword.util;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;

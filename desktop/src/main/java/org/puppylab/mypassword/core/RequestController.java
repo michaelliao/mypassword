@@ -14,6 +14,7 @@ import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PairRequest;
 import org.puppylab.mypassword.core.data.PairResponse;
+import org.puppylab.mypassword.core.data.StringResponse;
 import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
@@ -26,12 +27,14 @@ import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
+import org.puppylab.mypassword.rpc.request.GeneratePasswordRequest;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
 import org.puppylab.mypassword.util.FileUtils;
+import org.puppylab.mypassword.util.PasswordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -208,6 +211,31 @@ public class RequestController {
         var response = new ItemResponse();
         response.item = VaultManager.getCurrent().getItem(key, id);
         return response;
+    }
+
+    /**
+     * Generate password.
+     * 
+     * <code>
+     * {
+     *     "len": 16,
+     *     "style": 0
+     * }
+     * </code>
+     * 
+     * Set json as {} to use default len and style.
+     */
+    @PostMapping("/generate/password")
+    public StringResponse generatePassword(@RequestBody GeneratePasswordRequest req) {
+        int len = req.len;
+        int style = req.style;
+        if (len < 4 || len > 100) {
+            throw new VaultException(ErrorCode.BAD_FIELD, "Invalid len.");
+        }
+        String pwd = PasswordUtils.generatePassword(len, style);
+        StringResponse resp = new StringResponse();
+        resp.data = pwd;
+        return resp;
     }
 
     /**

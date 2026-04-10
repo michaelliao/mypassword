@@ -9,30 +9,6 @@ public class PasswordUtilsTest {
     @Test
     void testGeneratePassword0() {
         for (int n = 0; n < 10; n++) {
-            String pwd = PasswordUtils.generatePassword(10, PasswordUtils.STYLE_ALPHABET);
-            System.out.println(pwd);
-            for (int i = 0; i < pwd.length(); i++) {
-                char c = pwd.charAt(i);
-                assertTrue(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z');
-            }
-        }
-    }
-
-    @Test
-    void testGeneratePassword1() {
-        for (int n = 0; n < 10; n++) {
-            String pwd = PasswordUtils.generatePassword(15, PasswordUtils.STYLE_NUMBER);
-            System.out.println(pwd);
-            for (int i = 0; i < pwd.length(); i++) {
-                char c = pwd.charAt(i);
-                assertTrue(c >= '0' && c <= '9');
-            }
-        }
-    }
-
-    @Test
-    void testGeneratePassword2() {
-        for (int n = 0; n < 10; n++) {
             String pwd = PasswordUtils.generatePassword(20, PasswordUtils.STYLE_ALPHABET_NUMBER);
             System.out.println(pwd);
             boolean hasAlpha = false;
@@ -47,6 +23,30 @@ public class PasswordUtilsTest {
             }
             assertTrue(hasAlpha);
             assertTrue(hasNumber);
+        }
+    }
+
+    @Test
+    void testGeneratePassword1() {
+        for (int n = 0; n < 10; n++) {
+            String pwd = PasswordUtils.generatePassword(10, PasswordUtils.STYLE_ALPHABET);
+            System.out.println(pwd);
+            for (int i = 0; i < pwd.length(); i++) {
+                char c = pwd.charAt(i);
+                assertTrue(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z');
+            }
+        }
+    }
+
+    @Test
+    void testGeneratePassword2() {
+        for (int n = 0; n < 10; n++) {
+            String pwd = PasswordUtils.generatePassword(15, PasswordUtils.STYLE_NUMBER);
+            System.out.println(pwd);
+            for (int i = 0; i < pwd.length(); i++) {
+                char c = pwd.charAt(i);
+                assertTrue(c >= '0' && c <= '9');
+            }
         }
     }
 
