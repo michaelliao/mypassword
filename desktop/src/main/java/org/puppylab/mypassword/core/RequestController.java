@@ -219,9 +219,10 @@ public class RequestController {
      *     "item": {
      *         "item_type": 1,
      *         "data": {
-     *             "name": "Gmail",
+     *             "title": "Gmail",
      *             "username": "example@gmail.com",
-     *             "password": "12345678"
+     *             "password": "12345678",
+     *             "websites": [ "https://example.com/" ]
      *         }
      *     }
      * }
