@@ -81,7 +81,7 @@ If you want to restore to a different location, delete the pointer file first an
 
 ## Security Considerations
 
-- **The file is encrypted, but not invulnerable.** An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See [key-gen.md](/key-gen#when-can-the-vault-be-compromised) for details.
+- **The file is encrypted, but not invulnerable.** An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See [Security](/key-gen#when-can-the-vault-be-compromised) for details.
 - **Keep backup copies limited.** Every copy is another target. Delete old backups you no longer need.
 - **Enable MFA on your cloud account.** If your cloud account is compromised, the attacker gets the vault file. The vault is still encrypted, but they can begin offline attacks.
 - **Do not share the file.** Even though it is encrypted, sharing it exposes it to unnecessary risk.
