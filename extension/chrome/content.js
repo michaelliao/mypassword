@@ -684,10 +684,16 @@
     ensureStyles();
 
     let finished = false;
-    function finishWith(result) {
+    // Forward the result to the background service worker which will call
+    // chrome.webAuthenticationProxy.completeCreateRequest. Panel lifecycle is
+    // managed by the caller so users can see a brief success/error message.
+    function sendResult(result) {
       if (finished) return;
       finished = true;
       chrome.runtime.sendMessage({ type: 'PASSKEY_CREATE_RESULT', ...result });
+    }
+    function finishAndClose(result) {
+      sendResult(result);
       removePasskeyPanel();
     }
 
@@ -724,7 +730,7 @@
     closeBtn.textContent = '\u00d7';
     closeBtn.style.cssText = 'cursor:pointer;font-size:18px;line-height:1;';
     closeBtn.addEventListener('click', () => {
-      finishWith({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
+      finishAndClose({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
     });
     header.appendChild(closeBtn);
     panel.appendChild(header);
@@ -749,7 +755,7 @@
     const footer = document.createElement('div');
     footer.style.cssText = 'display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;';
     const cancelBtn = makeSecondaryBtn('Cancel', () => {
-      finishWith({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
+      finishAndClose({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
     });
     footer.appendChild(cancelBtn);
     body.appendChild(footer);
@@ -786,11 +792,15 @@
     try {
       const info = await daemonRequest('/info', {});
       if (info.data?.locked !== false) {
-        setStatusError('Unlock the vault before add a passkey');
+        const m = 'Unlock the vault before add a passkey';
+        setStatusError(m);
+        sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: m });
         return;
       }
     } catch (e) {
-      setStatusError('Daemon error: ' + e.message);
+      const m = 'Daemon error: ' + e.message;
+      setStatusError(m);
+      sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: m });
       return;
     }
 
@@ -800,12 +810,16 @@
       const resp = await daemonRequest('/items/list?type=1', null, 'GET');
       items = (resp.items || []).filter((i) => !i.deleted);
     } catch (e) {
-      setStatusError('Failed to load items: ' + e.message);
+      const m = 'Failed to load items: ' + e.message;
+      setStatusError(m);
+      sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: m });
       return;
     }
     const matched = items.filter((i) => matchesHostname(i, rpId));
     if (matched.length === 0) {
-      setStatusError('No login for ' + rpId + ' in vault');
+      const m = 'No login for ' + rpId + ' in vault';
+      setStatusError(m);
+      sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: m });
       return;
     }
 
@@ -829,26 +843,40 @@
         <span style="color:#888;font-size:11px;">${escapeHtml(item.data?.username || '')}</span>
       `;
       row.addEventListener('click', async () => {
-        setStatus('Waiting for desktop confirmation...');
+        setStatus('Creating passkey...');
         list.innerHTML = '';
         try {
           const body = {
             itemId: item.id,
+            origin: window.location.origin,
             options: options,
           };
           console.log('POST /passkeys/add body:', JSON.stringify(body, null, 2));
           const resp = await daemonRequest('/passkeys/add', body);
+          // Daemon reports VaultException as 200 + {error, errorMessage}.
           if (resp && resp.error) {
-            setStatusError(resp.errorMessage || resp.error);
+            const message = resp.errorMessage || resp.error;
+            setStatusError(message);
+            sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: message });
             return;
           }
-          const credential = resp && resp.credential ? resp.credential : resp;
-          finishWith({
-            ok: true,
-            responseJson: typeof credential === 'string' ? credential : JSON.stringify(credential),
-          });
+          // Success: the daemon returns a PublicKeyCredentialJSON object
+          // (id, rawId, type, authenticatorAttachment, response, clientExtensionResults)
+          // that Chrome's completeCreateRequest accepts verbatim.
+          if (!resp || !resp.id || !resp.response || !resp.response.attestationObject) {
+            const message = 'Malformed response from desktop';
+            setStatusError(message);
+            sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: message });
+            return;
+          }
+          status.style.color = '#27ae60';
+          status.textContent = 'Passkey saved to ' + (item.data?.title || rpId);
+          sendResult({ ok: true, responseJson: JSON.stringify(resp) });
+          setTimeout(removePasskeyPanel, 1500);
         } catch (e) {
-          setStatusError('Error: ' + e.message);
+          const message = 'Error: ' + e.message;
+          setStatusError(message);
+          sendResult({ ok: false, errorName: 'NotAllowedError', errorMessage: e.message });
         }
       });
       list.appendChild(row);

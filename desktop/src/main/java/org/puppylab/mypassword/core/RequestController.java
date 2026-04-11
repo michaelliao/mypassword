@@ -15,6 +15,7 @@ import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PairRequest;
 import org.puppylab.mypassword.core.data.PairResponse;
 import org.puppylab.mypassword.core.data.StringResponse;
+import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
@@ -179,11 +180,47 @@ public class RequestController {
     }
 
     /**
-     * Add new passkey to login item
+     * Add a new passkey to an existing login item. Generates an EC P-256
+     * keypair, wraps the private key with the vault DEK, stores the passkey on
+     * the login item, and returns a WebAuthn attestation the extension can
+     * hand back to the browser via {@code completeCreateRequest}.
      */
     @PostMapping("/passkeys/add")
     public AddPasskeyResponse passkeyAdd(@RequestBody AddPasskeyRequest req) {
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, req.itemId);
+        if (!(item instanceof LoginItemData login)) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item not found: " + req.itemId);
+        }
+        if (login.data == null) {
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Login item has no data: " + req.itemId);
+        }
+        if (login.data.passkey != null) {
+            throw new VaultException(ErrorCode.BAD_REQUEST,
+                    "Login item already has a passkey: " + req.itemId);
+        }
+
+        PasskeyBuilder.Result built = PasskeyBuilder.build(key, req);
+
+        // Persist the new passkey on the login item.
+        login.data.passkey = built.data;
+        VaultManager.getCurrent().updateItem(key, login);
+        VaultManager.getCurrent().fireItemsChanged();
+
+        logger.info("added passkey for item {} (rp={}, user={})",
+                req.itemId, built.data.relyingPartyId, built.data.username);
+
+        // Build the WebAuthn response the browser expects.
+        String credIdB64 = Base64Utils.b64(built.credentialId);
         AddPasskeyResponse resp = new AddPasskeyResponse();
+        resp.id = credIdB64;
+        resp.rawId = credIdB64;
+        resp.type = "public-key";
+        resp.authenticatorAttachment = "platform";
+        resp.response = new AddPasskeyResponse.PasskeyResponse();
+        resp.response.clientDataJSON = Base64Utils.b64(built.clientDataJson);
+        resp.response.attestationObject = Base64Utils.b64(built.attestationObject);
+        resp.response.transports = new String[] { "internal" };
         return resp;
     }
 

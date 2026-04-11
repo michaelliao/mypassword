@@ -12,6 +12,9 @@ public class LoginFieldsData extends AbstractFields {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String password;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public PasskeyData passkey;
+
     public List<String> websites;
     public String       ga;
     public String       memo;

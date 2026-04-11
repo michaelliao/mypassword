@@ -2,18 +2,18 @@ package org.puppylab.mypassword.core.data;
 
 public class PasskeyData {
 
-    public long id; // passkey id for db primary key in usage.
+    public String relyingPartyId;   // e.g. "github.com"
+    public String relyingPartyName; // e.g. "GitHub"
 
-    public String relyingPartyId;   // e.g. "google.com"
-    public String relyingPartyName; // e.g. "Google"
-    public String b64UserId;        // base64-encoded user id
-    public String username;         // user name
-    public String displayName;      // user display name
+    public String b64UserId;   // base64 of the user handle
+    public String username;    // WebAuthn user.name
+    public String displayName; // WebAuthn user.displayName
 
-    public int alg; // -7 = (ECDSA w/SHA-256)
+    public int alg; // -7 = ES256
 
-    public String b64PubKey;
-    public String b64PrivKey;
+    public String b64CredentialId;     // base64url — key for lookup during sign-in
+    public String b64PubKey;           // base64 of raw uncompressed P-256 point (0x04 ‖ X ‖ Y)
+    public String b64EncryptedPrivKey; // base64 of DEK-encrypted private key
 
     public long createdAt;
 
