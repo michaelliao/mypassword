@@ -13,9 +13,6 @@ public class FileUtils {
     /** Name of the pointer file inside {@link #getAppDataDir()}. */
     private static final String VAULT_POINTER = "vault.path";
 
-    /** Default vault file name, used when no pointer file exists. */
-    private static final String DEFAULT_VAULT_NAME = "mypassword.db";
-
     public static Path getUserHome() {
         return Paths.get(System.getProperty("user.home")).toAbsolutePath().normalize();
     }
@@ -27,8 +24,7 @@ public class FileUtils {
     public static Path getAppDataDir() {
         Path dir = getUserHome().resolve(".mypassword");
         if (Files.exists(dir, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(dir)) {
-            throw new IllegalStateException(
-                    dir + " exists but is not a directory. Remove it and restart MyPassword.");
+            throw new IllegalStateException(dir + " exists but is not a directory. Remove it and restart MyPassword.");
         }
         if (!Files.isDirectory(dir)) {
             try {
@@ -43,12 +39,13 @@ public class FileUtils {
     /**
      * Resolve the vault database path.
      *
-     * <p>If {@code ~/.mypassword/vault.path} exists and contains an absolute
-     * path, that path is returned so users can keep the real file anywhere
-     * they want (e.g. inside a OneDrive folder). Otherwise the default
-     * location {@code ~/.mypassword/mypassword.db} is returned.
+     * <p>
+     * If {@code ~/.mypassword/vault.path} exists and contains an absolute path,
+     * that path is returned so users can keep the real file anywhere they want
+     * (e.g. inside a OneDrive folder). Otherwise null is returned.
      *
-     * <p>This is a redirect file, not a symlink — creating symlinks on Windows
+     * <p>
+     * This is a redirect file, not a symlink — creating symlinks on Windows
      * requires Developer Mode / admin, which we don't want to force on users.
      */
     public static Path getDbFile() {
@@ -63,7 +60,7 @@ public class FileUtils {
                 throw new UncheckedIOException(e);
             }
         }
-        return getAppDataDir().resolve(DEFAULT_VAULT_NAME);
+        return null;
     }
 
     public static Path getLogFile() {
@@ -71,19 +68,19 @@ public class FileUtils {
     }
 
     /**
-     * Returns true when the vault database path resolves to an existing
-     * regular file. A missing file or a pointer file referencing a
-     * non-existent target returns {@code false}, in which case the startup
-     * code should prompt the user via {@code VaultLocatorDialog}.
+     * Returns true when the vault database path resolves to an existing regular
+     * file. A missing file or a pointer file referencing a non-existent target
+     * returns {@code false}, in which case the startup code should prompt the user
+     * via {@code VaultLocatorDialog}.
      */
     public static boolean isValidVaultFile(Path p) {
         return Files.isRegularFile(p);
     }
 
     /**
-     * Write the pointer file so future calls to {@link #getDbFile()} resolve
-     * to {@code target}. Passing the default location (or {@code null})
-     * removes the pointer file.
+     * Write the pointer file so future calls to {@link #getDbFile()} resolve to
+     * {@code target}. Passing the default location (or {@code null}) removes the
+     * pointer file.
      */
     public static void setVaultLocation(Path target) throws IOException {
         Path pointer = getAppDataDir().resolve(VAULT_POINTER);
@@ -91,7 +88,6 @@ public class FileUtils {
             Files.deleteIfExists(pointer);
             return;
         }
-        Files.writeString(pointer, target.toAbsolutePath().normalize().toString(),
-                StandardCharsets.UTF_8);
+        Files.writeString(pointer, target.toAbsolutePath().normalize().toString(), StandardCharsets.UTF_8);
     }
 }

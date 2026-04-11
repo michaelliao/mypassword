@@ -72,7 +72,7 @@ public class MainWindow {
         // ~/.mypassword is either created or validated (throws if the path
         // exists but isn't a directory). The db path is resolved via the
         // pointer file (~/.mypassword/vault.path) if present, otherwise
-        // defaults to ~/.mypassword/mypassword.db.
+        // ask user to choose.
 
         // ── main thread: owns the SWT Display ─────────────────────────────
         // Display is created before touching DbManager so the locator dialog
@@ -82,7 +82,8 @@ public class MainWindow {
         Display display = new Display();
         I18nUtils.init("");
 
-        if (!FileUtils.isValidVaultFile(FileUtils.getDbFile())) {
+        Path dbFile = FileUtils.getDbFile();
+        if (dbFile == null || !FileUtils.isValidVaultFile(dbFile)) {
             Shell locatorShell = new Shell(display);
             boolean located = new VaultLocatorDialog(locatorShell).open();
             locatorShell.dispose();

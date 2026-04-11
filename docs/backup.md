@@ -6,7 +6,7 @@ All vault data is stored in a single SQLite file named `mypassword.db`. It conta
 
 ## Where Is My Vault?
 
-MyPassword stores a small pointer file at `~/.mypassword/vault.path` containing the absolute path of the real database file. On startup the app reads this pointer and opens whatever it points at. If the pointer file is missing, the app looks for a vault at the default location `~/.mypassword/mypassword.db`; if that is also missing, the **Locate Vault** dialog is shown so you can pick an existing vault file or create a new one anywhere on disk.
+MyPassword stores a small pointer file at `~/.mypassword/vault.path` containing the absolute path of the real database file. On startup the app reads this pointer and opens whatever it points at. If the pointer file is missing, the **Locate Vault** dialog is shown so you can pick an existing vault file or create a new one anywhere on disk.
 
 | Default location | Path |
 |---|---|
