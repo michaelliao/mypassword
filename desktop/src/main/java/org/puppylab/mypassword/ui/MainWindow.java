@@ -82,8 +82,8 @@ public class MainWindow {
         Display display = new Display();
         I18nUtils.init("");
 
-        Path dbFile = FileUtils.getDbFile();
-        if (dbFile == null || !FileUtils.isValidVaultFile(dbFile)) {
+        Path configuredDbFile = FileUtils.getDbFile();
+        if (configuredDbFile == null || !FileUtils.isValidVaultFile(configuredDbFile)) {
             Shell locatorShell = new Shell(display);
             boolean located = new VaultLocatorDialog(locatorShell).open();
             locatorShell.dispose();
