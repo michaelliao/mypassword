@@ -109,6 +109,38 @@ When creating or editing a login item, expand the password generator to create a
 
 Click **Generate** to fill the password field.
 
+## Passkey Features
+
+A **passkey** is a phishing-resistant credential based on public-key cryptography (WebAuthn / FIDO2). MyPassword can act as your authenticator: when you register a passkey on a website, the private key is stored inside the matching login item and encrypted with your master password like any other vault data.
+
+### Enabling Passkey Handling
+
+Passkey handling is off by default. To turn it on:
+
+1. Click the MyPassword extension icon in Chrome
+2. Toggle **Handle passkeys with MyPassword** on
+
+When enabled, the extension attaches to Chrome's `webAuthenticationProxy` API (Chrome 115+) and routes all passkey requests in the current profile to the running desktop app. While disabled, Chrome's built-in authenticator picker is used instead.
+
+The desktop app must be running and unlocked for passkey registration and sign-in to work.
+
+### Registering a Passkey
+
+On a site that supports passkeys, click the site's "Create a passkey" (or similar) button. The extension shows a panel listing your existing logins for that site:
+
+- Pick a login to attach the new passkey to, or
+- Create a new login on the spot
+
+Once you confirm, MyPassword generates an ES256 key pair, stores the private key in the chosen login item, and returns the public key to the site.
+
+### Signing In with a Passkey
+
+When a site initiates a passkey sign-in, the extension shows a picker listing the passkeys that match the site's relying party ID (and any `allowCredentials` filter the site provides). Click the entry you want to use — MyPassword signs the challenge with the stored private key and returns the assertion to the site.
+
+### Viewing and Deleting Passkeys
+
+Login items that contain a passkey show a **Passkey** field in the detail view. Click **Delete passkey** to remove it from the item; the rest of the login (username, password, websites, memo) is preserved. Deleting a passkey cannot be undone — the site will no longer accept sign-ins from that credential.
+
 ## Chrome Extension
 
 The Chrome extension connects to the running desktop app at `http://127.0.0.1:27432`. The desktop app must be running and unlocked for the extension to work.
