@@ -194,26 +194,40 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const stored = await chrome.storage.session.get(['passkeyCreateRequest', 'passkeyWindowId']);
       const reqId = stored.passkeyCreateRequest?.requestId;
       if (reqId == null) {
+        console.warn('PASSKEY_CREATE_RESULT: no pending passkey request');
         sendResponse({ ok: false, error: 'No pending passkey request' });
         return;
       }
+      // completeCreateRequest returns a Promise in MV3 — we MUST await it so
+      // rejected JSON parses / bad shapes surface as caught errors instead of
+      // leaving the browser's WebAuthn promise hanging forever.
       try {
         if (msg.ok) {
-          chrome.webAuthenticationProxy.completeCreateRequest({
+          console.log('completeCreateRequest(success) responseJson:', msg.responseJson);
+          await chrome.webAuthenticationProxy.completeCreateRequest({
             requestId: reqId,
             responseJson: msg.responseJson,
           });
+          console.log('completeCreateRequest: success');
         } else {
-          chrome.webAuthenticationProxy.completeCreateRequest({
+          await chrome.webAuthenticationProxy.completeCreateRequest({
             requestId: reqId,
             error: {
               name: msg.errorName || 'NotAllowedError',
               message: msg.errorMessage || 'Cancelled',
             },
           });
+          console.log('completeCreateRequest: error delivered');
         }
       } catch (e) {
-        console.warn('completeCreateRequest failed:', e);
+        console.error('completeCreateRequest failed:', e);
+        // Last-ditch: tell the browser the ceremony failed so it doesn't hang.
+        try {
+          await chrome.webAuthenticationProxy.completeCreateRequest({
+            requestId: reqId,
+            error: { name: 'NotAllowedError', message: 'MyPassword: ' + (e && e.message || e) },
+          });
+        } catch (_) {}
       }
       await chrome.storage.session.remove(['passkeyCreateRequest', 'passkeyWindowId']);
       if (stored.passkeyWindowId != null) {

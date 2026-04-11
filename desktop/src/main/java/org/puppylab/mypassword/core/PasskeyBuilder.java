@@ -62,7 +62,12 @@ public class PasskeyBuilder {
         public PasskeyData data;
         public byte[]      credentialId;
         public byte[]      clientDataJson;
+        public byte[]      authenticatorData;
         public byte[]      attestationObject;
+        /** X.509 SubjectPublicKeyInfo (DER) encoding of the EC public key. */
+        public byte[]      publicKeySpki;
+        /** COSE algorithm identifier, e.g. -7 for ES256. */
+        public int         publicKeyAlgorithm;
     }
 
     /**
@@ -139,7 +144,13 @@ public class PasskeyBuilder {
             r.data = pd;
             r.credentialId = credentialId;
             r.clientDataJson = clientDataJson;
+            r.authenticatorData = authData;
             r.attestationObject = attestationObject;
+            // Java's EC PublicKey.getEncoded() returns X.509 SubjectPublicKeyInfo
+            // (DER), which is exactly the "publicKey" format Chrome expects in
+            // RegistrationResponseJSON.
+            r.publicKeySpki = ecPub.getEncoded();
+            r.publicKeyAlgorithm = COSE_ALG_ES256;
             return r;
         } catch (GeneralSecurityException e) {
             throw new EncryptException(e);

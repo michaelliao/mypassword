@@ -219,6 +219,9 @@ public class RequestController {
         resp.authenticatorAttachment = "platform";
         resp.response = new AddPasskeyResponse.PasskeyResponse();
         resp.response.clientDataJSON = Base64Utils.b64(built.clientDataJson);
+        resp.response.authenticatorData = Base64Utils.b64(built.authenticatorData);
+        resp.response.publicKey = Base64Utils.b64(built.publicKeySpki);
+        resp.response.publicKeyAlgorithm = built.publicKeyAlgorithm;
         resp.response.attestationObject = Base64Utils.b64(built.attestationObject);
         resp.response.transports = new String[] { "internal" };
         return resp;

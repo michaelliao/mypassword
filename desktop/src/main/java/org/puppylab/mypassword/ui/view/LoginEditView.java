@@ -7,12 +7,15 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.core.data.PasskeyData;
 import org.puppylab.mypassword.util.PasswordUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
@@ -41,6 +44,14 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
 
     private MultiText websitesMultiFields;
 
+    private Label  passkeyValueLabel;
+    private Button passkeyDeleteBtn;
+
+    // Current passkey state while editing. Initialized from the loaded item in
+    // setData; nulled out when the delete button is clicked. Copied back into
+    // the collected LoginItemData so unchanged passkeys are preserved.
+    private PasskeyData currentPasskey = null;
+
     private LoginItemData editingItem = null;
 
     public LoginEditView(Composite parent) {
@@ -53,8 +64,77 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         usernameField = createField(i18n("field.username"), SWT.BORDER);
         createPasswordRow();
         createGenerateRow();
+        createPasskeyRow();
         websitesMultiFields = createMultiTextFields(i18n("field.websites"));
         memoField = createAreaField(i18n("field.memo"));
+    }
+
+    private void createPasskeyRow() {
+        Composite row = new Composite(content, SWT.NONE);
+        GridLayout gl = new GridLayout(3, false);
+        row.setLayout(gl);
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        org.eclipse.swt.widgets.Label lbl = new org.eclipse.swt.widgets.Label(row, SWT.NONE);
+        lbl.setText(i18n("field.passkey"));
+        GridData ld = new GridData();
+        ld.widthHint = LABEL_WIDTH;
+        lbl.setLayoutData(ld);
+
+        passkeyValueLabel = new org.eclipse.swt.widgets.Label(row, SWT.NONE);
+        passkeyValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        passkeyDeleteBtn = new Button(row, SWT.PUSH);
+        passkeyDeleteBtn.setText("\u2715"); // ×
+        passkeyDeleteBtn.setToolTipText(i18n("passkey.btn.delete"));
+        GridData dgd = new GridData();
+        dgd.widthHint = 32;
+        passkeyDeleteBtn.setLayoutData(dgd);
+        passkeyDeleteBtn.addListener(SWT.Selection, _ -> {
+            if (currentPasskey == null) {
+                return;
+            }
+            String label = formatPasskey(currentPasskey);
+            if (label.isEmpty()) {
+                label = StringUtils.normalize(currentPasskey.relyingPartyId);
+            }
+            MessageBox mb = new MessageBox(passkeyDeleteBtn.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+            mb.setText(i18n("confirm.title"));
+            mb.setMessage(i18n("passkey.confirm.delete", label));
+            if (mb.open() != SWT.OK) {
+                return;
+            }
+            currentPasskey = null;
+            updatePasskeyRow();
+        });
+    }
+
+    private void updatePasskeyRow() {
+        if (currentPasskey != null) {
+            passkeyValueLabel.setText(formatPasskey(currentPasskey));
+            passkeyDeleteBtn.setVisible(true);
+            ((GridData) passkeyDeleteBtn.getLayoutData()).exclude = false;
+        } else {
+            passkeyValueLabel.setText("N/A");
+            passkeyDeleteBtn.setVisible(false);
+            ((GridData) passkeyDeleteBtn.getLayoutData()).exclude = true;
+        }
+        passkeyValueLabel.getParent().layout(true, true);
+    }
+
+    private static String formatPasskey(PasskeyData p) {
+        String user = StringUtils.normalize(p.username);
+        String display = StringUtils.normalize(p.displayName);
+        if (user.isEmpty() && display.isEmpty()) {
+            return "";
+        }
+        if (user.isEmpty()) {
+            return display;
+        }
+        if (display.isEmpty() || user.equals(display)) {
+            return user;
+        }
+        return user + " / " + display;
     }
 
     private void createPasswordRow() {
@@ -216,13 +296,16 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             passwordField.setText("");
             addMultiTextRow(websitesMultiFields, "", false);
             memoField.setText("");
+            currentPasskey = null;
         } else {
             titleField.setText(StringUtils.normalize(item.data.title));
             usernameField.setText(StringUtils.normalize(item.data.username));
             passwordField.setText(StringUtils.normalize(item.data.password));
             setMultiTextValues(websitesMultiFields, item.data.websites);
             memoField.setText(StringUtils.normalize(item.data.memo));
+            currentPasskey = item.data.passkey;
         }
+        updatePasskeyRow();
         // show generate area if password is empty, hide if not
         boolean hasPassword = !passwordField.getText().isEmpty();
         setGenAreaVisible(!hasPassword);
@@ -239,6 +322,10 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         data.data.password = passwordField.getText();
         data.data.websites = websitesMultiFields.collectData();
         data.data.memo = memoField.getText();
+        // Passkeys cannot be edited from this view — only deleted via the × button.
+        // currentPasskey holds the original PasskeyData reference (or null if the
+        // user clicked delete), so carrying it over preserves unchanged passkeys.
+        data.data.passkey = currentPasskey;
         return data;
     }
 }
