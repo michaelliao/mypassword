@@ -11,9 +11,10 @@ public class PasskeyData {
 
     public int alg; // -7 = ES256
 
-    public String b64CredentialId;     // base64url — key for lookup during sign-in
-    public String b64PubKey;           // base64 of raw uncompressed P-256 point (0x04 ‖ X ‖ Y)
-    public String b64EncryptedPrivKey; // base64 of DEK-encrypted private key
+    public String b64CredentialId; // base64url — key for lookup during sign-in
+    public String b64PubKey;       // base64url of raw uncompressed P-256 point (0x04 ‖ X ‖ Y)
+    public String b64PrivKey;      // base64url of PKCS#8-encoded EC private key
+                                   // (the enclosing LoginItemData is already DEK-encrypted at rest)
 
     public long createdAt;
 

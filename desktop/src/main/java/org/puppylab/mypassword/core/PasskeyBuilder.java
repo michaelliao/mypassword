@@ -13,8 +13,6 @@ import java.security.spec.ECPoint;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.crypto.SecretKey;
-
 import org.puppylab.mypassword.core.data.PasskeyData;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.rpc.ErrorCode;
@@ -74,10 +72,12 @@ public class PasskeyBuilder {
     }
 
     /**
-     * Build a new passkey for the given request using the provided vault DEK to
-     * wrap the private key.
+     * Build a new passkey for the given request. The caller is responsible for
+     * persisting the resulting {@link PasskeyData} on a login item — the
+     * enclosing {@code LoginItemData} is DEK-encrypted at rest, so the private
+     * key bytes stored here do not need a second layer of encryption.
      */
-    public static Result build(SecretKey dek, PasskeyAddRequest req) {
+    public static Result build(PasskeyAddRequest req) {
         if (req.options == null || req.options.rp == null || req.options.user == null) {
             throw new VaultException(ErrorCode.BAD_REQUEST, "Missing passkey options.");
         }
@@ -102,13 +102,8 @@ public class PasskeyBuilder {
             System.arraycopy(x, 0, rawPub, 1, 32);
             System.arraycopy(y, 0, rawPub, 33, 32);
 
-            // Wrap the PKCS#8 private key bytes under the DEK.
+            // PKCS#8-encoded private key bytes, stored as-is.
             byte[] pkcs8 = kp.getPrivate().getEncoded();
-            byte[] iv = EncryptUtils.generateIV();
-            byte[] ciphertext = EncryptUtils.encrypt(pkcs8, dek, iv);
-            byte[] ivPlusCt = new byte[iv.length + ciphertext.length];
-            System.arraycopy(iv, 0, ivPlusCt, 0, iv.length);
-            System.arraycopy(ciphertext, 0, ivPlusCt, iv.length, ciphertext.length);
 
             // Fresh 16-byte credential ID.
             byte[] credentialId = EncryptUtils.generateSecureRandomBytes(16);
@@ -140,7 +135,7 @@ public class PasskeyBuilder {
             pd.alg = COSE_ALG_ES256;
             pd.b64CredentialId = Base64Utils.b64(credentialId);
             pd.b64PubKey = Base64Utils.b64(rawPub);
-            pd.b64EncryptedPrivKey = Base64Utils.b64(ivPlusCt);
+            pd.b64PrivKey = Base64Utils.b64(pkcs8);
             pd.createdAt = System.currentTimeMillis();
 
             Result r = new Result();

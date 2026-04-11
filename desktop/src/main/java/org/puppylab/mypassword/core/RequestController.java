@@ -201,7 +201,7 @@ public class RequestController {
             throw new VaultException(ErrorCode.BAD_REQUEST, "Login item already has a passkey: " + req.itemId);
         }
 
-        PasskeyBuilder.Result built = PasskeyBuilder.build(key, req);
+        PasskeyBuilder.Result built = PasskeyBuilder.build(req);
 
         // Persist the new passkey on the login item.
         login.data.passkey = built.data;
@@ -230,7 +230,7 @@ public class RequestController {
 
     /**
      * Sign a WebAuthn assertion with a stored passkey. Loads the selected login
-     * item, decrypts its private key with the vault DEK, and signs
+     * item (decrypted from the vault by the DEK) and signs
      * {@code authenticatorData ‖ SHA-256(clientDataJSON)}. The returned JSON is
      * the {@code AuthenticationResponseJSON} the extension hands to
      * {@code completeGetRequest}.
@@ -247,7 +247,7 @@ public class RequestController {
                     "Login item has no passkey: " + req.itemId);
         }
 
-        PasskeySigner.Result signed = PasskeySigner.sign(key, login, req);
+        PasskeySigner.Result signed = PasskeySigner.sign(login, req);
 
         logger.info("signed passkey assertion for item {} (rp={})",
                 req.itemId, login.data.passkey.relyingPartyId);
@@ -294,10 +294,10 @@ public class RequestController {
     public ItemResponse itemGet(@PathVariable("id") long id) {
         SecretKey key = getKey();
         AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
-        // the encrypted passkey private key is daemon-internal; the extension
-        // never needs it — passkey assertions read straight from the vault.
+        // the passkey private key is daemon-internal; the extension never needs
+        // it — passkey assertions read straight from the vault.
         if (item instanceof LoginItemData login && login.data != null && login.data.passkey != null) {
-            login.data.passkey.b64EncryptedPrivKey = null;
+            login.data.passkey.b64PrivKey = null;
         }
         var response = new ItemResponse();
         response.item = item;
@@ -308,7 +308,7 @@ public class RequestController {
      * Strip wire-sensitive fields from a login item for list responses:
      * <ul>
      *   <li>{@code password} — empty string means "has one, hidden"; {@code null} means "none".</li>
-     *   <li>{@code passkey.b64EncryptedPrivKey} — always nulled; only the daemon uses it.</li>
+     *   <li>{@code passkey.b64PrivKey} — always nulled; only the daemon uses it.</li>
      * </ul>
      */
     private static void stripSecrets(LoginItemData login) {
@@ -318,7 +318,7 @@ public class RequestController {
         String pwd = login.data.password;
         login.data.password = (pwd != null && !pwd.isEmpty()) ? "" : null;
         if (login.data.passkey != null) {
-            login.data.passkey.b64EncryptedPrivKey = null;
+            login.data.passkey.b64PrivKey = null;
         }
     }
 

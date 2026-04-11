@@ -10,8 +10,6 @@ import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 
-import javax.crypto.SecretKey;
-
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PasskeyData;
 import org.puppylab.mypassword.core.exception.EncryptException;
@@ -19,7 +17,6 @@ import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.rpc.request.PasskeyLoginRequest;
 import org.puppylab.mypassword.util.Base64Utils;
-import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
 /**
@@ -60,11 +57,10 @@ public class PasskeySigner {
     /**
      * Produce a WebAuthn assertion for {@code login}'s stored passkey.
      *
-     * @param dek   the vault data encryption key, used to unwrap the private key
      * @param login the login item the user picked (must have a non-null passkey)
      * @param req   the request proxied from the browser
      */
-    public static Result sign(SecretKey dek, LoginItemData login, PasskeyLoginRequest req) {
+    public static Result sign(LoginItemData login, PasskeyLoginRequest req) {
         if (login == null || login.data == null || login.data.passkey == null) {
             throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item has no passkey.");
         }
@@ -104,14 +100,9 @@ public class PasskeySigner {
         }
 
         try {
-            // Unwrap the private key. b64EncryptedPrivKey stores IV(12) ‖ ciphertext.
-            byte[] ivPlusCt = Base64Utils.b64(pk.b64EncryptedPrivKey);
-            if (ivPlusCt.length < 12 + 16) {
-                throw new VaultException(ErrorCode.BAD_REQUEST, "Corrupt encrypted passkey.");
-            }
-            byte[] iv = Arrays.copyOfRange(ivPlusCt, 0, 12);
-            byte[] ct = Arrays.copyOfRange(ivPlusCt, 12, ivPlusCt.length);
-            byte[] pkcs8 = EncryptUtils.decrypt(ct, dek, iv);
+            // The enclosing LoginItemData is DEK-encrypted at rest, so b64PrivKey
+            // stores the PKCS#8 bytes directly (no inner AES-GCM wrap).
+            byte[] pkcs8 = Base64Utils.b64(pk.b64PrivKey);
 
             KeyFactory kf = KeyFactory.getInstance("EC");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(pkcs8));
