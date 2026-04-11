@@ -1,7 +1,7 @@
 site_name: MyPassword
 theme:
   name: material
-  logo: logo.svg
+  logo: assets/images/logo.svg
   palette:
     primary: teal
   features:
