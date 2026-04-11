@@ -11,7 +11,7 @@ On first launch, MyPassword shows the **Locate Vault** dialog so you can choose 
 - **Open existing vault…** — point MyPassword at an existing `mypassword.db` file (useful when restoring a backup or switching machines)
 - **Create new vault…** — pick a folder in which a fresh `mypassword.db` will be created. You can choose any folder, including one inside a cloud-synced directory (e.g. OneDrive, Google Drive, Dropbox) so the vault syncs automatically across devices
 
-MyPassword records your choice in a small pointer file at `~/.mypassword/vault.path` and reads it on every subsequent launch, so you only go through this dialog once. See [backup](backup) for more on vault location and cloud sync.
+MyPassword records your choice in a small pointer file at `~/.mypassword/vault.path` and reads it on every subsequent launch, so you only go through this dialog once. See [backup](/backup) for more on vault location and cloud sync.
 
 After locating the vault, you are asked to create a **master password**. This is the only password you need to remember — it protects all your vault data.
 

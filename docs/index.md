@@ -33,9 +33,9 @@ Your master password derives a key that unwraps the Data Encryption Key (DEK). T
 
 ## Documentation
 
-- [User Guide](guide) — features, usage, Chrome extension, settings
-- [Key Generation & Encryption](key-gen) — AES key generation, PBKDF2, OAuth recovery internals
-- [Backup Guide](backup) — how to back up and restore your vault
+- [User Guide](/guide) — features, usage, Chrome extension, settings
+- [Key Generation & Encryption](/key-gen) — AES key generation, PBKDF2, OAuth recovery internals
+- [Backup Guide](/backup) — how to back up and restore your vault
 
 ## Quick Start
 

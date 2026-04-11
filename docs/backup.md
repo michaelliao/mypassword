@@ -8,11 +8,11 @@ All vault data is stored in a single SQLite file named `mypassword.db`. It conta
 
 MyPassword stores a small pointer file at `~/.mypassword/vault.path` containing the absolute path of the real database file. On startup the app reads this pointer and opens whatever it points at. If the pointer file is missing, the **Locate Vault** dialog is shown so you can pick an existing vault file or create a new one anywhere on disk.
 
-| Default location | Path |
+| Default location | Path Pointer |
 |---|---|
-| Windows | `C:\Users\<username>\.mypassword\mypassword.db` |
-| macOS | `/Users/<username>/.mypassword/mypassword.db` |
-| Linux | `/home/<username>/.mypassword/mypassword.db` |
+| Windows | `C:\Users\<username>\.mypassword\vault.path` |
+| macOS | `/Users/<username>/.mypassword/vault.path` |
+| Linux | `/home/<username>/.mypassword/vault.path` |
 
 To find your real vault file at any time, open `~/.mypassword/vault.path` in a text editor — it is a plain-text file with a single absolute path.
 
@@ -81,7 +81,7 @@ If you want to restore to a different location, delete the pointer file first an
 
 ## Security Considerations
 
-- **The file is encrypted, but not invulnerable.** An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See [key-gen.md](key-gen.md#when-can-the-vault-be-compromised) for details.
+- **The file is encrypted, but not invulnerable.** An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See [key-gen.md](/key-gen#when-can-the-vault-be-compromised) for details.
 - **Keep backup copies limited.** Every copy is another target. Delete old backups you no longer need.
 - **Enable MFA on your cloud account.** If your cloud account is compromised, the attacker gets the vault file. The vault is still encrypted, but they can begin offline attacks.
 - **Do not share the file.** Even though it is encrypted, sharing it exposes it to unnecessary risk.
