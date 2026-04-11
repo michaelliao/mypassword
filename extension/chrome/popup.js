@@ -32,8 +32,11 @@ const inputPassword = document.getElementById('input-password');
 const btnUnlock = document.getElementById('btn-unlock');
 const unlockError = document.getElementById('unlock-error');
 const btnLock = document.getElementById('btn-lock');
+const btnSettings = document.getElementById('btn-settings');
+const settingsSection = document.getElementById('settings-section');
 const inputSearch = document.getElementById('input-search');
 const itemsContainer = document.getElementById('items-container');
+const toggleProxyPasskey = document.getElementById('toggle-proxy-passkey');
 
 let allItems = [];
 let currentHostname = '';
@@ -422,6 +425,18 @@ inputPassword.addEventListener('keydown', (e) => {
 });
 btnLock.addEventListener('click', doLock);
 inputSearch.addEventListener('input', onSearch);
+
+// ---- Settings section ----
+btnSettings.addEventListener('click', () => {
+  settingsSection.classList.toggle('hidden');
+});
+
+chrome.storage.local.get(['proxy_passkey']).then(({ proxy_passkey }) => {
+  toggleProxyPasskey.checked = !!proxy_passkey;
+});
+toggleProxyPasskey.addEventListener('change', () => {
+  chrome.storage.local.set({ proxy_passkey: toggleProxyPasskey.checked });
+});
 
 // ---- Start ----
 init();

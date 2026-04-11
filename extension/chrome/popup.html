@@ -53,7 +53,20 @@
   <div id="view-items" class="view hidden">
     <div class="header">
       <span class="app-title">MyPassword</span>
-      <button id="btn-lock" class="btn btn-icon" title="Lock vault">🔒</button>
+      <div class="header-actions">
+        <button id="btn-settings" class="btn btn-icon" title="Settings">
+          <img src="icons/setting.svg" alt="Settings">
+        </button>
+        <button id="btn-lock" class="btn btn-icon" title="Lock vault">
+          <img src="icons/lock.svg" alt="Lock">
+        </button>
+      </div>
+    </div>
+    <div id="settings-section" class="settings-section hidden">
+      <div class="settings-toggle">
+        <input id="toggle-proxy-passkey" type="checkbox">
+        <span>Handle passkeys with MyPassword</span>
+      </div>
     </div>
     <div class="search-bar">
       <input id="input-search" type="text" placeholder="Search..." class="text-input search-input">

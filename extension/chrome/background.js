@@ -49,6 +49,75 @@ async function daemonRequest(path, body, method = 'POST') {
   return resp.json();
 }
 
+// ---- WebAuthn proxy ----
+// When the `proxy_passkey` setting in chrome.storage.local is true, we attach
+// as Chrome's WebAuthn provider — every navigator.credentials.create/.get call
+// in this profile is then routed to onCreateRequest/onGetRequest below.
+// While unattached, Chrome's normal authenticator picker is used as before.
+//
+// Smoke-test handlers reject every request with NotAllowedError. The real
+// handling will live behind /passkey/create on the daemon.
+
+async function syncWebAuthnProxy() {
+  if (!chrome.webAuthenticationProxy) {
+    console.warn('webAuthenticationProxy API not available — Chrome 115+ required');
+    return;
+  }
+  const { proxy_passkey } = await chrome.storage.local.get(['proxy_passkey']);
+  if (proxy_passkey) {
+    try {
+      await chrome.webAuthenticationProxy.attach();
+      console.log('webAuthenticationProxy: attached');
+    } catch (e) {
+      console.warn('webAuthenticationProxy.attach failed:', e);
+    }
+  } else {
+    try {
+      await chrome.webAuthenticationProxy.detach();
+      console.log('webAuthenticationProxy: detached');
+    } catch (_) {
+      // not attached — fine
+    }
+  }
+}
+
+chrome.runtime.onInstalled.addListener(syncWebAuthnProxy);
+chrome.runtime.onStartup.addListener(syncWebAuthnProxy);
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && 'proxy_passkey' in changes) {
+    syncWebAuthnProxy();
+  }
+});
+
+if (chrome.webAuthenticationProxy) {
+  chrome.webAuthenticationProxy.onCreateRequest.addListener((req) => {
+    console.log('webAuthenticationProxy.onCreateRequest', req);
+    chrome.webAuthenticationProxy.completeCreateRequest({
+      requestId: req.requestId,
+      error: {
+        name: 'NotAllowedError',
+        message: 'MyPassword passkey support is not implemented yet (smoke test).',
+      },
+    });
+  });
+
+  chrome.webAuthenticationProxy.onGetRequest.addListener((req) => {
+    console.log('webAuthenticationProxy.onGetRequest', req);
+    chrome.webAuthenticationProxy.completeGetRequest({
+      requestId: req.requestId,
+      error: {
+        name: 'NotAllowedError',
+        message: 'MyPassword passkey support is not implemented yet (smoke test).',
+      },
+    });
+  });
+
+  chrome.webAuthenticationProxy.onRequestCanceled.addListener((requestId) => {
+    console.log('webAuthenticationProxy.onRequestCanceled', requestId);
+  });
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'DAEMON_REQUEST') {
     daemonRequest(msg.path, msg.body, msg.method || 'POST')
