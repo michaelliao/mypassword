@@ -17,7 +17,7 @@ import org.puppylab.mypassword.core.data.PasskeyData;
 import org.puppylab.mypassword.core.exception.EncryptException;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
-import org.puppylab.mypassword.rpc.request.AddPasskeyRequest;
+import org.puppylab.mypassword.rpc.request.PasskeyAddRequest;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.CborWriter;
 import org.puppylab.mypassword.util.EncryptUtils;
@@ -74,7 +74,7 @@ public class PasskeyBuilder {
      * Build a new passkey for the given request using the provided vault DEK to
      * wrap the private key.
      */
-    public static Result build(SecretKey dek, AddPasskeyRequest req) {
+    public static Result build(SecretKey dek, PasskeyAddRequest req) {
         if (req.options == null || req.options.rp == null || req.options.user == null) {
             throw new VaultException(ErrorCode.BAD_REQUEST, "Missing passkey options.");
         }
@@ -175,7 +175,7 @@ public class PasskeyBuilder {
     }
 
     /** The RP must allow ES256; we do not currently support any other alg. */
-    private static void requireEs256(AddPasskeyRequest req) {
+    private static void requireEs256(PasskeyAddRequest req) {
         var params = req.options.pubKeyCredParams;
         if (params == null || params.length == 0) {
             throw new VaultException(ErrorCode.BAD_REQUEST, "No pubKeyCredParams.");

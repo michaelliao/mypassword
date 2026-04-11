@@ -2,7 +2,7 @@ package org.puppylab.mypassword.rpc.response;
 
 import java.util.Map;
 
-public class AddPasskeyResponse {
+public class PasskeyAddResponse {
     public String          id;                      // base64url credentialId
     public String          rawId;                   // same, base64url
     public String          type;                    // "public-key"

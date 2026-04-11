@@ -15,7 +15,6 @@ import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PairRequest;
 import org.puppylab.mypassword.core.data.PairResponse;
 import org.puppylab.mypassword.core.data.StringResponse;
-import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
 import org.puppylab.mypassword.core.web.GetMapping;
@@ -28,14 +27,17 @@ import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
-import org.puppylab.mypassword.rpc.request.AddPasskeyRequest;
 import org.puppylab.mypassword.rpc.request.GeneratePasswordRequest;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
+import org.puppylab.mypassword.rpc.request.PasskeyAddRequest;
+import org.puppylab.mypassword.rpc.request.PasskeyLoginRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
-import org.puppylab.mypassword.rpc.response.AddPasskeyResponse;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
+import org.puppylab.mypassword.rpc.response.PasskeyAddResponse;
+import org.puppylab.mypassword.rpc.response.PasskeyLoginResponse;
+import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.FileUtils;
 import org.puppylab.mypassword.util.PasswordUtils;
 import org.slf4j.Logger;
@@ -180,13 +182,13 @@ public class RequestController {
     }
 
     /**
-     * Add a new passkey to an existing login item. Generates an EC P-256
-     * keypair, wraps the private key with the vault DEK, stores the passkey on
-     * the login item, and returns a WebAuthn attestation the extension can
-     * hand back to the browser via {@code completeCreateRequest}.
+     * Add a new passkey to an existing login item. Generates an EC P-256 keypair,
+     * wraps the private key with the vault DEK, stores the passkey on the login
+     * item, and returns a WebAuthn attestation the extension can hand back to the
+     * browser via {@code completeCreateRequest}.
      */
     @PostMapping("/passkeys/add")
-    public AddPasskeyResponse passkeyAdd(@RequestBody AddPasskeyRequest req) {
+    public PasskeyAddResponse passkeyAdd(@RequestBody PasskeyAddRequest req) {
         SecretKey key = getKey();
         AbstractItemData item = VaultManager.getCurrent().getItem(key, req.itemId);
         if (!(item instanceof LoginItemData login)) {
@@ -196,8 +198,7 @@ public class RequestController {
             throw new VaultException(ErrorCode.BAD_REQUEST, "Login item has no data: " + req.itemId);
         }
         if (login.data.passkey != null) {
-            throw new VaultException(ErrorCode.BAD_REQUEST,
-                    "Login item already has a passkey: " + req.itemId);
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Login item already has a passkey: " + req.itemId);
         }
 
         PasskeyBuilder.Result built = PasskeyBuilder.build(key, req);
@@ -207,23 +208,30 @@ public class RequestController {
         VaultManager.getCurrent().updateItem(key, login);
         VaultManager.getCurrent().fireItemsChanged();
 
-        logger.info("added passkey for item {} (rp={}, user={})",
-                req.itemId, built.data.relyingPartyId, built.data.username);
+        logger.info("added passkey for item {} (rp={}, user={})", req.itemId, built.data.relyingPartyId,
+                built.data.username);
 
         // Build the WebAuthn response the browser expects.
         String credIdB64 = Base64Utils.b64(built.credentialId);
-        AddPasskeyResponse resp = new AddPasskeyResponse();
+        PasskeyAddResponse resp = new PasskeyAddResponse();
         resp.id = credIdB64;
         resp.rawId = credIdB64;
         resp.type = "public-key";
         resp.authenticatorAttachment = "platform";
-        resp.response = new AddPasskeyResponse.PasskeyResponse();
+        resp.response = new PasskeyAddResponse.PasskeyResponse();
         resp.response.clientDataJSON = Base64Utils.b64(built.clientDataJson);
         resp.response.authenticatorData = Base64Utils.b64(built.authenticatorData);
         resp.response.publicKey = Base64Utils.b64(built.publicKeySpki);
         resp.response.publicKeyAlgorithm = built.publicKeyAlgorithm;
         resp.response.attestationObject = Base64Utils.b64(built.attestationObject);
         resp.response.transports = new String[] { "internal" };
+        return resp;
+    }
+
+    @PostMapping("/passkeys/login")
+    public PasskeyLoginResponse passkeyLogin(@RequestBody PasskeyLoginRequest req) {
+        //
+        PasskeyLoginResponse resp = new PasskeyLoginResponse();
         return resp;
     }
 

@@ -2,7 +2,7 @@ package org.puppylab.mypassword.rpc.request;
 
 import org.puppylab.mypassword.rpc.BaseRequest;
 
-public class AddPasskeyRequest extends BaseRequest {
+public class PasskeyAddRequest extends BaseRequest {
 
     public long           itemId;
     public String         origin;
