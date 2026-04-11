@@ -68,17 +68,40 @@ public class MainWindow {
             System.exit(1);
         }
 
+        // ── locate vault ──────────────────────────────────────────────────
+        // ~/.mypassword is either created or validated (throws if the path
+        // exists but isn't a directory). The db path is resolved via the
+        // pointer file (~/.mypassword/vault.path) if present, otherwise
+        // defaults to ~/.mypassword/mypassword.db.
+
+        // ── main thread: owns the SWT Display ─────────────────────────────
+        // Display is created before touching DbManager so the locator dialog
+        // (shown when the vault file is missing / unlocated) has a Display to
+        // attach to. i18n is initialised with the system locale here — the
+        // user's saved preference is applied later, once the vault is open.
+        Display display = new Display();
+        I18nUtils.init("");
+
+        if (!FileUtils.isValidVaultFile(FileUtils.getDbFile())) {
+            Shell locatorShell = new Shell(display);
+            boolean located = new VaultLocatorDialog(locatorShell).open();
+            locatorShell.dispose();
+            if (!located) {
+                display.dispose();
+                System.exit(0);
+            }
+        }
+
+        // getDbFile() is re-resolved here so it picks up the pointer file
+        // written by the locator dialog (if the user went through it).
         Path dbFile = FileUtils.getDbFile();
         DbManager dbManager = new DbManager(dbFile);
         VaultManager vaultManager = new VaultManager(dbManager);
-        // initialise i18n with the saved language setting before any UI
-        // string is loaded (InitVaultDialog / MainWindow shell / views).
+        // Re-initialise i18n with the saved language setting so the rest of
+        // the UI (InitVaultDialog, MainWindow shell, views) honours it.
         I18nUtils.init(vaultManager.getSetting(SettingKey.LANGUAGE, ""));
         Session.getCurrent().startAutoLockThread();
         daemon.initDispatcher();
-
-        // ── main thread: owns the SWT Display ─────────────────────────────
-        Display display = new Display();
 
         if (!vaultManager.isInitialized()) {
             Shell initShell = new Shell(display);
@@ -99,9 +122,7 @@ public class MainWindow {
         Shell shell = new Shell(display);
         shell.setText(i18n("app.name"));
         shell.setSize(800, 600);
-        var screenBounds = display.getPrimaryMonitor().getBounds();
-        var shellSize = shell.getSize();
-        shell.setLocation((screenBounds.width - shellSize.x) / 2, (screenBounds.height - shellSize.y) / 2);
+        ShellUtil.setCenter(shell);
         shell.setLayout(new GridLayout(1, false));
         Image appIcon = loadIcon(display);
         shell.setImage(appIcon);

@@ -50,6 +50,7 @@ public class InitVaultDialog {
         shell.setText(i18n("init.title"));
         shell.setSize(400, 320);
         shell.setLayout(new GridLayout(1, false));
+        ShellUtil.setCenter(shell);
 
         // ── title ────────────────────────────────────────────────────────
         Label title = new Label(shell, SWT.CENTER);
