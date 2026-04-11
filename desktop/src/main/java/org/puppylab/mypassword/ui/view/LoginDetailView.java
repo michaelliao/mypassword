@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
 import org.puppylab.mypassword.core.data.LoginItemData;
+import org.puppylab.mypassword.core.data.PasskeyData;
 import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     private Label      titleValue;
     private Label      usernameValue;
     private Label      passwordValue;
+    private Label      passkeyValue;
     private MultiLabel websitesContainer;
     private Label      memoValue;
 
@@ -52,6 +54,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         titleValue = createField(i18n("field.title"));
         usernameValue = createField(i18n("field.username"));
         createPasswordField();
+        passkeyValue = createField(i18n("field.passkey"));
         websitesContainer = createMultiValueField(i18n("field.websites"));
         memoValue = createField(i18n("field.memo"));
     }
@@ -124,8 +127,38 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         btnGroup.setVisible(hasPassword);
         ((GridData) btnGroup.getLayoutData()).exclude = !hasPassword;
         btnGroup.getParent().layout(true, true);
+
+        // Passkey row — hidden entirely when the login has no passkey.
+        PasskeyData passkey = item.data.passkey;
+        Composite passkeyRow = passkeyValue.getParent();
+        GridData passkeyRowData = (GridData) passkeyRow.getLayoutData();
+        if (passkey != null) {
+            passkeyValue.setText(formatPasskey(passkey));
+            passkeyRow.setVisible(true);
+            passkeyRowData.exclude = false;
+        } else {
+            passkeyValue.setText("");
+            passkeyRow.setVisible(false);
+            passkeyRowData.exclude = true;
+        }
+
         websitesContainer.setValues(item.data.websites);
         memoValue.setText(StringUtils.normalize(item.data.memo));
+    }
+
+    private static String formatPasskey(PasskeyData p) {
+        String user = StringUtils.normalize(p.username);
+        String display = StringUtils.normalize(p.displayName);
+        if (user.isEmpty() && display.isEmpty()) {
+            return "";
+        }
+        if (user.isEmpty()) {
+            return display;
+        }
+        if (display.isEmpty() || user.equals(display)) {
+            return user;
+        }
+        return user + " / " + display;
     }
 
     private void copyPassword() {
