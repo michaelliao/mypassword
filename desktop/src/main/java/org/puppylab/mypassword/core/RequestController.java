@@ -228,10 +228,43 @@ public class RequestController {
         return resp;
     }
 
+    /**
+     * Sign a WebAuthn assertion with a stored passkey. Loads the selected login
+     * item, decrypts its private key with the vault DEK, and signs
+     * {@code authenticatorData ‖ SHA-256(clientDataJSON)}. The returned JSON is
+     * the {@code AuthenticationResponseJSON} the extension hands to
+     * {@code completeGetRequest}.
+     */
     @PostMapping("/passkeys/login")
     public PasskeyLoginResponse passkeyLogin(@RequestBody PasskeyLoginRequest req) {
-        //
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, req.itemId);
+        if (!(item instanceof LoginItemData login)) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item not found: " + req.itemId);
+        }
+        if (login.data == null || login.data.passkey == null) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND,
+                    "Login item has no passkey: " + req.itemId);
+        }
+
+        PasskeySigner.Result signed = PasskeySigner.sign(key, login, req);
+
+        logger.info("signed passkey assertion for item {} (rp={})",
+                req.itemId, login.data.passkey.relyingPartyId);
+
+        String credIdB64 = Base64Utils.b64(signed.credentialId);
         PasskeyLoginResponse resp = new PasskeyLoginResponse();
+        resp.id = credIdB64;
+        resp.rawId = credIdB64;
+        resp.type = "public-key";
+        resp.authenticatorAttachment = "platform";
+        resp.response = new PasskeyLoginResponse.AssertionResponse();
+        resp.response.clientDataJSON = Base64Utils.b64(signed.clientDataJson);
+        resp.response.authenticatorData = Base64Utils.b64(signed.authenticatorData);
+        resp.response.signature = Base64Utils.b64(signed.signatureDer);
+        if (signed.userHandle != null) {
+            resp.response.userHandle = Base64Utils.b64(signed.userHandle);
+        }
         return resp;
     }
 

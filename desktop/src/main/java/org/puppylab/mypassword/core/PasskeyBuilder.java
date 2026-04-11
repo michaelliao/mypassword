@@ -117,7 +117,7 @@ public class PasskeyBuilder {
             // clientDataJSON. Field order must not matter for fmt=none but we
             // follow the order the spec's algorithm produces for JSON-compatible
             // serialization.
-            byte[] clientDataJson = buildClientDataJson(req.options.challenge, req.origin);
+            byte[] clientDataJson = buildClientDataJson("webauthn.create", req.options.challenge, req.origin);
 
             // attestationObject CBOR: { fmt: "none", attStmt: {}, authData: <bytes> }.
             CborWriter att = new CborWriter();
@@ -158,7 +158,7 @@ public class PasskeyBuilder {
     }
 
     /** The origin's host must equal rpId or be a sub-domain of rpId. */
-    private static void validateOrigin(String origin, String rpId) {
+    static void validateOrigin(String origin, String rpId) {
         String host;
         try {
             host = URI.create(origin).getHost();
@@ -263,17 +263,19 @@ public class PasskeyBuilder {
     }
 
     /**
-     * clientDataJSON for a {@code webauthn.create} ceremony.
+     * clientDataJSON for a WebAuthn ceremony. {@code type} is
+     * {@code "webauthn.create"} for registration or {@code "webauthn.get"} for
+     * assertion.
      *
      * <p>
      * The challenge from the RP is already base64url-encoded in the request; we
      * echo it back verbatim. {@code origin} is taken from the tab that initiated
      * the ceremony.
      */
-    private static byte[] buildClientDataJson(String challengeB64, String origin) {
+    static byte[] buildClientDataJson(String type, String challengeB64, String origin) {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
-        sb.append("\"type\":\"webauthn.create\"");
+        sb.append("\"type\":\"").append(escape(type)).append('"');
         sb.append(",\"challenge\":\"").append(escape(challengeB64 == null ? "" : challengeB64)).append('\"');
         sb.append(",\"origin\":\"").append(escape(origin)).append('\"');
         sb.append(",\"crossOrigin\":false");
@@ -281,7 +283,7 @@ public class PasskeyBuilder {
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private static String escape(String s) {
+    static String escape(String s) {
         StringBuilder sb = new StringBuilder(s.length() + 8);
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
