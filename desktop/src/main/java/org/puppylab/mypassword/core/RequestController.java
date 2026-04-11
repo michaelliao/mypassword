@@ -276,17 +276,10 @@ public class RequestController {
         SecretKey key = getKey();
         List<AbstractItemData> items = type == 0 ? VaultManager.getCurrent().getItems(key)
                 : VaultManager.getCurrent().getItems(key, type);
-        // clear password in response:
+        // clear sensitive fields in response:
         for (AbstractItemData item : items) {
             if (item instanceof LoginItemData login) {
-                String pwd = login.data.password;
-                if (pwd != null && !pwd.isEmpty()) {
-                    // has password, clear it:
-                    login.data.password = "";
-                } else {
-                    // no password:
-                    login.data.password = null;
-                }
+                stripSecrets(login);
             }
         }
         var response = new ItemsResponse();
@@ -300,9 +293,33 @@ public class RequestController {
     @GetMapping("/items/{id}/get")
     public ItemResponse itemGet(@PathVariable("id") long id) {
         SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
+        // the encrypted passkey private key is daemon-internal; the extension
+        // never needs it — passkey assertions read straight from the vault.
+        if (item instanceof LoginItemData login && login.data != null && login.data.passkey != null) {
+            login.data.passkey.b64EncryptedPrivKey = null;
+        }
         var response = new ItemResponse();
-        response.item = VaultManager.getCurrent().getItem(key, id);
+        response.item = item;
         return response;
+    }
+
+    /**
+     * Strip wire-sensitive fields from a login item for list responses:
+     * <ul>
+     *   <li>{@code password} — empty string means "has one, hidden"; {@code null} means "none".</li>
+     *   <li>{@code passkey.b64EncryptedPrivKey} — always nulled; only the daemon uses it.</li>
+     * </ul>
+     */
+    private static void stripSecrets(LoginItemData login) {
+        if (login.data == null) {
+            return;
+        }
+        String pwd = login.data.password;
+        login.data.password = (pwd != null && !pwd.isEmpty()) ? "" : null;
+        if (login.data.passkey != null) {
+            login.data.passkey.b64EncryptedPrivKey = null;
+        }
     }
 
     /**

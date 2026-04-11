@@ -10,6 +10,8 @@ import java.security.MessageDigest;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -21,6 +23,7 @@ import org.puppylab.mypassword.rpc.request.PasskeyAddRequest;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.CborWriter;
 import org.puppylab.mypassword.util.EncryptUtils;
+import org.puppylab.mypassword.util.JsonUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
 /**
@@ -273,50 +276,14 @@ public class PasskeyBuilder {
      * the ceremony.
      */
     static byte[] buildClientDataJson(String type, String challengeB64, String origin) {
-        StringBuilder sb = new StringBuilder();
-        sb.append('{');
-        sb.append("\"type\":\"").append(escape(type)).append('"');
-        sb.append(",\"challenge\":\"").append(escape(challengeB64 == null ? "" : challengeB64)).append('\"');
-        sb.append(",\"origin\":\"").append(escape(origin)).append('\"');
-        sb.append(",\"crossOrigin\":false");
-        sb.append('}');
-        return sb.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    static String escape(String s) {
-        StringBuilder sb = new StringBuilder(s.length() + 8);
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-            case '\\':
-                sb.append("\\\\");
-                break;
-            case '"':
-                sb.append("\\\"");
-                break;
-            case '\b':
-                sb.append("\\b");
-                break;
-            case '\f':
-                sb.append("\\f");
-                break;
-            case '\n':
-                sb.append("\\n");
-                break;
-            case '\r':
-                sb.append("\\r");
-                break;
-            case '\t':
-                sb.append("\\t");
-                break;
-            default:
-                if (c < 0x20) {
-                    sb.append(String.format("\\u%04x", (int) c));
-                } else {
-                    sb.append(c);
-                }
-            }
-        }
-        return sb.toString();
+        // LinkedHashMap preserves insertion order so Jackson emits fields in the
+        // WebAuthn JSON-compatible serialization order: type, challenge, origin,
+        // crossOrigin. Map.of() would give arbitrary iteration order.
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("type", type);
+        data.put("challenge", challengeB64 == null ? "" : challengeB64);
+        data.put("origin", origin);
+        data.put("crossOrigin", Boolean.FALSE);
+        return JsonUtils.toJson(data).getBytes(StandardCharsets.UTF_8);
     }
 }
