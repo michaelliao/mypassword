@@ -2,21 +2,21 @@
 
 ## What to Back Up
 
-All vault data is stored in a single SQLite file:
+All vault data is stored in a single SQLite file named `mypassword.db`. It contains everything: encrypted items (logins, notes, identities), vault configuration (encrypted DEK, salt, IV), recovery configuration, and settings. All sensitive data within the file is encrypted with AES-256-GCM — the file itself is safe to copy and store.
 
-```
-~/.mypassword/mypassword.db
-```
+## Where Is My Vault?
 
-Platform-specific paths:
+MyPassword stores a small pointer file at `~/.mypassword/vault.path` containing the absolute path of the real database file. On startup the app reads this pointer and opens whatever it points at. If the pointer file is missing, the app looks for a vault at the default location `~/.mypassword/mypassword.db`; if that is also missing, the **Locate Vault** dialog is shown so you can pick an existing vault file or create a new one anywhere on disk.
 
-| OS | Path |
+| Default location | Path |
 |---|---|
 | Windows | `C:\Users\<username>\.mypassword\mypassword.db` |
 | macOS | `/Users/<username>/.mypassword/mypassword.db` |
 | Linux | `/home/<username>/.mypassword/mypassword.db` |
 
-This file contains everything: encrypted items (logins, notes, identities), vault configuration (encrypted DEK, salt, IV), recovery configuration, and settings. All sensitive data within the file is encrypted with AES-256-GCM — the file itself is safe to copy and store.
+To find your real vault file at any time, open `~/.mypassword/vault.path` in a text editor — it is a plain-text file with a single absolute path.
+
+If you let MyPassword create a vault in a custom location via the **Locate Vault** dialog, your vault file lives at whatever path you chose (e.g. inside a OneDrive folder) and the pointer file records that path.
 
 ## Is It Safe to Upload?
 
@@ -29,7 +29,8 @@ That said, treat the backup as sensitive — see [Security Considerations](#secu
 ### Manual Copy
 
 1. **Close MyPassword** (or lock the vault) to ensure no writes are in progress
-2. Copy `mypassword.db` to your backup location
+2. Locate your vault file (see [Where Is My Vault?](#where-is-my-vault))
+3. Copy `mypassword.db` to your backup location
 
 ### Upload to Cloud Drive
 
@@ -43,35 +44,40 @@ You can upload the database file to any cloud storage provider:
 **Steps:**
 
 1. Lock or close MyPassword
-2. Navigate to `~/.mypassword/`
+2. Locate your vault file (see [Where Is My Vault?](#where-is-my-vault))
 3. Copy `mypassword.db` to your cloud drive folder (or upload via the web interface)
 4. Optionally rename the file with a date, e.g. `mypassword-2026-04-08.db`
 
 ### Automated Sync
 
-You can place the `~/.mypassword/` directory inside a cloud-synced folder, or create a symbolic link:
+The easiest way to keep the vault continuously backed up is to store it directly inside a cloud-synced folder. MyPassword supports this out of the box — no symlinks or platform-specific commands needed.
 
-**Windows (PowerShell, run as Administrator):**
-```powershell
-# Move the data directory into OneDrive and create a symlink
-Move-Item "$env:USERPROFILE\.mypassword" "$env:USERPROFILE\OneDrive\.mypassword"
-New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.mypassword" -Target "$env:USERPROFILE\OneDrive\.mypassword"
-```
+**First-time setup:**
 
-**macOS / Linux:**
-```bash
-# Move the data directory into a cloud-synced folder and create a symlink
-mv ~/.mypassword ~/GoogleDrive/.mypassword
-ln -s ~/GoogleDrive/.mypassword ~/.mypassword
-```
+1. Quit MyPassword
+2. Delete `~/.mypassword/vault.path` (and `~/.mypassword/mypassword.db` if you haven't started using the vault yet)
+3. Launch MyPassword — the **Locate Vault** dialog appears
+4. Click **Create new vault…** and pick a folder inside your cloud drive, e.g. `~/OneDrive/MyPassword/`
+5. The new vault file is created at `<cloud folder>/mypassword.db` and the pointer file at `~/.mypassword/vault.path` records that location
 
-This keeps the vault automatically synced. However, be aware of potential conflicts if MyPassword is running on multiple machines simultaneously — SQLite does not support concurrent writes from different processes over network file systems.
+**Migrating an existing vault to a cloud folder:**
+
+1. Quit MyPassword
+2. Move (or copy) your current `mypassword.db` into the cloud folder, e.g. `~/OneDrive/MyPassword/mypassword.db`
+3. Delete `~/.mypassword/vault.path` and `~/.mypassword/mypassword.db` if they still exist
+4. Launch MyPassword — the **Locate Vault** dialog appears
+5. Click **Open existing vault…** and pick the file you just moved
+6. The pointer file is written and MyPassword uses the cloud-synced file from now on
+
+**Caveat — concurrent access.** SQLite does not support reliable concurrent writes from different processes over network file systems. If you run MyPassword on multiple machines that share the same cloud-synced vault, make sure only one instance has the vault unlocked at a time.
 
 ## How to Restore
 
 1. Close MyPassword if it is running
-2. Copy the backup file to `~/.mypassword/mypassword.db`, replacing the existing file
+2. Copy the backup file over the real vault file (the path recorded in `~/.mypassword/vault.path`, or the default `~/.mypassword/mypassword.db` if no pointer file exists)
 3. Open MyPassword and unlock with your master password (or OAuth recovery)
+
+If you want to restore to a different location, delete the pointer file first and use the **Open existing vault…** button in the Locate Vault dialog to point MyPassword at the restored file.
 
 ## Security Considerations
 
