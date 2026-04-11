@@ -91,15 +91,44 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 if (chrome.webAuthenticationProxy) {
-  chrome.webAuthenticationProxy.onCreateRequest.addListener((req) => {
+  chrome.webAuthenticationProxy.onCreateRequest.addListener(async (req) => {
     console.log('webAuthenticationProxy.onCreateRequest', req);
-    chrome.webAuthenticationProxy.completeCreateRequest({
-      requestId: req.requestId,
-      error: {
-        name: 'NotAllowedError',
-        message: 'MyPassword passkey support is not implemented yet (smoke test).',
-      },
-    });
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab || tab.id == null) {
+        throw new Error('No active tab');
+      }
+      // Remember which tab is handling this request so we can cancel on tab close
+      await chrome.storage.session.set({
+        passkeyCreateRequest: {
+          requestId: req.requestId,
+          requestDetailsJson: req.requestDetailsJson,
+          tabId: tab.id,
+        },
+      });
+      // Ask the content script to show the in-page panel
+      try {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'SHOW_PASSKEY_PROMPT',
+          request: {
+            requestId: req.requestId,
+            requestDetailsJson: req.requestDetailsJson,
+          },
+        });
+      } catch (e) {
+        throw new Error('Cannot show prompt on this page: ' + e.message);
+      }
+    } catch (e) {
+      console.warn('Failed to show passkey prompt:', e);
+      chrome.webAuthenticationProxy.completeCreateRequest({
+        requestId: req.requestId,
+        error: {
+          name: 'NotAllowedError',
+          message: 'MyPassword: ' + e.message,
+        },
+      });
+      await chrome.storage.session.remove(['passkeyCreateRequest']);
+    }
   });
 
   chrome.webAuthenticationProxy.onGetRequest.addListener((req) => {
@@ -108,15 +137,39 @@ if (chrome.webAuthenticationProxy) {
       requestId: req.requestId,
       error: {
         name: 'NotAllowedError',
-        message: 'MyPassword passkey support is not implemented yet (smoke test).',
+        message: 'MyPassword passkey sign-in is not implemented yet.',
       },
     });
   });
 
-  chrome.webAuthenticationProxy.onRequestCanceled.addListener((requestId) => {
+  chrome.webAuthenticationProxy.onRequestCanceled.addListener(async (requestId) => {
     console.log('webAuthenticationProxy.onRequestCanceled', requestId);
+    const stored = await chrome.storage.session.get(['passkeyCreateRequest']);
+    if (stored.passkeyCreateRequest?.requestId === requestId) {
+      // Tell the content script to close its panel if still open
+      if (stored.passkeyCreateRequest.tabId != null) {
+        chrome.tabs.sendMessage(stored.passkeyCreateRequest.tabId, {
+          type: 'HIDE_PASSKEY_PROMPT',
+        }).catch(() => {});
+      }
+      await chrome.storage.session.remove(['passkeyCreateRequest']);
+    }
   });
 }
+
+// If the tab hosting the passkey request is closed, treat as cancel.
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  const stored = await chrome.storage.session.get(['passkeyCreateRequest']);
+  if (stored.passkeyCreateRequest?.tabId === tabId) {
+    try {
+      chrome.webAuthenticationProxy.completeCreateRequest({
+        requestId: stored.passkeyCreateRequest.requestId,
+        error: { name: 'NotAllowedError', message: 'Tab closed.' },
+      });
+    } catch (_) {}
+    await chrome.storage.session.remove(['passkeyCreateRequest']);
+  }
+});
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'DAEMON_REQUEST') {
@@ -134,6 +187,41 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       chrome.action.setBadgeBackgroundColor({ color: '#4a90e2', tabId });
     }
     return false;
+  }
+
+  if (msg.type === 'PASSKEY_CREATE_RESULT') {
+    (async () => {
+      const stored = await chrome.storage.session.get(['passkeyCreateRequest', 'passkeyWindowId']);
+      const reqId = stored.passkeyCreateRequest?.requestId;
+      if (reqId == null) {
+        sendResponse({ ok: false, error: 'No pending passkey request' });
+        return;
+      }
+      try {
+        if (msg.ok) {
+          chrome.webAuthenticationProxy.completeCreateRequest({
+            requestId: reqId,
+            responseJson: msg.responseJson,
+          });
+        } else {
+          chrome.webAuthenticationProxy.completeCreateRequest({
+            requestId: reqId,
+            error: {
+              name: msg.errorName || 'NotAllowedError',
+              message: msg.errorMessage || 'Cancelled',
+            },
+          });
+        }
+      } catch (e) {
+        console.warn('completeCreateRequest failed:', e);
+      }
+      await chrome.storage.session.remove(['passkeyCreateRequest', 'passkeyWindowId']);
+      if (stored.passkeyWindowId != null) {
+        chrome.windows.remove(stored.passkeyWindowId).catch(() => {});
+      }
+      sendResponse({ ok: true });
+    })();
+    return true;
   }
 
   if (msg.type === 'FILL_CREDENTIALS') {

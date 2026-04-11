@@ -27,9 +27,11 @@ import org.puppylab.mypassword.core.web.pkce.OAuthUser;
 import org.puppylab.mypassword.rpc.BaseResponse;
 import org.puppylab.mypassword.rpc.ErrorCode;
 import org.puppylab.mypassword.rpc.VaultException;
+import org.puppylab.mypassword.rpc.request.AddPasskeyRequest;
 import org.puppylab.mypassword.rpc.request.GeneratePasswordRequest;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
+import org.puppylab.mypassword.rpc.response.AddPasskeyResponse;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
 import org.puppylab.mypassword.rpc.response.ItemsResponse;
@@ -174,6 +176,15 @@ public class RequestController {
                     + displayEmail + ".</p><p>You can use your " + displayProvider
                     + " account to unlock your vault for emergency.</p>");
         }
+    }
+
+    /**
+     * Add new passkey to login item
+     */
+    @PostMapping("/passkeys/add")
+    public AddPasskeyResponse passkeyAdd(@RequestBody AddPasskeyRequest req) {
+        AddPasskeyResponse resp = new AddPasskeyResponse();
+        return resp;
     }
 
     /**

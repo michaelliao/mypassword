@@ -14,6 +14,25 @@
   let activeSavePanel = null;
   let pendingUsername = null; // for multi-page login: cache username from page 1
 
+  // ---- Injected stylesheet (for :hover etc. that can't be expressed inline) ----
+
+  function ensureStyles() {
+    if (document.getElementById('mypassword-injected-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'mypassword-injected-styles';
+    style.textContent = `
+      .mypassword-login-row { transition: background 0.12s; }
+      .mypassword-login-row:hover { background: #e3ecff; }
+
+      .mypassword-passkey-row { transition: background 0.12s, border-color 0.12s; }
+      .mypassword-passkey-row:hover {
+        background: #e3ecff;
+        border-color: #b7cbff;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+  }
+
   // ---- Credential field detection ----
 
   function findCredentialFields() {
@@ -152,6 +171,7 @@
   function createDropdown(matches, anchorField, pwField, userField) {
     removeDropdown();
     if (matches.length === 0) return;
+    ensureStyles();
 
     const dropdown = document.createElement('div');
     dropdown.className = 'mypassword-dropdown';
@@ -175,6 +195,7 @@
 
     for (const item of matches) {
       const row = document.createElement('div');
+      row.className = 'mypassword-login-row';
       row.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
@@ -187,8 +208,6 @@
         <span style="font-weight:600;color:#222;">${escapeHtml(item.data?.title || '')}</span>
         <span style="color:#888;font-size:11px;">${escapeHtml(item.data?.username || '')}</span>
       `;
-      row.addEventListener('mouseenter', () => { row.style.background = '#f5f7ff'; });
-      row.addEventListener('mouseleave', () => { row.style.background = ''; });
       row.addEventListener('mousedown', (e) => {
         e.preventDefault();
         fetchAndFill(item, pwField, userField);
@@ -640,7 +659,201 @@
         fillFields(msg.item, pwField, userField);
       }
     }
+    if (msg.type === 'SHOW_PASSKEY_PROMPT') {
+      showPasskeyCreatePanel(msg.request);
+    }
+    if (msg.type === 'HIDE_PASSKEY_PROMPT') {
+      removePasskeyPanel();
+    }
   });
+
+  // ---- Passkey create panel (in-page) ----
+
+  let activePasskeyPanel = null;
+
+  function removePasskeyPanel() {
+    if (activePasskeyPanel) {
+      activePasskeyPanel.remove();
+      activePasskeyPanel = null;
+    }
+  }
+
+  async function showPasskeyCreatePanel(req) {
+    removeSavePanel();
+    removePasskeyPanel();
+    ensureStyles();
+
+    let finished = false;
+    function finishWith(result) {
+      if (finished) return;
+      finished = true;
+      chrome.runtime.sendMessage({ type: 'PASSKEY_CREATE_RESULT', ...result });
+      removePasskeyPanel();
+    }
+
+    const panel = document.createElement('div');
+    panel.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 2147483647;
+      background: #fff;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      width: 340px;
+      overflow: hidden;
+    `;
+
+    // header
+    const header = document.createElement('div');
+    header.style.cssText = `
+      padding: 10px 14px;
+      background: #4a90e2;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `;
+    header.textContent = 'Add Passkey';
+    const closeBtn = document.createElement('span');
+    closeBtn.textContent = '\u00d7';
+    closeBtn.style.cssText = 'cursor:pointer;font-size:18px;line-height:1;';
+    closeBtn.addEventListener('click', () => {
+      finishWith({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
+    });
+    header.appendChild(closeBtn);
+    panel.appendChild(header);
+
+    // body
+    const body = document.createElement('div');
+    body.style.cssText = 'padding: 14px;';
+
+    const rpInfo = document.createElement('div');
+    rpInfo.style.cssText = 'margin-bottom: 10px; font-size: 12px; color: #555;';
+    body.appendChild(rpInfo);
+
+    const status = document.createElement('div');
+    status.style.cssText = 'margin-bottom: 10px; font-size: 12px; color: #666;';
+    status.textContent = 'Loading...';
+    body.appendChild(status);
+
+    const list = document.createElement('div');
+    list.style.cssText = 'max-height: 240px; overflow-y: auto;';
+    body.appendChild(list);
+
+    const footer = document.createElement('div');
+    footer.style.cssText = 'display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;';
+    const cancelBtn = makeSecondaryBtn('Cancel', () => {
+      finishWith({ ok: false, errorName: 'NotAllowedError', errorMessage: 'User cancelled' });
+    });
+    footer.appendChild(cancelBtn);
+    body.appendChild(footer);
+
+    panel.appendChild(body);
+    document.body.appendChild(panel);
+    activePasskeyPanel = panel;
+
+    function setStatus(msg) {
+      status.textContent = msg;
+      status.style.color = '#666';
+    }
+    function setStatusError(msg) {
+      status.textContent = msg;
+      status.style.color = '#c0392b';
+      list.innerHTML = '';
+    }
+
+    // Parse the WebAuthn options
+    let options;
+    try {
+      options = JSON.parse(req.requestDetailsJson);
+    } catch (e) {
+      setStatusError('Invalid request: ' + e.message);
+      return;
+    }
+    const rpId = options.rp?.id || '';
+    const rpName = options.rp?.name || rpId;
+    rpInfo.innerHTML =
+      'Site: <span style="font-weight:600;color:#222;">' + escapeHtml(rpName) + '</span>' +
+      ' <span style="color:#999;">(' + escapeHtml(rpId) + ')</span>';
+
+    // 1. Check vault is unlocked
+    try {
+      const info = await daemonRequest('/info', {});
+      if (info.data?.locked !== false) {
+        setStatusError('Unlock the vault before add a passkey');
+        return;
+      }
+    } catch (e) {
+      setStatusError('Daemon error: ' + e.message);
+      return;
+    }
+
+    // 2. Load login items, filter by rpId
+    let items;
+    try {
+      const resp = await daemonRequest('/items/list?type=1', null, 'GET');
+      items = (resp.items || []).filter((i) => !i.deleted);
+    } catch (e) {
+      setStatusError('Failed to load items: ' + e.message);
+      return;
+    }
+    const matched = items.filter((i) => matchesHostname(i, rpId));
+    if (matched.length === 0) {
+      setStatusError('No login for ' + rpId + ' in vault');
+      return;
+    }
+
+    // 3. Render pickable list
+    setStatus('Choose a login to attach the passkey to:');
+    for (const item of matched) {
+      const row = document.createElement('div');
+      row.className = 'mypassword-passkey-row';
+      row.style.cssText = `
+        padding: 8px 10px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid #eee;
+        margin-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      `;
+      row.innerHTML = `
+        <span style="font-weight:600;color:#222;">${escapeHtml(item.data?.title || '')}</span>
+        <span style="color:#888;font-size:11px;">${escapeHtml(item.data?.username || '')}</span>
+      `;
+      row.addEventListener('click', async () => {
+        setStatus('Waiting for desktop confirmation...');
+        list.innerHTML = '';
+        try {
+          const body = {
+            itemId: item.id,
+            options: options,
+          };
+          console.log('POST /passkeys/add body:', JSON.stringify(body, null, 2));
+          const resp = await daemonRequest('/passkeys/add', body);
+          if (resp && resp.error) {
+            setStatusError(resp.errorMessage || resp.error);
+            return;
+          }
+          const credential = resp && resp.credential ? resp.credential : resp;
+          finishWith({
+            ok: true,
+            responseJson: typeof credential === 'string' ? credential : JSON.stringify(credential),
+          });
+        } catch (e) {
+          setStatusError('Error: ' + e.message);
+        }
+      });
+      list.appendChild(row);
+    }
+  }
 
   // ---- Init ----
 
