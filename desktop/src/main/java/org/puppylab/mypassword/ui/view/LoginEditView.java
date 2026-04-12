@@ -16,6 +16,7 @@ import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PasskeyData;
+import org.puppylab.mypassword.ui.Icons;
 import org.puppylab.mypassword.util.PasswordUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
@@ -164,7 +165,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         });
 
         toggleGenBtn = new Button(row, SWT.PUSH);
-        toggleGenBtn.setText("\u25BC");
+        toggleGenBtn.setImage(Icons.get("view_down"));
         GridData toggleGd = new GridData();
         toggleGd.widthHint = 32;
         toggleGenBtn.setLayoutData(toggleGd);
@@ -260,7 +261,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     private void setGenAreaVisible(boolean visible) {
         genArea.setVisible(visible);
         ((GridData) genArea.getLayoutData()).exclude = !visible;
-        toggleGenBtn.setText(visible ? "\u25B2" : "\u25BC");
+        toggleGenBtn.setImage(Icons.get(visible ? "view_up" : "view_down"));
         content.layout(true, true);
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }

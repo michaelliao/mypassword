@@ -33,19 +33,24 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
     final ScrolledComposite sc;
     final Composite         content;
 
-    private final Button btnDelete;
-    private final Label  lblLastEdit;
+    private final Composite actions;
+    private final Label     actionsSep;
+    private final Button    btnDelete;
+    private final Button    btnRestore;
+    private final Label     lblLastEdit;
 
     private Runnable onEdit;
     private Runnable onDelete;
+    private Runnable onRestore;
 
     public AbstractDetailView(Composite parent) {
         composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
         // ── fixed action bar ──────────────────────────────────────────
-        Composite actions = new Composite(composite, SWT.NONE);
+        actions = new Composite(composite, SWT.NONE);
         actions.setLayout(new RowLayout());
+        actions.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         Button btnEdit = new Button(actions, SWT.PUSH);
         btnEdit.setText(i18n("detail.btn.edit"));
         btnEdit.addListener(SWT.Selection, _ -> {
@@ -54,8 +59,8 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
             }
         });
 
-        new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL)
-                .setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        actionsSep = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
+        actionsSep.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         // ── scrollable field area ─────────────────────────────────────
         sc = new ScrolledComposite(composite, SWT.V_SCROLL);
@@ -87,6 +92,16 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
             }
         });
 
+        btnRestore = new Button(content, SWT.PUSH);
+        btnRestore.setText(i18n("detail.btn.restore"));
+        btnRestore.setImage(Icons.get("restore"));
+        btnRestore.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        btnRestore.addListener(SWT.Selection, _ -> {
+            if (onRestore != null) {
+                onRestore.run();
+            }
+        });
+
         sc.setContent(content);
         sc.setMinSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         sc.addControlListener(ControlListener.controlResizedAdapter(_ -> {
@@ -99,12 +114,21 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
 
     public void show(T item) {
         setData(item);
-        btnDelete.setText(item.deleted ? i18n("detail.btn.restore") : i18n("detail.btn.delete"));
+        boolean deleted = item.deleted;
+        ((GridData) actions.getLayoutData()).exclude = deleted;
+        actions.setVisible(!deleted);
+        ((GridData) actionsSep.getLayoutData()).exclude = deleted;
+        actionsSep.setVisible(!deleted);
+        ((GridData) btnDelete.getLayoutData()).exclude = deleted;
+        btnDelete.setVisible(!deleted);
+        ((GridData) btnRestore.getLayoutData()).exclude = !deleted;
+        btnRestore.setVisible(deleted);
         if (item.updated_at > 0) {
             lblLastEdit.setText(i18n("detail.last_edit", DATE_TIME_FMT.format(Instant.ofEpochMilli(item.updated_at))));
         } else {
             lblLastEdit.setText("");
         }
+        composite.layout(true, true);
         content.layout(true, true);
         sc.setMinSize(content.computeSize(sc.getClientArea().width, SWT.DEFAULT));
     }
@@ -117,6 +141,10 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
 
     public void setOnDelete(Runnable listener) {
         this.onDelete = listener;
+    }
+
+    public void setOnRestore(Runnable listener) {
+        this.onRestore = listener;
     }
 
     protected Label createField(String labelText) {

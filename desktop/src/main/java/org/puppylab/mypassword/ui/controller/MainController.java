@@ -154,6 +154,10 @@ public class MainController {
         noteDetailView.setOnDelete(this::onDeleteCurrent);
         identityDetailView.setOnDelete(this::onDeleteCurrent);
 
+        loginDetailView.setOnRestore(this::onRestoreCurrent);
+        noteDetailView.setOnRestore(this::onRestoreCurrent);
+        identityDetailView.setOnRestore(this::onRestoreCurrent);
+
         loginEditView.setOnSave(this::onSave);
         loginEditView.setOnCancel(this::onCancel);
 
@@ -310,17 +314,26 @@ public class MainController {
     private void onDeleteCurrent() {
         if (state.selectedItem == null)
             return;
-        if (!state.selectedItem.deleted && !askConfirm(i18n("confirm.delete", state.selectedItem.title())))
+        if (!askConfirm(i18n("confirm.delete", state.selectedItem.title())))
             return;
         long id = state.selectedItem.id;
         SecretKey key = Session.getCurrent().getKey();
         if (key == null)
             return;
-        if (state.selectedItem.deleted) {
-            VaultManager.getCurrent().restoreItem(key, id);
-        } else {
-            VaultManager.getCurrent().deleteItem(key, id);
-        }
+        VaultManager.getCurrent().deleteItem(key, id);
+        state.selectedItem = null;
+        loadItems();
+        switchMode(Mode.EMPTY);
+    }
+
+    private void onRestoreCurrent() {
+        if (state.selectedItem == null)
+            return;
+        long id = state.selectedItem.id;
+        SecretKey key = Session.getCurrent().getKey();
+        if (key == null)
+            return;
+        VaultManager.getCurrent().restoreItem(key, id);
         state.selectedItem = null;
         loadItems();
         switchMode(Mode.EMPTY);

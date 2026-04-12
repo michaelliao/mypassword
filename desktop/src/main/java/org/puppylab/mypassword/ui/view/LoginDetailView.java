@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PasskeyData;
+import org.puppylab.mypassword.ui.Icons;
 import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.StringUtils;
 import org.slf4j.Logger;
@@ -93,10 +94,11 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
         copyBtn = new Button(btnGroup, SWT.PUSH);
         copyBtn.setText(i18n("password.btn.copy"));
+        copyBtn.setImage(Icons.get("copy"));
         copyBtn.addListener(SWT.Selection, _ -> copyPassword());
 
         arrowBtn = new Button(btnGroup, SWT.PUSH);
-        arrowBtn.setText("\u25BE");
+        arrowBtn.setImage(Icons.get("view_down"));
 
         Menu menu = new Menu(arrowBtn);
         showHideItem = new MenuItem(menu, SWT.PUSH);
@@ -167,6 +169,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         ClipboardUtils.copyPassword(plainPassword);
         Display display = Display.getCurrent();
         logger.info("password copied.");
+        copyBtn.setImage(Icons.get("copied"));
         // show tooltip below copy button:
         ToolTip tip = new ToolTip(composite.getShell(), SWT.ICON_INFORMATION);
         tip.setMessage(i18n("password.tip.copied"));
@@ -174,9 +177,11 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         Point loc = copyBtn.getParent().toDisplay(rect.x, rect.y + rect.height);
         tip.setLocation(loc);
         tip.setVisible(true);
-        display.timerExec(3000, () -> {
+        display.timerExec(2000, () -> {
             if (!tip.isDisposed())
                 tip.dispose();
+            if (!copyBtn.isDisposed())
+                copyBtn.setImage(Icons.get("copy"));
         });
     }
 
