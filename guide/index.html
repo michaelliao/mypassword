@@ -1,0 +1,1070 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../key-gen/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.0">
+    
+    
+      
+        <title>Guide - MyPassword</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.45e1311d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mypassword-user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MyPassword" class="md-header__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MyPassword
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../key-gen/" class="md-tabs__link">
+        
+  
+    
+  
+  Security
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../extension/" class="md-tabs__link">
+        
+  
+    
+  
+  Extension
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../backup/" class="md-tabs__link">
+        
+  
+    
+  
+  Backup
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MyPassword" class="md-nav__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    MyPassword
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      First Launch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unlocking-the-vault" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unlocking the Vault
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#item-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Item Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Item Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logins
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Identities
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Categories
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#password-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Password Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Password Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#copy-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      Copy Password
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show-hide-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      Show / Hide Password
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#password-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Password Generator
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passkey-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Passkey Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Passkey Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enabling-passkey-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling Passkey Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registering-a-passkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      Registering a Passkey
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signing-in-with-a-passkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      Signing In with a Passkey
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-and-deleting-passkeys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing and Deleting Passkeys
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chrome-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chrome Extension
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chrome Extension">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      Auto-Fill
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      Save &amp; Update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Popup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Settings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#password" class="md-nav__link">
+    <span class="md-ellipsis">
+      Password
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oauth-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      OAuth Recovery
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OAuth Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-tray" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Tray
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Overview
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key-gen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extension/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extension
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Backup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="mypassword-user-guide">MyPassword User Guide</h1>
+<p>MyPassword is an offline, open-source password manager. All data is stored locally on your device, encrypted with AES-256-GCM. It includes a desktop application and a Chrome browser extension.</p>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="first-launch">First Launch</h3>
+<p>On first launch, MyPassword shows the <strong>Locate Vault</strong> dialog so you can choose where your vault file lives:</p>
+<ul>
+<li><strong>Open existing vault…</strong> — point MyPassword at an existing <code>mypassword.db</code> file (useful when restoring a backup or switching machines)</li>
+<li><strong>Create new vault…</strong> — pick a folder in which a fresh <code>mypassword.db</code> will be created. You can choose any folder, including one inside a cloud-synced directory (e.g. OneDrive, Google Drive, Dropbox) so the vault syncs automatically across devices</li>
+</ul>
+<p>MyPassword records your choice in a small pointer file at <code>~/.mypassword/vault.path</code> and reads it on every subsequent launch, so you only go through this dialog once. See <a href="/backup">backup</a> for more on vault location and cloud sync.</p>
+<p>After locating the vault, you are asked to create a <strong>master password</strong>. This is the only password you need to remember — it protects all your vault data.</p>
+<ul>
+<li>Must be 8-50 characters</li>
+<li>Choose something strong and unique</li>
+<li>If you forget it, you can only recover via OAuth (if configured)</li>
+</ul>
+<p>After creation, the vault is populated with sample items to help you get familiar with the app.</p>
+<h3 id="unlocking-the-vault">Unlocking the Vault</h3>
+<p>Each time you open MyPassword, enter your master password to unlock. If OAuth recovery is configured, you can also unlock via Google or Microsoft login.</p>
+<h2 id="item-types">Item Types</h2>
+<p>MyPassword stores three types of items:</p>
+<h3 id="logins">Logins</h3>
+<p>Store website credentials:</p>
+<ul>
+<li><strong>Title</strong> — a label (e.g. "GitHub")</li>
+<li><strong>Username</strong> — your login name or email</li>
+<li><strong>Password</strong> — your password (stored encrypted)</li>
+<li><strong>Websites</strong> — one or more URLs for matching in the browser extension</li>
+<li><strong>Memo</strong> — optional notes</li>
+</ul>
+<p>Logins also support a built-in <strong>password generator</strong> (see below).</p>
+<h3 id="notes">Notes</h3>
+<p>Store free-form text securely:</p>
+<ul>
+<li><strong>Title</strong> — a label (e.g. "WiFi Password")</li>
+<li><strong>Content</strong> — the note body</li>
+</ul>
+<h3 id="identities">Identities</h3>
+<p>Store personal identification information:</p>
+<ul>
+<li><strong>Name</strong></li>
+<li><strong>Passport Number</strong></li>
+<li><strong>Identity Number</strong></li>
+<li><strong>Tax Number</strong></li>
+<li><strong>Mobiles</strong> — one or more mobile numbers</li>
+<li><strong>Telephones</strong> — one or more phone numbers</li>
+</ul>
+<h2 id="categories">Categories</h2>
+<p>The sidebar organizes items into categories:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All</td>
+<td>All non-deleted items</td>
+</tr>
+<tr>
+<td>Favorites</td>
+<td>Items you have starred</td>
+</tr>
+<tr>
+<td>Logins</td>
+<td>Login items only</td>
+</tr>
+<tr>
+<td>Notes</td>
+<td>Note items only</td>
+</tr>
+<tr>
+<td>Identities</td>
+<td>Identity items only</td>
+</tr>
+<tr>
+<td>Trash</td>
+<td>Deleted items (can be restored)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="managing-items">Managing Items</h2>
+<ul>
+<li><strong>Add</strong> — click the add button and choose an item type</li>
+<li><strong>Edit</strong> — select an item and click the edit button</li>
+<li><strong>Favorite</strong> — star/unstar an item to add or remove it from Favorites</li>
+<li><strong>Delete</strong> — moves the item to Trash (soft delete)</li>
+<li><strong>Restore</strong> — from Trash, restore a deleted item</li>
+<li><strong>Permanent delete</strong> — items in Trash can be permanently removed</li>
+</ul>
+<h2 id="password-features">Password Features</h2>
+<h3 id="copy-password">Copy Password</h3>
+<p>In the login detail view, click <strong>Copy</strong> to copy the password to the clipboard. The clipboard is automatically cleared after the configured timeout (default: 1 minute).</p>
+<h3 id="show-hide-password">Show / Hide Password</h3>
+<p>Click the <strong>dropdown arrow</strong> next to the Copy button for options:</p>
+<ul>
+<li><strong>Show</strong> / <strong>Hide</strong> — toggle password visibility inline</li>
+<li><strong>Show Large</strong> — display the password in a large popup window (useful for reading complex passwords)</li>
+</ul>
+<p>If a login item has no password, the Copy and dropdown buttons are hidden.</p>
+<h3 id="password-generator">Password Generator</h3>
+<p>When creating or editing a login item, expand the password generator to create a strong password:</p>
+<ul>
+<li><strong>Length</strong> — adjust with a slider (8-32 characters)</li>
+<li><strong>Style options:</strong></li>
+<li>Word + Number (alphanumeric)</li>
+<li>Word Only (letters only)</li>
+<li>Number Only (digits only)</li>
+<li>Contains Symbol (letters, numbers, and symbols like <code>?!@#$%&amp;*()-_+=[]{}&lt;&gt;:;,.</code>)</li>
+</ul>
+<p>Click <strong>Generate</strong> to fill the password field.</p>
+<h2 id="passkey-features">Passkey Features</h2>
+<p>A <strong>passkey</strong> is a phishing-resistant credential based on public-key cryptography (WebAuthn / FIDO2). MyPassword can act as your authenticator: when you register a passkey on a website, the private key is stored inside the matching login item and encrypted with your master password like any other vault data.</p>
+<h3 id="enabling-passkey-handling">Enabling Passkey Handling</h3>
+<p>Passkey handling is off by default. To turn it on:</p>
+<ol>
+<li>Click the MyPassword extension icon in Chrome</li>
+<li>Toggle <strong>Handle passkeys with MyPassword</strong> on</li>
+</ol>
+<p>When enabled, the extension attaches to Chrome's <code>webAuthenticationProxy</code> API (Chrome 115+) and routes all passkey requests in the current profile to the running desktop app. While disabled, Chrome's built-in authenticator picker is used instead.</p>
+<p>The desktop app must be running and unlocked for passkey registration and sign-in to work.</p>
+<h3 id="registering-a-passkey">Registering a Passkey</h3>
+<p>On a site that supports passkeys, click the site's "Create a passkey" (or similar) button. The extension shows a panel listing your existing logins for that site:</p>
+<ul>
+<li>Pick a login to attach the new passkey to, or</li>
+<li>Create a new login on the spot</li>
+</ul>
+<p>Once you confirm, MyPassword generates an ES256 key pair, stores the private key in the chosen login item, and returns the public key to the site.</p>
+<h3 id="signing-in-with-a-passkey">Signing In with a Passkey</h3>
+<p>When a site initiates a passkey sign-in, the extension shows a picker listing the passkeys that match the site's relying party ID (and any <code>allowCredentials</code> filter the site provides). Click the entry you want to use — MyPassword signs the challenge with the stored private key and returns the assertion to the site.</p>
+<h3 id="viewing-and-deleting-passkeys">Viewing and Deleting Passkeys</h3>
+<p>Login items that contain a passkey show a <strong>Passkey</strong> field in the detail view. Click <strong>Delete passkey</strong> to remove it from the item; the rest of the login (username, password, websites, memo) is preserved. Deleting a passkey cannot be undone — the site will no longer accept sign-ins from that credential.</p>
+<h2 id="chrome-extension">Chrome Extension</h2>
+<p>The Chrome extension connects to the running desktop app at <code>http://127.0.0.1:27432</code>. The desktop app must be running and unlocked for the extension to work.</p>
+<h3 id="installation">Installation</h3>
+<ol>
+<li>Open Chrome and go to <code>chrome://extensions/</code></li>
+<li>Enable <strong>Developer mode</strong></li>
+<li>Click <strong>Load unpacked</strong> and select the <code>extension/chrome/</code> folder</li>
+</ol>
+<h3 id="auto-fill">Auto-Fill</h3>
+<p>When you focus on a login form, the extension automatically detects username and password fields. If matching logins exist for the current website, a dropdown appears with available credentials. Click one to fill the form.</p>
+<p>The extension handles:</p>
+<ul>
+<li>Standard login forms</li>
+<li>Multi-page logins (username on one page, password on the next)</li>
+<li>Single-page applications (SPAs)</li>
+</ul>
+<h3 id="save-update">Save &amp; Update</h3>
+<p>When you submit a login form, the extension detects the entered credentials and offers to:</p>
+<ul>
+<li><strong>Save</strong> — if the login is new</li>
+<li><strong>Update</strong> — if a matching login already exists</li>
+</ul>
+<h3 id="popup">Popup</h3>
+<p>Click the extension icon to open the popup:</p>
+<ul>
+<li><strong>Search</strong> — find logins by title, username, or website</li>
+<li><strong>Copy</strong> — copy username or password directly</li>
+<li><strong>Lock</strong> — lock the vault from the browser</li>
+<li><strong>Unlock</strong> — enter master password to unlock without switching to the desktop app</li>
+</ul>
+<p>The extension badge shows the number of matching logins for the current site.</p>
+<h2 id="settings">Settings</h2>
+<p>Open settings from the system tray menu or within the app.</p>
+<h3 id="general">General</h3>
+<ul>
+<li><strong>Keep tray icon</strong> — when enabled (default), closing the window minimizes to the system tray instead of exiting</li>
+<li><strong>Language</strong> — System default, English, or Chinese</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul>
+<li><strong>Auto-lock</strong> — lock the vault after a period of system inactivity (keyboard/mouse). Options: 1, 2, 5, 10, 15, 30, 60 minutes, or Never. Default: 10 minutes. Uses OS-level idle detection, not just app focus.</li>
+<li><strong>Clear clipboard</strong> — automatically clear copied passwords from the clipboard. Options: 1, 2, 5 minutes, or Never. Default: 1 minute.</li>
+</ul>
+<h3 id="password">Password</h3>
+<ul>
+<li><strong>Change master password</strong> — requires entering the current password</li>
+<li><strong>OAuth recovery</strong> — connect a Google or Microsoft account for vault recovery. See <a href="#oauth-recovery">OAuth Recovery</a> below.</li>
+</ul>
+<h2 id="oauth-recovery">OAuth Recovery</h2>
+<p>If you forget your master password, OAuth recovery lets you unlock the vault using your Google or Microsoft account.</p>
+<h3 id="setup">Setup</h3>
+<ol>
+<li>Go to <strong>Settings &gt; Password</strong></li>
+<li>Click <strong>Login with Google</strong> or <strong>Login with Microsoft</strong></li>
+<li>Complete the OAuth login in your browser</li>
+<li>Once connected, the account is displayed in settings</li>
+</ol>
+<p>You can connect multiple providers. You can also disconnect a provider at any time.</p>
+<h3 id="recovery">Recovery</h3>
+<ol>
+<li>On the unlock screen, click the Google or Microsoft recovery button</li>
+<li>Authenticate in your browser</li>
+<li>The vault unlocks and you are prompted to set a new master password</li>
+</ol>
+<p>For technical details, see <a href="../key-gen/">key-gen.md</a>.</p>
+<h2 id="system-tray">System Tray</h2>
+<p>MyPassword runs in the system tray with the following menu:</p>
+<ul>
+<li><strong>Open MyPassword</strong> — show the main window</li>
+<li><strong>Lock MyPassword</strong> — lock the vault immediately</li>
+<li><strong>Settings</strong> — open the settings dialog</li>
+<li><strong>Exit</strong> — close the application</li>
+</ul>
+<p>Single-click the tray icon to restore the window. Right-click for the menu.</p>
+<h2 id="backup">Backup</h2>
+<p>The vault is a single file at <code>~/.mypassword/mypassword.db</code>. It is fully encrypted and safe to back up to cloud storage. See <a href="../backup/">backup.md</a> for detailed instructions.</p>
+<h2 id="security-overview">Security Overview</h2>
+<ul>
+<li>All vault data is encrypted with <strong>AES-256-GCM</strong></li>
+<li>The encryption key (DEK) is protected by your master password via <strong>PBKDF2</strong> with 1,000,000 iterations</li>
+<li>The DEK is held in memory only while unlocked and zeroed on lock</li>
+<li>The Chrome extension communicates only over <code>127.0.0.1</code> (localhost) — no data leaves your machine</li>
+<li>No network calls are made by the desktop app except during OAuth flows</li>
+</ul>
+<p>For the full encryption architecture, see <a href="../key-gen/">key-gen.md</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      <p>MyPassword copyright &copy; 2026. <a href="https://github.com/michaelliao/mypassword/releases">Download</a> | <a href="https://github.com/michaelliao/mypassword">GitHub</a></p>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "toc.follow", "toc.integrate", "navigation.top"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>

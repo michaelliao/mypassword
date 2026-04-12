@@ -1,0 +1,674 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../key-gen/">
+      
+      
+        <link rel="next" href="../backup/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.0">
+    
+    
+      
+        <title>Extension - MyPassword</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.45e1311d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#browser-extension" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MyPassword" class="md-header__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MyPassword
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Extension
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../guide/" class="md-tabs__link">
+        
+  
+    
+  
+  Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../key-gen/" class="md-tabs__link">
+        
+  
+    
+  
+  Security
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Extension
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../backup/" class="md-tabs__link">
+        
+  
+    
+  
+  Backup
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MyPassword" class="md-nav__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    MyPassword
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key-gen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Extension
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Extension
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pairing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pairing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pairing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pairing-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pairing flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing extensions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Request Authentication
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Request Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server-side-validation-extensiontrysetextension" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server-side validation (Extension.trySetExtension)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unpaired-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unpaired recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Model
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Backup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="browser-extension">Browser Extension</h1>
+<p>The MyPassword browser extension integrates with the desktop app to autofill credentials, copy passwords, and manage vault items directly from the browser.</p>
+<h2 id="architecture">Architecture</h2>
+<p>The extension communicates with the desktop app over HTTP at <code>http://127.0.0.1:27432</code>. The desktop app must be running for the extension to work.</p>
+<pre><code>Browser Extension                  Desktop App
+  popup.js  ──message──&gt;  background.js  ──HTTP──&gt;  HttpDaemon (127.0.0.1:27432)
+  content.js                                              │
+                                                    RequestController
+                                                          │
+                                                    VaultManager / DbManager
+</code></pre>
+<ul>
+<li><strong>popup.js</strong> — UI for unlock, search, autofill actions. Sends messages to the background service worker.</li>
+<li><strong>background.js</strong> — Service worker that forwards requests to the desktop HTTP server via <code>fetch</code>. Handles request signing.</li>
+<li><strong>content.js</strong> — Injected into web pages to perform credential autofill.</li>
+</ul>
+<h2 id="pairing">Pairing</h2>
+<p>Before the extension can access vault data, it must be paired with the desktop app. Unauthenticated requests (except <code>POST /pair</code> and <code>POST /info</code>) are rejected with <code>UNKNOWN_EXTENSION</code>.</p>
+<h3 id="pairing-flow">Pairing flow</h3>
+<ol>
+<li>The extension sends <code>POST /pair</code> with <code>{ name: "MyPassword Chrome Extension", device: "&lt;os&gt; &lt;arch&gt;" }</code>. The device string is auto-detected via <code>chrome.runtime.getPlatformInfo()</code> (e.g. <code>win x86-64</code>, <code>mac arm</code>).</li>
+<li>The desktop app saves a pending <code>ExtensionConfig</code> record with <code>approve = false</code> and a randomly generated shared secret (<code>seed</code>).</li>
+<li>The app returns <code>{ id, seed }</code> to the extension, which stores them in <code>chrome.storage.local</code>.</li>
+<li>The app pops up a confirmation dialog asking the user to approve or reject the pairing request.</li>
+<li>The extension polls <code>POST /info</code> and checks whether <code>data.caller</code> is non-null, indicating the pairing has been approved.</li>
+</ol>
+<p>If the user rejects, the <code>ExtensionConfig</code> record is deleted. The extension can retry by sending a new <code>POST /pair</code>, which overwrites any previously stored <code>id</code> and <code>seed</code>.</p>
+<h3 id="managing-extensions">Managing extensions</h3>
+<p>Users can manage paired extensions in <strong>Settings &gt; Extension</strong>:</p>
+<ul>
+<li><strong>Pending</strong> extensions show <strong>Approve</strong> and <strong>Reject</strong> buttons.</li>
+<li><strong>Approved</strong> extensions show an <strong>Unpair</strong> button (with confirmation).</li>
+</ul>
+<p>Rejecting or unpairing deletes the extension's <code>ExtensionConfig</code> from the database, immediately revoking access.</p>
+<h2 id="request-authentication">Request Authentication</h2>
+<p>Every request from a paired extension (except <code>/pair</code>) includes three HTTP headers:</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X-Extension-Id</code></td>
+<td>The extension's numeric <code>id</code> from pairing</td>
+</tr>
+<tr>
+<td><code>X-Extension-Timestamp</code></td>
+<td>Current time in milliseconds (<code>Date.now()</code>)</td>
+</tr>
+<tr>
+<td><code>X-Extension-Signature</code></td>
+<td><code>HMAC-SHA256(timestamp, seed)</code> as lowercase hex</td>
+</tr>
+</tbody>
+</table>
+<h3 id="server-side-validation-extensiontrysetextension">Server-side validation (<code>Extension.trySetExtension</code>)</h3>
+<ol>
+<li>Parse <code>id</code>, <code>timestamp</code>, and <code>signature</code> from the request headers.</li>
+<li>Look up the <code>ExtensionConfig</code> by <code>id</code>. Reject if not found or <code>approve = false</code>.</li>
+<li>Check that the timestamp is within 30 seconds of server time (clock skew tolerance).</li>
+<li>Compute <code>HMAC-SHA256(timestamp_string, seed_bytes)</code> and compare against the provided signature.</li>
+<li>If valid, bind the extension identity to the current thread (<code>ThreadLocal</code>) for the duration of the request.</li>
+</ol>
+<h3 id="unpaired-recovery">Unpaired recovery</h3>
+<p>If the server responds with error <code>UNKNOWN_EXTENSION</code>, the extension clears its stored <code>id</code> and <code>seed</code> from <code>chrome.storage.local</code> and returns to the initial pairing screen.</p>
+<h2 id="security-model">Security Model</h2>
+<ul>
+<li><strong>Localhost only</strong> — The HTTP server binds to <code>127.0.0.1</code>, not <code>0.0.0.0</code>. It is not reachable from the network.</li>
+<li><strong>User-approved pairing</strong> — Every extension must be explicitly approved by the user via a desktop dialog before it can access any vault data.</li>
+<li><strong>Shared secret</strong> — The <code>seed</code> is a random 16-character alphanumeric string generated at pairing time. It never leaves the local machine (stored in the SQLite database on the app side, <code>chrome.storage.local</code> on the extension side).</li>
+<li><strong>HMAC signatures</strong> — Each request is signed with <code>HMAC-SHA256(timestamp, seed)</code>. This prevents unauthorized callers on localhost from impersonating a paired extension without knowing the seed.</li>
+<li><strong>Timestamp validation</strong> — Signatures include a timestamp checked against a 30-second window, preventing replay of captured requests.</li>
+<li><strong>Vault lock</strong> — Pairing requires the vault to be unlocked. Even after pairing, the extension cannot read vault items while the vault is locked.</li>
+<li><strong>Revocation</strong> — Unpairing or rejecting an extension deletes its record from the database, immediately invalidating all future requests from that extension.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      <p>MyPassword copyright &copy; 2026. <a href="https://github.com/michaelliao/mypassword/releases">Download</a> | <a href="https://github.com/michaelliao/mypassword">GitHub</a></p>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "toc.follow", "toc.integrate", "navigation.top"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>

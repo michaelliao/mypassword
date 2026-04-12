@@ -1,0 +1,685 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../extension/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.0">
+    
+    
+      
+        <title>Backup - MyPassword</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.45e1311d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#vault-backup-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MyPassword" class="md-header__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MyPassword
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Backup
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../guide/" class="md-tabs__link">
+        
+  
+    
+  
+  Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../key-gen/" class="md-tabs__link">
+        
+  
+    
+  
+  Security
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../extension/" class="md-tabs__link">
+        
+  
+    
+  
+  Extension
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Backup
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MyPassword" class="md-nav__button md-logo" aria-label="MyPassword" data-md-component="logo">
+      
+  <img src="../assets/images/logo.svg" alt="logo">
+
+    </a>
+    MyPassword
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../key-gen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extension/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extension
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Backup
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Backup
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-back-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      What to Back Up
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-is-my-vault" class="md-nav__link">
+    <span class="md-ellipsis">
+      Where Is My Vault?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#is-it-safe-to-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      Is It Safe to Upload?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-back-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Back Up
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Back Up">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manual-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Copy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-to-cloud-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload to Cloud Drive
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Sync
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Restore
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Considerations
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="vault-backup-guide">Vault Backup Guide</h1>
+<h2 id="what-to-back-up">What to Back Up</h2>
+<p>All vault data is stored in a single SQLite file named <code>mypassword.db</code>. It contains everything: encrypted items (logins, notes, identities), vault configuration (encrypted DEK, salt, IV), recovery configuration, and settings. All sensitive data within the file is encrypted with AES-256-GCM — the file itself is safe to copy and store.</p>
+<h2 id="where-is-my-vault">Where Is My Vault?</h2>
+<p>MyPassword stores a small pointer file at <code>~/.mypassword/vault.path</code> containing the absolute path of the real database file. On startup the app reads this pointer and opens whatever it points at. If the pointer file is missing, the <strong>Locate Vault</strong> dialog is shown so you can pick an existing vault file or create a new one anywhere on disk.</p>
+<table>
+<thead>
+<tr>
+<th>Default location</th>
+<th>Path Pointer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td><code>C:\Users\&lt;username&gt;\.mypassword\vault.path</code></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td><code>/Users/&lt;username&gt;/.mypassword/vault.path</code></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><code>/home/&lt;username&gt;/.mypassword/vault.path</code></td>
+</tr>
+</tbody>
+</table>
+<p>To find your real vault file at any time, open <code>~/.mypassword/vault.path</code> in a text editor — it is a plain-text file with a single absolute path.</p>
+<p>If you let MyPassword create a vault in a custom location via the <strong>Locate Vault</strong> dialog, your vault file lives at whatever path you chose (e.g. inside a OneDrive folder) and the pointer file records that path.</p>
+<h2 id="is-it-safe-to-upload">Is It Safe to Upload?</h2>
+<p>Yes. The database file does not contain any plaintext secrets. Vault items are encrypted with the DEK, and the DEK is wrapped by your master password (and optionally by OAuth recovery). Without the master password or a successful OAuth recovery, the data cannot be decrypted.</p>
+<p>That said, treat the backup as sensitive — see <a href="#security-considerations">Security Considerations</a> below.</p>
+<h2 id="how-to-back-up">How to Back Up</h2>
+<h3 id="manual-copy">Manual Copy</h3>
+<ol>
+<li><strong>Close MyPassword</strong> (or lock the vault) to ensure no writes are in progress</li>
+<li>Locate your vault file (see <a href="#where-is-my-vault">Where Is My Vault?</a>)</li>
+<li>Copy <code>mypassword.db</code> to your backup location</li>
+</ol>
+<h3 id="upload-to-cloud-drive">Upload to Cloud Drive</h3>
+<p>You can upload the database file to any cloud storage provider:</p>
+<ul>
+<li><strong>Google Drive</strong> — upload to a private folder</li>
+<li><strong>OneDrive</strong> — upload to the Personal Vault for extra protection</li>
+<li><strong>iCloud Drive</strong> — upload via Finder or iCloud folder</li>
+<li><strong>Dropbox</strong> — upload to a private folder</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Lock or close MyPassword</li>
+<li>Locate your vault file (see <a href="#where-is-my-vault">Where Is My Vault?</a>)</li>
+<li>Copy <code>mypassword.db</code> to your cloud drive folder (or upload via the web interface)</li>
+<li>Optionally rename the file with a date, e.g. <code>mypassword-2026-04-08.db</code></li>
+</ol>
+<h3 id="automated-sync">Automated Sync</h3>
+<p>The easiest way to keep the vault continuously backed up is to store it directly inside a cloud-synced folder. MyPassword supports this out of the box — no symlinks or platform-specific commands needed.</p>
+<p><strong>First-time setup:</strong></p>
+<ol>
+<li>Quit MyPassword</li>
+<li>Delete <code>~/.mypassword/vault.path</code> (and <code>~/.mypassword/mypassword.db</code> if you haven't started using the vault yet)</li>
+<li>Launch MyPassword — the <strong>Locate Vault</strong> dialog appears</li>
+<li>Click <strong>Create new vault…</strong> and pick a folder inside your cloud drive, e.g. <code>~/OneDrive/MyPassword/</code></li>
+<li>The new vault file is created at <code>&lt;cloud folder&gt;/mypassword.db</code> and the pointer file at <code>~/.mypassword/vault.path</code> records that location</li>
+</ol>
+<p><strong>Migrating an existing vault to a cloud folder:</strong></p>
+<ol>
+<li>Quit MyPassword</li>
+<li>Move (or copy) your current <code>mypassword.db</code> into the cloud folder, e.g. <code>~/OneDrive/MyPassword/mypassword.db</code></li>
+<li>Delete <code>~/.mypassword/vault.path</code> and <code>~/.mypassword/mypassword.db</code> if they still exist</li>
+<li>Launch MyPassword — the <strong>Locate Vault</strong> dialog appears</li>
+<li>Click <strong>Open existing vault…</strong> and pick the file you just moved</li>
+<li>The pointer file is written and MyPassword uses the cloud-synced file from now on</li>
+</ol>
+<p><strong>Caveat — concurrent access.</strong> SQLite does not support reliable concurrent writes from different processes over network file systems. If you run MyPassword on multiple machines that share the same cloud-synced vault, make sure only one instance has the vault unlocked at a time.</p>
+<h2 id="how-to-restore">How to Restore</h2>
+<ol>
+<li>Close MyPassword if it is running</li>
+<li>Copy the backup file over the real vault file (the path recorded in <code>~/.mypassword/vault.path</code>, or the default <code>~/.mypassword/mypassword.db</code> if no pointer file exists)</li>
+<li>Open MyPassword and unlock with your master password (or OAuth recovery)</li>
+</ol>
+<p>If you want to restore to a different location, delete the pointer file first and use the <strong>Open existing vault…</strong> button in the Locate Vault dialog to point MyPassword at the restored file.</p>
+<h2 id="security-considerations">Security Considerations</h2>
+<ul>
+<li><strong>The file is encrypted, but not invulnerable.</strong> An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See <a href="/key-gen#when-can-the-vault-be-compromised">Security</a> for details.</li>
+<li><strong>Keep backup copies limited.</strong> Every copy is another target. Delete old backups you no longer need.</li>
+<li><strong>Enable MFA on your cloud account.</strong> If your cloud account is compromised, the attacker gets the vault file. The vault is still encrypted, but they can begin offline attacks.</li>
+<li><strong>Do not share the file.</strong> Even though it is encrypted, sharing it exposes it to unnecessary risk.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      <p>MyPassword copyright &copy; 2026. <a href="https://github.com/michaelliao/mypassword/releases">Download</a> | <a href="https://github.com/michaelliao/mypassword">GitHub</a></p>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "toc.follow", "toc.integrate", "navigation.top"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>
