@@ -86,7 +86,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         passkeyValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         passkeyDeleteBtn = new Button(row, SWT.PUSH);
-        passkeyDeleteBtn.setText("\u2715"); // ×
+        passkeyDeleteBtn.setImage(Icons.get("delete"));
         passkeyDeleteBtn.setToolTipText(i18n("passkey.btn.delete"));
         GridData dgd = new GridData();
         dgd.widthHint = 32;

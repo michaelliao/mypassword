@@ -53,6 +53,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         actions.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         Button btnEdit = new Button(actions, SWT.PUSH);
         btnEdit.setText(i18n("detail.btn.edit"));
+        btnEdit.setImage(Icons.get("edit"));
         btnEdit.addListener(SWT.Selection, _ -> {
             if (onEdit != null) {
                 onEdit.run();

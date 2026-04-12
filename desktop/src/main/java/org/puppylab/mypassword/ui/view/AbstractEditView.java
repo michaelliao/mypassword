@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.ui.Icons;
 
 public abstract class AbstractEditView<T extends AbstractItemData> {
 
@@ -43,6 +44,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
 
         Button btnSave = new Button(actions, SWT.PUSH);
         btnSave.setText(i18n("edit.btn.save"));
+        btnSave.setImage(Icons.get("save"));
         btnSave.addListener(SWT.Selection, _ -> {
             if (onSave != null) {
                 onSave.accept(collectData());
@@ -51,6 +53,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
 
         Button btnCancel = new Button(actions, SWT.PUSH);
         btnCancel.setText(i18n("edit.btn.cancel"));
+        btnCancel.setImage(Icons.get("cancel"));
         btnCancel.addListener(SWT.Selection, _ -> {
             if (onCancel != null) {
                 onCancel.run();
@@ -178,6 +181,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         MultiText multiText = new MultiText(websitesContainer, websiteFields, addWebsiteBtn);
 
         addWebsiteBtn.setText(i18n("edit.btn.add_more"));
+        addWebsiteBtn.setImage(Icons.get("plus"));
         addWebsiteBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         addWebsiteBtn.addListener(SWT.Selection, _ -> addMultiTextRow(multiText, "", true));
         return multiText;
@@ -198,7 +202,7 @@ public abstract class AbstractEditView<T extends AbstractItemData> {
         multiText.fields().add(t);
 
         Button removeBtn = new Button(row, SWT.PUSH);
-        removeBtn.setText("×");
+        removeBtn.setImage(Icons.get("delete"));
         GridData removeBtnGd = new GridData();
         removeBtnGd.widthHint = 32;
         removeBtn.setLayoutData(removeBtnGd);
