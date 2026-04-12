@@ -31,6 +31,8 @@ import org.puppylab.mypassword.rpc.request.GeneratePasswordRequest;
 import org.puppylab.mypassword.rpc.request.ItemRequest;
 import org.puppylab.mypassword.rpc.request.PasskeyAddRequest;
 import org.puppylab.mypassword.rpc.request.PasskeyLoginRequest;
+import org.puppylab.mypassword.rpc.request.TotpAddRequest;
+import org.puppylab.mypassword.rpc.request.TotpGetRequest;
 import org.puppylab.mypassword.rpc.request.VaultPasswordRequest;
 import org.puppylab.mypassword.rpc.response.InfoResponse;
 import org.puppylab.mypassword.rpc.response.ItemResponse;
@@ -40,6 +42,7 @@ import org.puppylab.mypassword.rpc.response.PasskeyLoginResponse;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.FileUtils;
 import org.puppylab.mypassword.util.PasswordUtils;
+import org.puppylab.mypassword.util.TotpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,6 +185,46 @@ public class RequestController {
     }
 
     /**
+     * Add totp to a login item.
+     */
+    @PostMapping("/totps/add")
+    public ItemResponse totpAdd(@RequestBody TotpAddRequest req) {
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, req.itemId);
+        if (!(item instanceof LoginItemData login)) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item not found: " + req.itemId);
+        }
+        if (login.data == null) {
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Login item has no data: " + req.itemId);
+        }
+        if (login.data.totp != null) {
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Login item already has TOTP: " + req.itemId);
+        }
+        login.data.totp = TotpUtils.parseUri(req.uri);
+        VaultManager.getCurrent().updateItem(key, login);
+        VaultManager.getCurrent().fireItemsChanged();
+        logger.info("added TOTP for item {} (issuer={})", req.itemId, login.data.totp.issuer);
+        ItemResponse resp = new ItemResponse();
+        resp.item = stripSecrets(login, false);
+        return resp;
+    }
+
+    @PostMapping("/totps/get")
+    public StringResponse totpGet(@RequestBody TotpGetRequest req) {
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, req.itemId);
+        if (!(item instanceof LoginItemData login)) {
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item not found: " + req.itemId);
+        }
+        if (login.data == null || login.data.totp == null) {
+            throw new VaultException(ErrorCode.BAD_REQUEST, "Login item has no data: " + req.itemId);
+        }
+        StringResponse resp = new StringResponse();
+        resp.data = TotpUtils.getTotp(login.data.totp);
+        return resp;
+    }
+
+    /**
      * Add a new passkey to an existing login item. Generates an EC P-256 keypair,
      * wraps the private key with the vault DEK, stores the passkey on the login
      * item, and returns a WebAuthn attestation the extension can hand back to the
@@ -231,8 +274,8 @@ public class RequestController {
     /**
      * Sign a WebAuthn assertion with a stored passkey. Loads the selected login
      * item (decrypted from the vault by the DEK) and signs
-     * {@code authenticatorData ‖ SHA-256(clientDataJSON)}. The returned JSON is
-     * the {@code AuthenticationResponseJSON} the extension hands to
+     * {@code authenticatorData ‖ SHA-256(clientDataJSON)}. The returned JSON is the
+     * {@code AuthenticationResponseJSON} the extension hands to
      * {@code completeGetRequest}.
      */
     @PostMapping("/passkeys/login")
@@ -243,14 +286,12 @@ public class RequestController {
             throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item not found: " + req.itemId);
         }
         if (login.data == null || login.data.passkey == null) {
-            throw new VaultException(ErrorCode.DATA_NOT_FOUND,
-                    "Login item has no passkey: " + req.itemId);
+            throw new VaultException(ErrorCode.DATA_NOT_FOUND, "Login item has no passkey: " + req.itemId);
         }
 
         PasskeySigner.Result signed = PasskeySigner.sign(login, req);
 
-        logger.info("signed passkey assertion for item {} (rp={})",
-                req.itemId, login.data.passkey.relyingPartyId);
+        logger.info("signed passkey assertion for item {} (rp={})", req.itemId, login.data.passkey.relyingPartyId);
 
         String credIdB64 = Base64Utils.b64(signed.credentialId);
         PasskeyLoginResponse resp = new PasskeyLoginResponse();
@@ -279,7 +320,7 @@ public class RequestController {
         // clear sensitive fields in response:
         for (AbstractItemData item : items) {
             if (item instanceof LoginItemData login) {
-                stripSecrets(login);
+                stripSecrets(login, false);
             }
         }
         var response = new ItemsResponse();
@@ -296,8 +337,9 @@ public class RequestController {
         AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
         // the passkey private key is daemon-internal; the extension never needs
         // it — passkey assertions read straight from the vault.
-        if (item instanceof LoginItemData login && login.data != null && login.data.passkey != null) {
-            login.data.passkey.b64PrivKey = null;
+        if (item instanceof LoginItemData login) {
+            // strip sensitive data but keep password:
+            stripSecrets(login, true);
         }
         var response = new ItemResponse();
         response.item = item;
@@ -307,19 +349,26 @@ public class RequestController {
     /**
      * Strip wire-sensitive fields from a login item for list responses:
      * <ul>
-     *   <li>{@code password} — empty string means "has one, hidden"; {@code null} means "none".</li>
-     *   <li>{@code passkey.b64PrivKey} — always nulled; only the daemon uses it.</li>
+     * <li>{@code password} — empty string means "has one, hidden"; {@code null}
+     * means "none".</li>
+     * <li>{@code passkey.b64PrivKey} — always nulled; only the daemon uses it.</li>
      * </ul>
      */
-    private static void stripSecrets(LoginItemData login) {
+    private static LoginItemData stripSecrets(LoginItemData login, boolean keepPassword) {
         if (login.data == null) {
-            return;
+            return login;
         }
-        String pwd = login.data.password;
-        login.data.password = (pwd != null && !pwd.isEmpty()) ? "" : null;
+        if (!keepPassword) {
+            String pwd = login.data.password;
+            login.data.password = (pwd != null && !pwd.isEmpty()) ? "" : null;
+        }
         if (login.data.passkey != null) {
             login.data.passkey.b64PrivKey = null;
         }
+        if (login.data.totp != null) {
+            login.data.totp.secret = null;
+        }
+        return login;
     }
 
     /**

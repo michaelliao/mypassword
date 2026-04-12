@@ -15,6 +15,9 @@ public class LoginFieldsData extends AbstractFields {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public PasskeyData passkey;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public TotpData totp;
+
     public List<String> websites;
     public String       ga;
     public String       memo;
