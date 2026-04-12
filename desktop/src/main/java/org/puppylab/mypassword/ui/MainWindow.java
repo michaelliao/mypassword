@@ -209,10 +209,14 @@ public class MainWindow {
                 trayMenu.setVisible(true);
             });
 
-            // minimize to tray instead of closing:
+            // minimize to tray instead of closing, unless the user has
+            // disabled the "keep tray icon" setting (default: on).
             shell.addListener(SWT.Close, e -> {
-                e.doit = false;
-                shell.setVisible(false);
+                boolean keepInTray = vaultManager.getSetting(SettingKey.KEEP_TRAY_ICON, 1) != 0;
+                if (keepInTray) {
+                    e.doit = false;
+                    shell.setVisible(false);
+                }
             });
         }
 
