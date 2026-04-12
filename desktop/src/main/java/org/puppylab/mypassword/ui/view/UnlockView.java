@@ -44,21 +44,28 @@ public class UnlockView {
         // vertically centre the card inside the view
         card = new Composite(composite, SWT.NONE);
         GridData cardGd = new GridData(SWT.CENTER, SWT.CENTER, true, true);
-        cardGd.minimumWidth = 360;
+        cardGd.minimumWidth = 400;
         card.setLayoutData(cardGd);
         GridLayout cardGl = new GridLayout(1, false);
         cardGl.verticalSpacing = 12;
         card.setLayout(cardGl);
 
-        // ── icon ──────────────────────────────────────────────────────
-        Label icon = new Label(card, SWT.CENTER);
-        icon.setText("\uD83D\uDD10"); // 🔐
-        icon.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
+        // ── logo + app title (same row) ───────────────────────────────
+        Composite titleRow = new Composite(card, SWT.NONE);
+        titleRow.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
+        GridLayout titleGl = new GridLayout(2, false);
+        titleGl.marginWidth = 0;
+        titleGl.marginHeight = 0;
+        titleGl.horizontalSpacing = 8;
+        titleRow.setLayout(titleGl);
 
-        // ── app title ─────────────────────────────────────────────────
-        Label title = new Label(card, SWT.CENTER);
+        Label logo = new Label(titleRow, SWT.NONE);
+        logo.setImage(Icons.get("logo"));
+        logo.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+
+        Label title = new Label(titleRow, SWT.NONE);
         title.setText(i18n("app.name"));
-        title.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));
+        title.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
         Font boldFont = deriveBoldFont(title, 4);
         title.setFont(boldFont);
         title.addListener(SWT.Dispose, _ -> boldFont.dispose());
@@ -68,7 +75,7 @@ public class UnlockView {
         hint.setText(i18n("unlock.hint"));
         hint.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         GridData hintGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        hintGd.widthHint = 320;
+        hintGd.widthHint = 400;
         hint.setLayoutData(hintGd);
 
         // ── spacer ────────────────────────────────────────────────────
@@ -168,7 +175,7 @@ public class UnlockView {
         oauthHint.setText(i18n("unlock.oauth.hint"));
         oauthHint.setForeground(oauthContainer.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         GridData oauthHintGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        oauthHintGd.widthHint = 320;
+        oauthHintGd.widthHint = 400;
         oauthHint.setLayoutData(oauthHintGd);
 
         Composite table = new Composite(oauthContainer, SWT.NONE);
