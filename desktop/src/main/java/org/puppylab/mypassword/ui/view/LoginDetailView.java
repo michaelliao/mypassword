@@ -15,13 +15,16 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PasskeyData;
+import org.puppylab.mypassword.core.data.TotpData;
 import org.puppylab.mypassword.ui.Icons;
 import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.StringUtils;
+import org.puppylab.mypassword.util.TotpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,13 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     private Button    arrowBtn;
     private Composite btnGroup;
 
+    private Composite   totpRow;
+    private Label       totpCodeLabel;
+    private ProgressBar totpProgress;
+    private Button      totpCopyBtn;
+    private TotpData    currentTotp;
+    private boolean     totpTimerRunning;
+
     public LoginDetailView(Composite parent) {
         super(parent);
     }
@@ -55,6 +65,7 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         titleValue = createField(i18n("field.title"));
         usernameValue = createField(i18n("field.username"));
         createPasswordField();
+        createTotpField();
         passkeyValue = createField(i18n("field.passkey"));
         websitesContainer = createMultiValueField(i18n("field.websites"));
         memoValue = createField(i18n("field.memo"));
@@ -117,6 +128,107 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         });
     }
 
+    private void createTotpField() {
+        totpRow = new Composite(content, SWT.NONE);
+        totpRow.setLayout(new GridLayout(2, false));
+        totpRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        Label lbl = new Label(totpRow, SWT.NONE);
+        lbl.setText(i18n("field.totp"));
+        GridData ld = new GridData();
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        // value cell: code + progress | copy button (matches password row layout)
+        Composite valueCell = new Composite(totpRow, SWT.NONE);
+        GridLayout vcl = new GridLayout(3, false);
+        vcl.marginWidth = 0;
+        vcl.marginHeight = 0;
+        valueCell.setLayout(vcl);
+        valueCell.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        totpCodeLabel = new Label(valueCell, SWT.NONE);
+        Font monoFont = new Font(valueCell.getDisplay(), new FontData("Courier New", 12, SWT.BOLD));
+        totpCodeLabel.setFont(monoFont);
+        totpCodeLabel.addListener(SWT.Dispose, _ -> monoFont.dispose());
+        totpCodeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
+        totpProgress = new ProgressBar(valueCell, SWT.HORIZONTAL | SWT.SMOOTH);
+        GridData pgd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        pgd.widthHint = 60;
+        pgd.heightHint = 14;
+        totpProgress.setLayoutData(pgd);
+
+        totpCopyBtn = new Button(valueCell, SWT.PUSH);
+        totpCopyBtn.setText(i18n("password.btn.copy"));
+        totpCopyBtn.setImage(Icons.get("copy"));
+        totpCopyBtn.addListener(SWT.Selection, _ -> copyTotp());
+    }
+
+    private void updateTotpRow(TotpData totp) {
+        currentTotp = totp;
+        GridData rowGd = (GridData) totpRow.getLayoutData();
+        if (totp == null) {
+            totpRow.setVisible(false);
+            rowGd.exclude = true;
+            stopTotpTimer();
+            return;
+        }
+        totpRow.setVisible(true);
+        rowGd.exclude = false;
+        totpProgress.setMaximum(totp.period);
+        refreshTotp();
+        startTotpTimer();
+    }
+
+    private void refreshTotp() {
+        if (currentTotp == null || totpCodeLabel.isDisposed()) return;
+        String code = TotpUtils.getTotp(currentTotp);
+        totpCodeLabel.setText(code);
+        int elapsed = (int) ((System.currentTimeMillis() / 1000) % currentTotp.period);
+        int remaining = currentTotp.period - elapsed;
+        totpProgress.setSelection(remaining);
+        totpRow.layout(true, true);
+    }
+
+    private void startTotpTimer() {
+        if (totpTimerRunning) return;
+        totpTimerRunning = true;
+        Display display = Display.getCurrent();
+        Runnable tick = new Runnable() {
+            @Override
+            public void run() {
+                if (!totpTimerRunning || totpCodeLabel.isDisposed()) return;
+                refreshTotp();
+                display.timerExec(1000, this);
+            }
+        };
+        display.timerExec(1000, tick);
+    }
+
+    private void stopTotpTimer() {
+        totpTimerRunning = false;
+    }
+
+    private void copyTotp() {
+        if (currentTotp == null) return;
+        String code = TotpUtils.getTotp(currentTotp);
+        ClipboardUtils.copyPassword(code);
+        Display display = Display.getCurrent();
+        logger.info("TOTP code copied.");
+        totpCopyBtn.setImage(Icons.get("copied"));
+        ToolTip tip = new ToolTip(composite.getShell(), SWT.ICON_INFORMATION);
+        tip.setMessage(i18n("password.tip.copied"));
+        Rectangle rect = totpCopyBtn.getBounds();
+        Point loc = totpCopyBtn.getParent().toDisplay(rect.x, rect.y + rect.height);
+        tip.setLocation(loc);
+        tip.setVisible(true);
+        display.timerExec(2000, () -> {
+            if (!tip.isDisposed()) tip.dispose();
+            if (!totpCopyBtn.isDisposed()) totpCopyBtn.setImage(Icons.get("copy"));
+        });
+    }
+
     @Override
     protected void setData(LoginItemData item) {
         titleValue.setText(StringUtils.normalize(item.data.title));
@@ -129,6 +241,9 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         btnGroup.setVisible(hasPassword);
         ((GridData) btnGroup.getLayoutData()).exclude = !hasPassword;
         btnGroup.getParent().layout(true, true);
+
+        // TOTP row
+        updateTotpRow(item.data.totp);
 
         // Passkey row — hidden entirely when the login has no passkey.
         PasskeyData passkey = item.data.passkey;
