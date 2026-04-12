@@ -46,17 +46,25 @@
     </div>
     
     <div class="preview-container">
-        <div id="preview-1x" class="preview-box" style="display:none;">
+        <div id="preview-16" class="preview-box" style="display:none;">
             <p style="font-size: 12px; color: #666;">16x16</p>
             <div class="canvas-wrapper" style="width:16px; height:16px;"><canvas id="canvas16" width="16" height="16"></canvas></div>
         </div>
-        <div id="preview-2x" class="preview-box" style="display:none;">
+        <div id="preview-32" class="preview-box" style="display:none;">
             <p style="font-size: 12px; color: #666;">32x32 (@2x)</p>
             <div class="canvas-wrapper" style="width:32px; height:32px;"><canvas id="canvas32" width="32" height="32"></canvas></div>
         </div>
+        <div id="preview-64" class="preview-box" style="display:none;">
+            <p style="font-size: 12px; color: #666;">64x64</p>
+            <div class="canvas-wrapper" style="width:64px; height:64px;"><canvas id="canvas64" width="64" height="64"></canvas></div>
+        </div>
+        <div id="preview-128" class="preview-box" style="display:none;">
+            <p style="font-size: 12px; color: #666;">128x128</p>
+            <div class="canvas-wrapper" style="width:128px; height:128px;"><canvas id="canvas128" width="128" height="128"></canvas></div>
+        </div>
     </div>
 
-    <button id="download-btn">保存全部 PNG 图标</button>
+    <button id="download-btn">Batch Download PNG</button>
 
     <script>
         const dropZone = document.getElementById('drop-zone');
@@ -68,13 +76,13 @@
         let fileName = "icon";
         let currentColor = null;
 
-        // 常见 Web 颜色
+        // common web colors:
         const webColors = [
             '#000000', '#6A7282', '#C11007', '#FF692A', '#FE9A37', '#F0B13B',
             '#178236', '#18786F', '#1A7595', '#1447E6', '#7F22FE', '#A813B7', '#C6185C'
         ];
 
-        // 初始化色板
+        // init color list:
         webColors.forEach(color => {
             const dot = document.createElement('div');
             dot.className = 'color-dot';
@@ -89,7 +97,7 @@
 
         customColorInput.oninput = (e) => applyColor(e.target.value);
 
-        // 拖拽逻辑
+        // drag & drop handlers:
         dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('hover'); };
         dropZone.ondragleave = () => dropZone.classList.remove('hover');
         dropZone.ondrop = (e) => {
@@ -104,7 +112,7 @@
                     processSvg();
                     document.getElementById('color-controls').style.display = 'flex';
                 };
-                reader.readAsText(file); // 读取为文本以便修改源码
+                reader.readAsText(file); // Read as text for source modification
             }
         };
 
@@ -118,15 +126,14 @@
 
             let modifiedSvg = originalSvgContent;
             
-            // 如果用户选择了颜色，则替换 fill 和 stroke
+            // if the user has selected a color, replace fill and stroke:
             if (currentColor) {
-                // 简单的正则处理：替换现有的 fill/stroke 属性，或者在没有时强制注入
-                // 注意：这会覆盖 SVG 内所有的颜色定义
+                // Note: This is a very basic approach and may not cover all edge cases (e.g., styles, complex SVGs), but it works for simple icons.
                 modifiedSvg = modifiedSvg
                     .replace(/fill="[^"]*"/g, `fill="${currentColor}"`)
                     .replace(/stroke="[^"]*"/g, `stroke="${currentColor}"`);
                 
-                // 如果标签内完全没有 fill 属性，针对简单图标注入 fill
+                // if the tag has no fill attribute at all, inject fill for simple icons:
                 if (!modifiedSvg.includes('fill=')) {
                     modifiedSvg = modifiedSvg.replace('<svg', `<svg fill="${currentColor}"`);
                 }
@@ -137,10 +144,10 @@
             const img = new Image();
             
             img.onload = () => {
-                renderCanvas('canvas16', img, 16);
-                renderCanvas('canvas32', img, 32);
-                document.getElementById('preview-1x').style.display = 'block';
-                document.getElementById('preview-2x').style.display = 'block';
+                [16, 32, 64, 128].forEach(size => {
+                    renderCanvas('canvas' + size, img, size);
+                    document.getElementById('preview-' + size).style.display = 'block';
+                });
                 btn.style.display = 'block';
                 URL.revokeObjectURL(url);
             };
@@ -155,9 +162,10 @@
         }
 
         btn.onclick = () => {
-            const suffix = ''; // currentColor ? `-${currentColor}` : '';
-            download('canvas16', `${fileName}${suffix}.png`);
-            download('canvas32', `${fileName}${suffix}@2x.png`);
+            download('canvas16',  `${fileName}.png`);
+            download('canvas32',  `${fileName}@2x.png`);
+            download('canvas64',  `${fileName}@4x.png`);
+            download('canvas128', `${fileName}@8x.png`);
         };
 
         function download(canvasId, name) {
