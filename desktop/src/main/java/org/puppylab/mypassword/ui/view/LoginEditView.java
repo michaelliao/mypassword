@@ -154,14 +154,14 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         passwordField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         eyeBtn = new Button(row, SWT.PUSH);
-        eyeBtn.setText("\uD83D\uDC41");
+        eyeBtn.setImage(Icons.get("eye_open"));
         GridData eyeGd = new GridData();
         eyeGd.widthHint = 32;
         eyeBtn.setLayoutData(eyeGd);
         eyeBtn.addListener(SWT.Selection, _ -> {
             passwordVisible = !passwordVisible;
             passwordField.setEchoChar(passwordVisible ? '\0' : '\u2022');
-            eyeBtn.setText(passwordVisible ? "\uD83D\uDE48" : "\uD83D\uDC41");
+            eyeBtn.setImage(Icons.get(passwordVisible ? "eye_closed" : "eye_open"));
         });
 
         toggleGenBtn = new Button(row, SWT.PUSH);
@@ -253,7 +253,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             if (!passwordVisible) {
                 passwordVisible = true;
                 passwordField.setEchoChar('\0');
-                eyeBtn.setText("\uD83D\uDE48");
+                eyeBtn.setImage(Icons.get("eye_closed"));
             }
         });
     }
@@ -284,7 +284,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         editingItem = item;
         passwordVisible = false;
         passwordField.setEchoChar('\u2022');
-        eyeBtn.setText("\uD83D\uDC41");
+        eyeBtn.setImage(Icons.get("eye_open"));
         radioAlphaNum.setSelection(true);
         radioAlpha.setSelection(false);
         radioNum.setSelection(false);
