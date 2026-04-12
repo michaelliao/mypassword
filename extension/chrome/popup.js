@@ -349,6 +349,10 @@ function createItemRow(item) {
     const actions = document.createElement('div');
     actions.className = 'item-actions';
 
+    if (item.data?.totp) {
+      const btn2fa = makeActionBtn('2FA', () => copyTotpCode(item.id, btn2fa));
+      actions.appendChild(btn2fa);
+    }
     const btnUser = makeActionBtn('User', () => copyToClipboard(item.data?.username || '', btnUser));
     const btnPass = makeActionBtn('Pass', () => copyPassword(item.id, btnPass));
     const btnFill = makeActionBtn('Fill', () => doFill(item));
@@ -373,6 +377,14 @@ function makeActionBtn(label, onClick) {
 function copyPassword(id, btn) {
   daemonRequest(`/items/${id}/copy`, {}).then(() => {
     showCopiedFeedback(btn);
+  });
+}
+
+function copyTotpCode(itemId, btn) {
+  daemonRequest('/totps/get', { itemId }).then((resp) => {
+    if (resp.data) {
+      navigator.clipboard.writeText(resp.data).then(() => showCopiedFeedback(btn));
+    }
   });
 }
 
