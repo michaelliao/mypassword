@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG 变色图标工具</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; background: #f8f9fa; color: #333; }
+        #drop-zone {
+            width: 460px; height: 160px; border: 2px dashed #cbd5e0; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: white; transition: all 0.2s ease; cursor: pointer; margin-bottom: 24px;
+        }
+        #drop-zone.hover { border-color: #4299e1; background: #ebf8ff; }
+        
+        .controls { margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .color-preset { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 500px; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-dot:hover { transform: scale(1.2); }
+        .color-dot.active { border-color: #333; transform: scale(1.1); }
+
+        .preview-container { display: flex; gap: 30px; margin-top: 20px; }
+        .preview-box { text-align: center; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .canvas-wrapper { 
+            margin: 10px auto; display: flex; align-items: center; justify-content: center;
+            background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+            background-size: 10px 10px; background-position: 0 0, 5px 5px;
+            border: 1px solid #ddd;
+        }
+        
+        button { padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; background: #2d3748; color: white; border: none; border-radius: 6px; margin-top: 30px; display: none; transition: 0.2s; }
+        button:hover { background: #1a202c; }
+    </style>
+</head>
+<body>
+
+    <h2>SVG 变色转换工具</h2>
+    
+    <div id="drop-zone">拖拽 SVG 到这里开始</div>
+
+    <div class="controls" id="color-controls" style="display:none;">
+        <span>选择颜色：</span>
+        <div class="color-preset" id="color-palette">
+            </div>
+        <input type="color" id="custom-color" title="自定义颜色">
+    </div>
+    
+    <div class="preview-container">
+        <div id="preview-1x" class="preview-box" style="display:none;">
+            <p style="font-size: 12px; color: #666;">16x16</p>
+            <div class="canvas-wrapper" style="width:16px; height:16px;"><canvas id="canvas16" width="16" height="16"></canvas></div>
+        </div>
+        <div id="preview-2x" class="preview-box" style="display:none;">
+            <p style="font-size: 12px; color: #666;">32x32 (@2x)</p>
+            <div class="canvas-wrapper" style="width:32px; height:32px;"><canvas id="canvas32" width="32" height="32"></canvas></div>
+        </div>
+    </div>
+
+    <button id="download-btn">保存全部 PNG 图标</button>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const btn = document.getElementById('download-btn');
+        const palette = document.getElementById('color-palette');
+        const customColorInput = document.getElementById('custom-color');
+        
+        let originalSvgContent = ""; 
+        let fileName = "icon";
+        let currentColor = null;
+
+        // 常见 Web 颜色
+        const webColors = [
+            '#000000', '#6A7282', '#C11007', '#FF692A', '#FE9A37', '#F0B13B',
+            '#178236', '#18786F', '#1A7595', '#1447E6', '#7F22FE', '#A813B7', '#C6185C'
+        ];
+
+        // 初始化色板
+        webColors.forEach(color => {
+            const dot = document.createElement('div');
+            dot.className = 'color-dot';
+            dot.style.backgroundColor = color;
+            dot.onclick = () => {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                applyColor(color);
+            };
+            palette.appendChild(dot);
+        });
+
+        customColorInput.oninput = (e) => applyColor(e.target.value);
+
+        // 拖拽逻辑
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('hover'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('hover');
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('hover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'image/svg+xml') {
+                fileName = file.name.replace('.svg', '');
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    originalSvgContent = event.target.result;
+                    processSvg();
+                    document.getElementById('color-controls').style.display = 'flex';
+                };
+                reader.readAsText(file); // 读取为文本以便修改源码
+            }
+        };
+
+        function applyColor(color) {
+            currentColor = color;
+            processSvg();
+        }
+
+        function processSvg() {
+            if (!originalSvgContent) return;
+
+            let modifiedSvg = originalSvgContent;
+            
+            // 如果用户选择了颜色，则替换 fill 和 stroke
+            if (currentColor) {
+                // 简单的正则处理：替换现有的 fill/stroke 属性，或者在没有时强制注入
+                // 注意：这会覆盖 SVG 内所有的颜色定义
+                modifiedSvg = modifiedSvg
+                    .replace(/fill="[^"]*"/g, `fill="${currentColor}"`)
+                    .replace(/stroke="[^"]*"/g, `stroke="${currentColor}"`);
+                
+                // 如果标签内完全没有 fill 属性，针对简单图标注入 fill
+                if (!modifiedSvg.includes('fill=')) {
+                    modifiedSvg = modifiedSvg.replace('<svg', `<svg fill="${currentColor}"`);
+                }
+            }
+
+            const svgBlob = new Blob([modifiedSvg], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            
+            img.onload = () => {
+                renderCanvas('canvas16', img, 16);
+                renderCanvas('canvas32', img, 32);
+                document.getElementById('preview-1x').style.display = 'block';
+                document.getElementById('preview-2x').style.display = 'block';
+                btn.style.display = 'block';
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+
+        function renderCanvas(canvasId, img, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, size, size);
+            ctx.drawImage(img, 0, 0, size, size);
+        }
+
+        btn.onclick = () => {
+            const suffix = ''; // currentColor ? `-${currentColor}` : '';
+            download('canvas16', `${fileName}${suffix}.png`);
+            download('canvas32', `${fileName}${suffix}@2x.png`);
+        };
+
+        function download(canvasId, name) {
+            const link = document.createElement('a');
+            link.download = name;
+            link.href = document.getElementById(canvasId).toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
