@@ -108,15 +108,13 @@ public class SettingsDialog {
         langLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         Combo langCombo = new Combo(c, SWT.READ_ONLY | SWT.DROP_DOWN);
-        langCombo.add(i18n("settings.language.system"));
-        langCombo.add("English");
-        langCombo.add("\u4e2d\u6587");
         String curLang = VaultManager.getCurrent().getSetting(SettingKey.LANGUAGE, "");
         int langIdx = 0;
         for (int i = 0; i < LANGUAGES.length; i++) {
-            if (LANGUAGES[i].equals(curLang)) {
+            String code = LANGUAGES[i];
+            langCombo.add(code.isEmpty() ? i18n("settings.language.system") : i18n("settings.language.name." + code));
+            if (code.equals(curLang)) {
                 langIdx = i;
-                break;
             }
         }
         langCombo.select(langIdx);
