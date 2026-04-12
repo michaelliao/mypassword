@@ -37,9 +37,26 @@ public class TotpUtils {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("Missing secret in otpauth URI");
         }
+        // Parse label from path: otpauth://totp/Issuer:username or otpauth://totp/username
+        String label = parsed.getPath();
+        if (label != null) {
+            label = label.startsWith("/") ? label.substring(1) : label;
+            label = java.net.URLDecoder.decode(label, java.nio.charset.StandardCharsets.UTF_8);
+        } else {
+            label = "";
+        }
+        String labelIssuer = "";
+        String labelUser = label;
+        int colon = label.indexOf(':');
+        if (colon >= 0) {
+            labelIssuer = label.substring(0, colon).strip();
+            labelUser = label.substring(colon + 1).strip();
+        }
+
         TotpData data = new TotpData();
         data.secret = secret.toUpperCase().replace(" ", "");
-        data.issuer = params.getOrDefault("issuer", "");
+        data.issuer = params.getOrDefault("issuer", labelIssuer);
+        data.username = labelUser;
         data.algorithm = params.getOrDefault("algorithm", "SHA1").toUpperCase();
         try {
             data.digits = Integer.parseInt(params.getOrDefault("digits", "6"));

@@ -16,6 +16,7 @@ import org.puppylab.mypassword.core.data.ItemType;
 import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PasskeyData;
+import org.puppylab.mypassword.core.data.TotpData;
 import org.puppylab.mypassword.ui.Icons;
 import org.puppylab.mypassword.util.PasswordUtils;
 import org.puppylab.mypassword.util.StringUtils;
@@ -48,10 +49,16 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
     private Label  passkeyValueLabel;
     private Button passkeyDeleteBtn;
 
+    private Label  totpValueLabel;
+    private Button totpDeleteBtn;
+
     // Current passkey state while editing. Initialized from the loaded item in
     // setData; nulled out when the delete button is clicked. Copied back into
     // the collected LoginItemData so unchanged passkeys are preserved.
     private PasskeyData currentPasskey = null;
+
+    // Same pattern for TOTP — preserved or nulled by delete button.
+    private TotpData currentTotp = null;
 
     private LoginItemData editingItem = null;
 
@@ -65,9 +72,75 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         usernameField = createField(i18n("field.username"), SWT.BORDER);
         createPasswordRow();
         createGenerateRow();
+        createTotpRow();
         createPasskeyRow();
         websitesMultiFields = createMultiTextFields(i18n("field.websites"));
         memoField = createAreaField(i18n("field.memo"));
+    }
+
+    private void createTotpRow() {
+        Composite row = new Composite(content, SWT.NONE);
+        GridLayout gl = new GridLayout(3, false);
+        row.setLayout(gl);
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        org.eclipse.swt.widgets.Label lbl = new org.eclipse.swt.widgets.Label(row, SWT.NONE);
+        lbl.setText(i18n("field.totp"));
+        GridData ld = new GridData();
+        ld.widthHint = LABEL_WIDTH;
+        lbl.setLayoutData(ld);
+
+        totpValueLabel = new org.eclipse.swt.widgets.Label(row, SWT.NONE);
+        totpValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        totpDeleteBtn = new Button(row, SWT.PUSH);
+        totpDeleteBtn.setImage(Icons.get("delete"));
+        totpDeleteBtn.setToolTipText(i18n("totp.btn.delete"));
+        GridData dgd = new GridData();
+        dgd.widthHint = 32;
+        totpDeleteBtn.setLayoutData(dgd);
+        totpDeleteBtn.addListener(SWT.Selection, _ -> {
+            if (currentTotp == null) {
+                return;
+            }
+            String label = formatTotp(currentTotp);
+            MessageBox mb = new MessageBox(totpDeleteBtn.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+            mb.setText(i18n("confirm.title"));
+            mb.setMessage(i18n("totp.confirm.delete", label));
+            if (mb.open() != SWT.OK) {
+                return;
+            }
+            currentTotp = null;
+            updateTotpRow();
+        });
+    }
+
+    private void updateTotpRow() {
+        if (currentTotp != null) {
+            totpValueLabel.setText(formatTotp(currentTotp));
+            totpDeleteBtn.setVisible(true);
+            ((GridData) totpDeleteBtn.getLayoutData()).exclude = false;
+        } else {
+            totpValueLabel.setText("N/A");
+            totpDeleteBtn.setVisible(false);
+            ((GridData) totpDeleteBtn.getLayoutData()).exclude = true;
+        }
+        totpValueLabel.getParent().layout(true, true);
+    }
+
+    private static String formatTotp(TotpData t) {
+        String issuer = StringUtils.normalize(t.issuer);
+        String user = StringUtils.normalize(t.username);
+        if (issuer.isEmpty() && user.isEmpty()) {
+            return "TOTP";
+        }
+        if (issuer.isEmpty()) {
+            return user;
+        }
+        if (user.isEmpty() || issuer.equals(user)) {
+            return issuer;
+        }
+        return issuer + " / " + user;
     }
 
     private void createPasskeyRow() {
@@ -298,6 +371,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             addMultiTextRow(websitesMultiFields, "", false);
             memoField.setText("");
             currentPasskey = null;
+            currentTotp = null;
         } else {
             titleField.setText(StringUtils.normalize(item.data.title));
             usernameField.setText(StringUtils.normalize(item.data.username));
@@ -305,7 +379,9 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
             setMultiTextValues(websitesMultiFields, item.data.websites);
             memoField.setText(StringUtils.normalize(item.data.memo));
             currentPasskey = item.data.passkey;
+            currentTotp = item.data.totp;
         }
+        updateTotpRow();
         updatePasskeyRow();
         // show generate area if password is empty, hide if not
         boolean hasPassword = !passwordField.getText().isEmpty();
@@ -327,6 +403,7 @@ public class LoginEditView extends AbstractEditView<LoginItemData> {
         // currentPasskey holds the original PasskeyData reference (or null if the
         // user clicked delete), so carrying it over preserves unchanged passkeys.
         data.data.passkey = currentPasskey;
+        data.data.totp = currentTotp;
         return data;
     }
 }
