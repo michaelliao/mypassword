@@ -54,6 +54,9 @@
     <div class="header">
       <span class="app-title">MyPassword</span>
       <div class="header-actions">
+        <button id="btn-scan" class="btn btn-icon hidden" title="Scan 2FA QR code">
+          <img src="icons/qrscan.svg" alt="Scan QR">
+        </button>
         <button id="btn-settings" class="btn btn-icon" title="Settings">
           <img src="icons/setting.svg" alt="Settings">
         </button>
@@ -72,6 +75,31 @@
       <input id="input-search" type="text" placeholder="Search..." class="text-input search-input">
     </div>
     <div id="items-container" class="items-container"></div>
+  </div>
+
+  <!-- Scan view -->
+  <div id="view-scan" class="view hidden">
+    <div class="header">
+      <span class="app-title">Scan 2FA QR Code</span>
+      <div class="header-actions">
+        <button id="btn-scan-back" class="btn btn-secondary">Back</button>
+      </div>
+    </div>
+    <div id="scan-body" class="scan-body">
+      <div id="scan-loading" class="scan-status">
+        <div class="spinner"></div>
+        <p class="loading-text">Scanning page for QR codes...</p>
+      </div>
+      <div id="scan-not-found" class="scan-status hidden">
+        <p class="scan-message">No 2FA QR code found on this page.</p>
+        <button id="btn-scan-ok" class="btn btn-primary">OK</button>
+      </div>
+      <div id="scan-found" class="hidden">
+        <p class="scan-hint">Select a login to save this TOTP:</p>
+        <div class="scan-totp-info" id="scan-totp-info"></div>
+        <div id="scan-items-container" class="items-container"></div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>
