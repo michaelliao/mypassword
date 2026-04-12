@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
+import org.puppylab.mypassword.ui.Icons;
 
 public class UnlockView {
 
@@ -91,6 +92,7 @@ public class UnlockView {
 
         unlockBtn = new Button(pwRow, SWT.PUSH);
         unlockBtn.setText(i18n("unlock.btn"));
+        unlockBtn.setImage(Icons.get("unlock"));
         GridData btnGd = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
         btnGd.heightHint = 30;
         unlockBtn.setLayoutData(btnGd);

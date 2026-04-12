@@ -436,8 +436,9 @@ public class SettingsDialog {
             if (ec.approve) {
                 Button unpairBtn = new Button(btnComposite, SWT.PUSH);
                 unpairBtn.setText("Unpair");
+                unpairBtn.setImage(Icons.get("disconnect"));
                 GridData unpairGd = new GridData(SWT.END, SWT.CENTER, true, false);
-                unpairGd.widthHint = 75;
+                unpairGd.widthHint = 120;
                 unpairBtn.setLayoutData(unpairGd);
                 unpairBtn.addListener(SWT.Selection, _ -> {
                     MessageBox mb = new MessageBox(container.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
@@ -515,11 +516,12 @@ public class SettingsDialog {
             // action button:
             Button actionBtn = new Button(row, SWT.PUSH);
             GridData btnGd = new GridData(SWT.END, SWT.CENTER, false, false);
-            btnGd.widthHint = 100;
+            btnGd.widthHint = 120;
             actionBtn.setLayoutData(btnGd);
 
             if (loggedIn) {
                 actionBtn.setText(i18n("settings.oauth.btn.disconnect"));
+                actionBtn.setImage(Icons.get("disconnect"));
                 actionBtn.addListener(SWT.Selection, _ -> {
                     MessageBox mb = new MessageBox(container.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
                     mb.setText(i18n("confirm.title"));
@@ -536,6 +538,7 @@ public class SettingsDialog {
                 });
             } else {
                 actionBtn.setText(i18n("settings.oauth.btn.login"));
+                actionBtn.setImage(Icons.get("link"));
                 actionBtn.addListener(SWT.Selection, _ -> {
                     Program.launch("http://127.0.0.1:" + HttpDaemon.PORT + "/oauth/" + rc.oauth_provider + "/start");
                 });

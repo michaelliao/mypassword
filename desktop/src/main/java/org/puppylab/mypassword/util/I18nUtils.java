@@ -32,7 +32,7 @@ public class I18nUtils {
         boolean isBtn = key.startsWith("btn.") || key.endsWith(".btn") || key.contains(".btn.");
         String value = bundle.getString(key);
         if (isBtn) {
-            return "  " + value + "  ";
+            return " " + value + " ";
         }
         return value;
     }
