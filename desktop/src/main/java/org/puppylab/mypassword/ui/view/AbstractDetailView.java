@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.ui.Icons;
 
 public abstract class AbstractDetailView<T extends AbstractItemData> {
 
@@ -78,6 +79,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
 
         btnDelete = new Button(content, SWT.PUSH);
         btnDelete.setText(i18n("detail.btn.delete"));
+        btnDelete.setImage(Icons.get("trash"));
         btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         btnDelete.addListener(SWT.Selection, _ -> {
             if (onDelete != null) {

@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.puppylab.mypassword.core.data.ItemType;
+import org.puppylab.mypassword.ui.Icons;
+import org.puppylab.mypassword.ui.SettingsDialog;
 
 public class ToolbarView {
 
@@ -25,7 +27,7 @@ public class ToolbarView {
     public ToolbarView(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        GridLayout gl = new GridLayout(3, false);
+        GridLayout gl = new GridLayout(4, false);
         gl.marginWidth = 4;
         gl.marginHeight = 4;
         composite.setLayout(gl);
@@ -33,6 +35,7 @@ public class ToolbarView {
         // ── Add New button with drop-down menu ────────────────────────
         Button btnAdd = new Button(composite, SWT.PUSH);
         btnAdd.setText(i18n("toolbar.btn.add_new"));
+        btnAdd.setImage(Icons.get("add"));
 
         Menu addMenu = new Menu(btnAdd);
         addMenuItem(addMenu, i18n("toolbar.menu.login"), ItemType.LOGIN);
@@ -55,9 +58,17 @@ public class ToolbarView {
                 onSearch.accept(search.getText());
         });
 
+        // ── Settings button (mirrors the tray "Settings..." menu item) ─
+        Button btnSettings = new Button(composite, SWT.PUSH);
+        btnSettings.setText(i18n("toolbar.btn.settings"));
+        btnSettings.setImage(Icons.get("settings"));
+        btnSettings.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+        btnSettings.addListener(SWT.Selection, _ -> new SettingsDialog(composite.getShell()).open());
+
         // ── Lock button (pinned to the right) ─────────────────────────
         Button btnLock = new Button(composite, SWT.PUSH);
         btnLock.setText(i18n("toolbar.btn.lock"));
+        btnLock.setImage(Icons.get("lock"));
         btnLock.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         btnLock.addListener(SWT.Selection, _ -> {
             if (onLock != null)
