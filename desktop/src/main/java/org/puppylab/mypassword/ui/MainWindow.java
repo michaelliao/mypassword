@@ -42,6 +42,7 @@ import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
 import org.puppylab.mypassword.util.FileUtils;
 import org.puppylab.mypassword.util.I18nUtils;
+import org.puppylab.mypassword.util.StringUtils;
 
 public class MainWindow {
 
@@ -100,7 +101,9 @@ public class MainWindow {
         VaultManager vaultManager = new VaultManager(dbManager);
         // Re-initialise i18n with the saved language setting so the rest of
         // the UI (InitVaultDialog, MainWindow shell, views) honours it.
-        I18nUtils.init(vaultManager.getSetting(SettingKey.LANGUAGE, ""));
+        String lang = vaultManager.getSetting(SettingKey.LANGUAGE, "");
+        I18nUtils.init(lang);
+        StringUtils.initDateTimeLocale(lang);
         Session.getCurrent().startAutoLockThread();
         daemon.initDispatcher();
 

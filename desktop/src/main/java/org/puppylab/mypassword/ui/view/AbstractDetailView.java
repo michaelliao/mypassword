@@ -2,10 +2,6 @@ package org.puppylab.mypassword.ui.view;
 
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +18,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.puppylab.mypassword.core.data.AbstractItemData;
 import org.puppylab.mypassword.ui.Icons;
+import org.puppylab.mypassword.util.StringUtils;
 
 public abstract class AbstractDetailView<T extends AbstractItemData> {
-
-    private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter
-            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withZone(ZoneId.systemDefault());
 
     public final Composite composite;
 
@@ -125,7 +119,7 @@ public abstract class AbstractDetailView<T extends AbstractItemData> {
         ((GridData) btnRestore.getLayoutData()).exclude = !deleted;
         btnRestore.setVisible(deleted);
         if (item.updated_at > 0) {
-            lblLastEdit.setText(i18n("detail.last_edit", DATE_TIME_FMT.format(Instant.ofEpochMilli(item.updated_at))));
+            lblLastEdit.setText(i18n("detail.last_edit", StringUtils.formatDateTime(item.updated_at)));
         } else {
             lblLastEdit.setText("");
         }
