@@ -21,10 +21,9 @@
 
 		<!-- artifact version -->
 		<jackson.version>2.21.1</jackson.version>
-		<jline.version>3.30.8</jline.version>
 		<junit.version>5.14.3</junit.version>
 		<persistence.version>3.2.0</persistence.version>
-		<logback.version>1.5.32</logback.version> 
+		<logback.version>1.5.32</logback.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<sqlite.version>3.51.2.0</sqlite.version>
 		<swt.version>3.133.0</swt.version>
@@ -37,7 +36,8 @@
 		<app.name>MyPassword</app.name>
 		<jpackage.input>${project.build.directory}/jpackage-input</jpackage.input>
 		<jlink.runtime>${project.build.directory}/jlink-runtime</jlink.runtime>
-		<jlink.modules>java.base,java.desktop,java.net.http,java.sql,jdk.httpserver</jlink.modules>
+		<jlink.modules>
+			java.base,java.desktop,java.net.http,java.sql,jdk.httpserver</jlink.modules>
 	</properties>
 
 	<profiles>
@@ -105,12 +105,7 @@
 	</profiles>
 
 
-	<dependencies> 
-		<dependency>
-			<groupId>org.jline</groupId>
-			<artifactId>jline</artifactId>
-			<version>${jline.version}</version>
-		</dependency>
+	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
