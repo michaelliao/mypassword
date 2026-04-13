@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
  * Auto-lock is based on OS-level idle time (keyboard/mouse inactivity) queried
  * via platform-specific APIs. The timeout is read from VaultManager settings.
  */
-@SuppressWarnings("resource")
 public class Session {
 
     public static enum UnlockType {
@@ -72,7 +71,9 @@ public class Session {
         Linker linker = Linker.nativeLinker();
         try {
             if (IS_WINDOWS) {
+                @SuppressWarnings("resource")
                 SymbolLookup user32 = SymbolLookup.libraryLookup("user32.dll", Arena.global());
+                @SuppressWarnings("resource")
                 SymbolLookup kernel32 = SymbolLookup.libraryLookup("kernel32.dll", Arena.global());
                 glii = linker.downcallHandle(user32.find("GetLastInputInfo").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS));
@@ -81,12 +82,15 @@ public class Session {
             } else if (IS_MAC) {
                 // CGEventSourceSecondsSinceLastEventType(int32_t stateID, int32_t eventType) ->
                 // double
+                @SuppressWarnings("resource")
                 SymbolLookup cg = SymbolLookup.libraryLookup(
                         "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", Arena.global());
                 mit = linker.downcallHandle(cg.find("CGEventSourceSecondsSinceLastEventType").orElseThrow(),
                         FunctionDescriptor.of(ValueLayout.JAVA_DOUBLE, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT));
             } else if (IS_LINUX) {
+                @SuppressWarnings("resource")
                 SymbolLookup x11 = SymbolLookup.libraryLookup("libX11.so.6", Arena.global());
+                @SuppressWarnings("resource")
                 SymbolLookup xss = SymbolLookup.libraryLookup("libXss.so.1", Arena.global());
                 // Display* XOpenDisplay(char*)
                 lxod = linker.downcallHandle(x11.find("XOpenDisplay").orElseThrow(),
