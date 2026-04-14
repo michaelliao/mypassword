@@ -79,6 +79,37 @@ The easiest way to keep the vault continuously backed up is to store it directly
 
 If you want to restore to a different location, delete the pointer file first and use the **Open existing vault…** button in the Locate Vault dialog to point MyPassword at the restored file.
 
+## OAuth Recovery Configuration
+
+If you enable OAuth recovery, each provider needs a small JSON config stored in the vault's `recovery_config` row. The required fields are:
+
+| Field | Description |
+|---|---|
+| `client_id` | The OAuth client ID issued by the provider |
+| `client_secret` | The OAuth client secret (optional for PKCE-only providers) |
+| `issuer` | Exact string expected in the ID token's `iss` claim |
+| `jwks` | URL of the provider's JWKS (used to verify the ID token signature) |
+
+Both `issuer` and `jwks` are required for signature and issuer verification. If `jwks` is missing, the JWT signature is not checked and the token payload is trusted blindly — do **not** run in that mode in production.
+
+### Google
+
+| Field | Value |
+|---|---|
+| `issuer` | `https://accounts.google.com` |
+| `jwks` | `https://www.googleapis.com/oauth2/v3/certs` |
+
+### Microsoft (Entra ID / Azure AD)
+
+| Field | Value |
+|---|---|
+| `issuer` | `https://login.microsoftonline.com/{appId}/v2.0` — use your **application (client) ID**, not the tenant ID |
+| `jwks` | `https://login.microsoftonline.com/common/discovery/v2.0/keys` — `common`, no tenant ID |
+
+Make sure your app registration has `"accessTokenAcceptedVersion": 2` in the manifest, otherwise tokens will be v1 and fail signature verification against the v2 JWKS.
+
+To confirm the exact `issuer` string for any provider, paste an ID token into <https://jwt.ms> and read the `iss` claim.
+
 ## Security Considerations
 
 - **The file is encrypted, but not invulnerable.** An attacker with the backup file can attempt offline brute-force attacks against your master password with no rate limiting. Use a strong master password. See [Security](/key-gen#when-can-the-vault-be-compromised) for details.
