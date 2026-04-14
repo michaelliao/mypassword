@@ -46,8 +46,8 @@ CREATE TABLE RecoveryConfig (
 );
 
 -- NOTE: client_secret is required by Google desktop oauth but not treat as confidential:
-INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('google', '{"client_id":"316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com","client_secret":"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"}');
-INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('microsoft', '{"client_id":"983c29d1-7261-4827-a1a9-a00603a15367"}');
+INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('google', '{"client_id":"316516407199-o9kch40i9adm4881k4kl5e9ngrfihoi2.apps.googleusercontent.com","client_secret":"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","issuer":"https://accounts.google.com","jwks":"https://www.googleapis.com/oauth2/v3/certs"}');
+INSERT INTO RecoveryConfig (oauth_provider, oauth_config_json) VALUES('microsoft', '{"client_id":"983c29d1-7261-4827-a1a9-a00603a15367","issuer":"https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0","jwks":"https://login.microsoftonline.com/common/discovery/v2.0/keys"}');
 
 CREATE TABLE Item (
     id INTEGER PRIMARY KEY,               -- auto increment id

@@ -24,6 +24,7 @@
 		<junit.version>5.14.3</junit.version>
 		<persistence.version>3.2.0</persistence.version>
 		<logback.version>1.5.32</logback.version>
+		<nimbus.jwt.version>10.9</nimbus.jwt.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<sqlite.version>3.51.2.0</sqlite.version>
 		<swt.version>3.133.0</swt.version>
@@ -104,7 +105,6 @@
 		</profile>
 	</profiles>
 
-
 	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -131,6 +131,11 @@
 			<artifactId>jakarta.persistence-api</artifactId>
 			<version>${persistence.version}</version>
 		</dependency>
+		<dependency>
+    <groupId>com.nimbusds</groupId>
+    <artifactId>nimbus-jose-jwt</artifactId>
+    <version>${nimbus.jwt.version}</version>
+</dependency>
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>${swt.artifactId}</artifactId>

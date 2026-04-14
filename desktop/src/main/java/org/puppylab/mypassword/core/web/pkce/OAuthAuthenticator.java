@@ -2,14 +2,20 @@ package org.puppylab.mypassword.core.web.pkce;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 
 import org.puppylab.mypassword.core.HttpDaemon;
 import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
+import org.puppylab.mypassword.rpc.ErrorCode;
+import org.puppylab.mypassword.rpc.VaultException;
 import org.puppylab.mypassword.util.Base64Utils;
 import org.puppylab.mypassword.util.EncryptUtils;
 import org.puppylab.mypassword.util.HashUtils;
@@ -17,6 +23,17 @@ import org.puppylab.mypassword.util.HttpUtils;
 import org.puppylab.mypassword.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
+import com.nimbusds.jose.proc.JWSKeySelector;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
 public abstract class OAuthAuthenticator {
 
@@ -86,17 +103,21 @@ public abstract class OAuthAuthenticator {
         this.codeVerifier = null;
         // send http post:
         String result = HttpUtils.postForm(getTokenUrl(), query, Map.of("Accept", "application/json"));
-        logger.info("Post result: {}", result);
         OAuthResult oauth = JsonUtils.fromJson(result, OAuthResult.class);
         OAuthUser user = processOAuthResult(oauth);
-        logger.info("OAuth user: {}", user);
         return user;
     }
 
     protected OAuthUser processOAuthResult(OAuthResult oauth) {
         if (oauth.id_token != null) {
-            String[] parts = oauth.id_token.split("\\.");
-            JwtUser jwtUser = decodeJWT(parts[1], JwtUser.class);
+            String jwt = oauth.id_token;
+            JwtUser jwtUser;
+            try {
+                jwtUser = decodeJWTUser(jwt);
+            } catch (Exception e) {
+                logger.error("Parse JWT failed.", e);
+                throw new VaultException(ErrorCode.BAD_REQUEST, "Cannot parse JWT.");
+            }
             OAuthUser user = new OAuthUser();
             user.provider = this.provider;
             user.oauthId = jwtUser.sub;
@@ -107,9 +128,28 @@ public abstract class OAuthAuthenticator {
         return null;
     }
 
-    protected <T> T decodeJWT(String s, Class<T> clazz) {
-        String payload = new String(Base64Utils.b64(s), StandardCharsets.UTF_8);
-        return JsonUtils.fromJson(payload, clazz);
+    protected JwtUser decodeJWTUser(String jwt) throws Exception {
+        String cert_url = (String) config.get("jwks");
+        if (cert_url == null || cert_url.isEmpty()) {
+            logger.warn("Missing jwks and cannot verify JWT signature!");
+            String payload = new String(Base64Utils.b64(jwt.split("\\.")[1]), StandardCharsets.UTF_8);
+            return JsonUtils.fromJson(payload, JwtUser.class);
+        }
+        logger.info("try load jwks: {}", cert_url);
+        URL jwksUrl = URI.create(cert_url).toURL();
+        JWKSource<SecurityContext> keySource = JWKSourceBuilder.create(jwksUrl).build();
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
+        jwtProcessor.setJWSKeySelector(keySelector);
+        jwtProcessor.setJWTClaimsSetVerifier(
+                new DefaultJWTClaimsVerifier<>(new JWTClaimsSet.Builder().issuer((String) config.get("issuer")).build(),
+                        new HashSet<>(Arrays.asList("sub", "iat", "exp"))));
+        JWTClaimsSet claimsSet = jwtProcessor.process(jwt, null);
+        JwtUser jwtUser = new JwtUser();
+        jwtUser.sub = claimsSet.getSubject();
+        jwtUser.email = claimsSet.getStringClaim("email");
+        jwtUser.name = claimsSet.getStringClaim("name");
+        return jwtUser;
     }
 
     protected String toQueryString(Map<String, String> query) {
