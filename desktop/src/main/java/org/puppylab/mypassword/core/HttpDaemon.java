@@ -148,7 +148,7 @@ public class HttpDaemon implements HttpHandler {
             return;
         }
         if (resp instanceof String s) {
-            logger.info("string response: {}", s);
+            logger.info("string response.");
             if (s.startsWith("redirect:")) {
                 // redirect to url:
                 exchange.getResponseHeaders().set("Location", s.substring(9));
@@ -163,7 +163,7 @@ public class HttpDaemon implements HttpHandler {
         }
         // serialize to json:
         String json = JsonUtils.toJson(resp);
-        logger.info("json response: {}", json);
+        logger.info("json response.");
         sendResponse(exchange, "application/json", json);
     }
 
