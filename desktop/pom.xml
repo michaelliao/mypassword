@@ -39,6 +39,8 @@
 		<jlink.runtime>${project.build.directory}/jlink-runtime</jlink.runtime>
 		<jlink.modules>
 			java.base,java.desktop,java.net.http,java.sql,jdk.httpserver</jlink.modules>
+		<!-- Overridden per-OS profile; macOS needs -XstartOnFirstThread for SWT/Cocoa. -->
+		<jpackage.javaOptions>-Dfile.encoding=UTF-8</jpackage.javaOptions>
 	</properties>
 
 	<profiles>
@@ -70,6 +72,7 @@
 				<jpackage.type>app-image</jpackage.type>
 				<path.sep>:</path.sep>
 				<swt.artifactId>org.eclipse.swt.cocoa.macosx.aarch64</swt.artifactId>
+				<jpackage.javaOptions>-XstartOnFirstThread</jpackage.javaOptions>
 			</properties>
 		</profile>
 		<profile>
@@ -85,6 +88,7 @@
 				<jpackage.type>app-image</jpackage.type>
 				<path.sep>:</path.sep>
 				<swt.artifactId>org.eclipse.swt.cocoa.macosx.x86_64</swt.artifactId>
+				<jpackage.javaOptions>-XstartOnFirstThread</jpackage.javaOptions>
 			</properties>
 		</profile>
 		<profile>
@@ -132,10 +136,10 @@
 			<version>${persistence.version}</version>
 		</dependency>
 		<dependency>
-    <groupId>com.nimbusds</groupId>
-    <artifactId>nimbus-jose-jwt</artifactId>
-    <version>${nimbus.jwt.version}</version>
-</dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>${nimbus.jwt.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>${swt.artifactId}</artifactId>
@@ -241,6 +245,8 @@
 								<argument>${jlink.runtime}</argument>
 								<argument>--dest</argument>
 								<argument>${project.build.directory}/dist</argument>
+								<argument>--java-options</argument>
+								<argument>${jpackage.javaOptions}</argument>
 							</arguments>
 						</configuration>
 					</execution>
