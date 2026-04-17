@@ -67,6 +67,8 @@ public abstract class OAuthAuthenticator {
         String code_challenge = Base64Utils.b64(digest);
         Map<String, String> query = Map.of("client_id", (String) config.getOrDefault("client_id", ""), // client id
                 "response_type", "code", // response type
+                "prompt", "login", // force input password
+                "max_age", "0", // disable session
                 "scope", getScope(), // scope
                 "code_challenge", code_challenge, // challenge
                 "code_challenge_method", "S256", // sha-256
