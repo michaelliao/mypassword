@@ -4,7 +4,7 @@ MyPassword is a free, open-source, offline password manager. All data is encrypt
 
 ## Download
 
-Pre-compiled release can be downloaded from [GitHub](https://github.com/michaelliao/mypassword/releases). Source code can also be get from [GitHub](https://github.com/michaelliao/mypassword).
+Pre-compiled release can be downloaded from [GitHub](https://github.com/michaelliao/mypassword/releases/latest). Source code can also be get from [GitHub](https://github.com/michaelliao/mypassword).
 
 ## Key Features
 
