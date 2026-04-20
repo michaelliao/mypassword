@@ -140,10 +140,12 @@ public class HttpDaemon implements HttpHandler {
             }
         }
         if (resp == null) {
+            logger.warn("http 200 but empty response.");
             exchange.sendResponseHeaders(200, -1);
             return;
         }
         if (resp == DispatcherService.NOT_PROCESSED) {
+            logger.warn("http 404: {}", path);
             exchange.sendResponseHeaders(404, -1);
             return;
         }

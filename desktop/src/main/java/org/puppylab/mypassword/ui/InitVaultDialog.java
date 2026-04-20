@@ -24,6 +24,7 @@ import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.NoteFieldsData;
 import org.puppylab.mypassword.core.data.NoteItemData;
+import org.puppylab.mypassword.util.ShellUtils;
 
 /**
  * Modal dialog shown on first launch to set the master password and initialize
@@ -50,7 +51,7 @@ public class InitVaultDialog {
         shell.setText(i18n("init.title"));
         shell.setSize(400, 320);
         shell.setLayout(new GridLayout(1, false));
-        ShellUtil.setCenter(shell);
+        ShellUtils.setCenter(shell);
 
         // ── title ────────────────────────────────────────────────────────
         Label title = new Label(shell, SWT.CENTER);

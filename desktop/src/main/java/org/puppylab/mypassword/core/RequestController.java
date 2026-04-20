@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.core.data.AbstractItemData;
+import org.puppylab.mypassword.core.data.LoginFieldsData;
 import org.puppylab.mypassword.core.data.LoginItemData;
 import org.puppylab.mypassword.core.data.PairRequest;
 import org.puppylab.mypassword.core.data.PairResponse;
@@ -40,8 +41,10 @@ import org.puppylab.mypassword.rpc.response.ItemsResponse;
 import org.puppylab.mypassword.rpc.response.PasskeyAddResponse;
 import org.puppylab.mypassword.rpc.response.PasskeyLoginResponse;
 import org.puppylab.mypassword.util.Base64Utils;
+import org.puppylab.mypassword.util.ClipboardUtils;
 import org.puppylab.mypassword.util.FileUtils;
 import org.puppylab.mypassword.util.PasswordUtils;
+import org.puppylab.mypassword.util.ShellUtils;
 import org.puppylab.mypassword.util.TotpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,9 +117,7 @@ public class RequestController {
             if (shell == null) {
                 return;
             }
-            shell.setMinimized(false);
-            shell.setActive();
-            shell.forceActive();
+            ShellUtils.activateShell(shell);
             MessageBox mb = new MessageBox(shell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
             mb.setText("Extension Pairing Request");
             mb.setMessage("Extension \"" + ec.name + "\" on device \"" + ec.device
@@ -347,6 +348,25 @@ public class RequestController {
     }
 
     /**
+     * Copy item's password.
+     */
+    @PostMapping("/items/{id}/copy")
+    public BaseResponse itemCopyPassword(@PathVariable("id") long id) {
+        SecretKey key = getKey();
+        AbstractItemData item = VaultManager.getCurrent().getItem(key, id);
+        // the passkey private key is daemon-internal; the extension never needs
+        // it — passkey assertions read straight from the vault.
+        if (item instanceof LoginItemData login) {
+            LoginFieldsData fd = (LoginFieldsData) login.fields();
+            if (fd.password != null && !fd.password.isEmpty()) {
+                ClipboardUtils.copyPassword(fd.password);
+                return new BaseResponse();
+            }
+        }
+        throw new VaultException(ErrorCode.NO_PASSWORD, "No password found.");
+    }
+
+    /**
      * Strip wire-sensitive fields from a login item for list responses:
      * <ul>
      * <li>{@code password} — empty string means "has one, hidden"; {@code null}
@@ -475,21 +495,7 @@ public class RequestController {
 
     @PostMapping("/activate")
     public BaseResponse activate() {
-        Display display = Display.getDefault();
-        display.asyncExec(() -> {
-            Shell shell = display.getActiveShell();
-            if (shell == null) {
-                Shell[] shells = display.getShells();
-                if (shells.length > 0) {
-                    shell = shells[0];
-                }
-            }
-            if (shell != null) {
-                shell.setMinimized(false);
-                shell.setActive();
-                shell.forceActive();
-            }
-        });
+        ShellUtils.activateApp();
         return new BaseResponse();
     }
 

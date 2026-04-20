@@ -36,6 +36,8 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
 
     private Label      titleValue;
     private Label      usernameValue;
+    private Button     usernameCopyBtn;
+    private Composite  usernameBtnHolder;
     private Label      passwordValue;
     private Label      passkeyValue;
     private MultiLabel websitesContainer;
@@ -63,12 +65,65 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     @Override
     protected void createFields() {
         titleValue = createField(i18n("field.title"));
-        usernameValue = createField(i18n("field.username"));
+        createUsernameField();
         createPasswordField();
         createTotpField();
         passkeyValue = createField(i18n("field.passkey"));
         websitesContainer = createMultiValueField(i18n("field.websites"));
         memoValue = createField(i18n("field.memo"));
+    }
+
+    private void createUsernameField() {
+        Composite row = new Composite(content, SWT.NONE);
+        row.setLayout(new GridLayout(2, false));
+        row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        Label lbl = new Label(row, SWT.NONE);
+        lbl.setText(i18n("field.username"));
+        GridData ld = new GridData();
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        Composite valueCell = new Composite(row, SWT.NONE);
+        GridLayout vcl = new GridLayout(2, false);
+        vcl.marginWidth = 0;
+        vcl.marginHeight = 0;
+        valueCell.setLayout(vcl);
+        valueCell.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        usernameValue = new Label(valueCell, SWT.WRAP);
+        usernameValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        usernameBtnHolder = new Composite(valueCell, SWT.NONE);
+        usernameBtnHolder.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+        GridLayout btnGl = new GridLayout(1, false);
+        btnGl.marginWidth = 0;
+        btnGl.marginHeight = 0;
+        usernameBtnHolder.setLayout(btnGl);
+
+        usernameCopyBtn = new Button(usernameBtnHolder, SWT.PUSH);
+        usernameCopyBtn.setText(i18n("password.btn.copy"));
+        usernameCopyBtn.setImage(Icons.get("copy"));
+        usernameCopyBtn.addListener(SWT.Selection, _ -> copyUsername());
+    }
+
+    private void copyUsername() {
+        String username = usernameValue.getText();
+        if (username.isEmpty()) return;
+        ClipboardUtils.copyPassword(username);
+        Display display = Display.getCurrent();
+        logger.info("username copied.");
+        usernameCopyBtn.setImage(Icons.get("copied"));
+        ToolTip tip = new ToolTip(composite.getShell(), SWT.ICON_INFORMATION);
+        tip.setMessage(i18n("password.tip.copied"));
+        Rectangle rect = usernameCopyBtn.getBounds();
+        Point loc = usernameCopyBtn.getParent().toDisplay(rect.x, rect.y + rect.height);
+        tip.setLocation(loc);
+        tip.setVisible(true);
+        display.timerExec(2000, () -> {
+            if (!tip.isDisposed()) tip.dispose();
+            if (!usernameCopyBtn.isDisposed()) usernameCopyBtn.setImage(Icons.get("copy"));
+        });
     }
 
     private void createPasswordField() {
@@ -232,7 +287,12 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
     @Override
     protected void setData(LoginItemData item) {
         titleValue.setText(StringUtils.normalize(item.data.title));
-        usernameValue.setText(StringUtils.normalize(item.data.username));
+        String username = StringUtils.normalize(item.data.username);
+        usernameValue.setText(username);
+        boolean hasUsername = !username.isEmpty();
+        usernameBtnHolder.setVisible(hasUsername);
+        ((GridData) usernameBtnHolder.getLayoutData()).exclude = !hasUsername;
+        usernameBtnHolder.getParent().layout(true, true);
         plainPassword = item.data.password != null ? item.data.password : "";
         passwordVisible = false;
         passwordValue.setText(plainPassword.isEmpty() ? "" : MASKED);

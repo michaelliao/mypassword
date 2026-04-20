@@ -42,6 +42,7 @@ import org.puppylab.mypassword.ui.view.ToolbarView;
 import org.puppylab.mypassword.ui.view.UnlockView;
 import org.puppylab.mypassword.util.FileUtils;
 import org.puppylab.mypassword.util.I18nUtils;
+import org.puppylab.mypassword.util.ShellUtils;
 import org.puppylab.mypassword.util.StringUtils;
 
 public class MainWindow {
@@ -126,7 +127,7 @@ public class MainWindow {
         Shell shell = new Shell(display);
         shell.setText(i18n("app.name"));
         shell.setSize(800, 600);
-        ShellUtil.setCenter(shell);
+        ShellUtils.setCenter(shell);
         shell.setLayout(new GridLayout(1, false));
         Image appIcon = loadIcon(display);
         shell.setImage(appIcon);
@@ -176,9 +177,7 @@ public class MainWindow {
         // ── activate window action (shared by tray and /activate) ───────
         Runnable activate = () -> {
             shell.setVisible(true);
-            shell.setMinimized(false);
-            shell.setActive();
-            shell.forceActive();
+            ShellUtils.activateShell(shell);
         };
 
         // ── system tray ──────────────────────────────────────────────────

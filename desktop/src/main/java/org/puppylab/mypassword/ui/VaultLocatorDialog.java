@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.puppylab.mypassword.util.FileUtils;
+import org.puppylab.mypassword.util.ShellUtils;
 
 /**
  * Modal dialog shown when the vault file is missing or invalid. Lets the user
@@ -53,7 +54,7 @@ public class VaultLocatorDialog {
         shell.setText(i18n("locate.title"));
         shell.setSize(460, 240);
         shell.setLayout(new GridLayout(1, false));
-        ShellUtil.setCenter(shell);
+        ShellUtils.setCenter(shell);
 
         Label title = new Label(shell, SWT.CENTER);
         title.setText(i18n("locate.heading"));

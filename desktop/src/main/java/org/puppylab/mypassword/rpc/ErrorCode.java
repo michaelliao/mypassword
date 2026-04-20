@@ -6,6 +6,8 @@ public enum ErrorCode {
 
     UNKNOWN_EXTENSION,
 
+    NO_PASSWORD,
+
     DATA_NOT_FOUND,
 
     BAD_FIELD,
