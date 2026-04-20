@@ -239,7 +239,7 @@ public class MainController {
         String q = query == null ? "" : query.strip().toLowerCase();
         List<AbstractItemData> combined = getAllAndDeletedItems();
         List<AbstractItemData> source = q.isEmpty() ? combined
-                : combined.stream().filter(i -> contains(i.title(), q)).toList();
+                : combined.stream().filter(i -> contains(i.title(), q) || contains(i.subtitle(), q)).toList();
         listView.setAllItems(source);
     }
 
@@ -346,11 +346,10 @@ public class MainController {
     // ── helpers ───────────────────────────────────────────────────────
 
     /**
-     * Reload the full item list from the DB. This is the single
-     * authoritative refresh path: it rebuilds {@code state.allItems} and
-     * {@code state.deletedItems}, re-points {@code state.selectedItem} at
-     * the fresh instance (or clears it if removed), and repopulates the
-     * list view.
+     * Reload the full item list from the DB. This is the single authoritative
+     * refresh path: it rebuilds {@code state.allItems} and
+     * {@code state.deletedItems}, re-points {@code state.selectedItem} at the fresh
+     * instance (or clears it if removed), and repopulates the list view.
      */
     private void loadItems() {
         SecretKey key = Session.getCurrent().getKey();
@@ -390,8 +389,8 @@ public class MainController {
     }
 
     /**
-     * Bind the currently selected item to its detail view and switch to
-     * DETAIL mode. Falls back to EMPTY mode when nothing is selected.
+     * Bind the currently selected item to its detail view and switch to DETAIL
+     * mode. Falls back to EMPTY mode when nothing is selected.
      */
     private void showDetail() {
         AbstractItemData item = state.selectedItem;
