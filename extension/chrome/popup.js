@@ -33,6 +33,7 @@ const inputPassword = document.getElementById('input-password');
 const btnUnlock = document.getElementById('btn-unlock');
 const unlockError = document.getElementById('unlock-error');
 const btnLock = document.getElementById('btn-lock');
+const btnActivate = document.getElementById('btn-activate');
 const btnSettings = document.getElementById('btn-settings');
 const settingsSection = document.getElementById('settings-section');
 const inputSearch = document.getElementById('input-search');
@@ -375,8 +376,10 @@ function makeActionBtn(label, onClick) {
 }
 
 function copyPassword(id, btn) {
-  daemonRequest(`/items/${id}/copy`, {}).then(() => {
-    showCopiedFeedback(btn);
+  daemonRequest(`/items/${id}/copy`, {}).then((resp) => {
+    if (!resp.error) {
+      showCopiedFeedback(btn);
+    }
   });
 }
 
@@ -449,6 +452,11 @@ inputPassword.addEventListener('keydown', (e) => {
 });
 btnLock.addEventListener('click', doLock);
 inputSearch.addEventListener('input', onSearch);
+
+// ---- Activate desktop app ----
+btnActivate.addEventListener('click', () => {
+  daemonRequest('/activate', {}).catch(() => {});
+});
 
 // ---- Settings section ----
 btnSettings.addEventListener('click', () => {
