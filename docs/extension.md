@@ -2,6 +2,8 @@
 
 The MyPassword browser extension integrates with the desktop app to autofill credentials, copy passwords, and manage vault items directly from the browser.
 
+The official chrome extension can be installed from [Chrome Web Store](https://chromewebstore.google.com/detail/mypassword/odemfllimigegcboeohkoijlkooifdip).
+
 ## Architecture
 
 The extension communicates with the desktop app over HTTP at `http://127.0.0.1:27432`. The desktop app must be running for the extension to work.
