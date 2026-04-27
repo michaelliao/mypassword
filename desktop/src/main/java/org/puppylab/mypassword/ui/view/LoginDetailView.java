@@ -2,6 +2,8 @@ package org.puppylab.mypassword.ui.view;
 
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -9,10 +11,13 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -319,8 +324,39 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
             passkeyRowData.exclude = true;
         }
 
-        websitesContainer.setValues(item.data.websites);
+        setWebsites(item.data.websites);
         memoValue.setText(StringUtils.normalize(item.data.memo));
+    }
+
+    private void setWebsites(List<String> websites) {
+        Composite container = websitesContainer.container();
+        for (Control c : container.getChildren()) c.dispose();
+        List<String> items = (websites != null && !websites.isEmpty()) ? websites : List.of("");
+        for (String url : items) {
+            String display = StringUtils.normalize(url);
+            if (display.isEmpty()) {
+                Label lbl = new Label(container, SWT.WRAP);
+                lbl.setText("");
+                lbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+                continue;
+            }
+            String href = withScheme(display);
+            Link link = new Link(container, SWT.NONE);
+            link.setText("<a href=\"" + escapeLinkText(href) + "\">" + escapeLinkText(display) + "</a>");
+            link.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            link.addListener(SWT.Selection, e -> Program.launch(e.text));
+        }
+        container.getParent().layout(true, true);
+    }
+
+    private static String withScheme(String url) {
+        String lower = url.toLowerCase();
+        if (lower.startsWith("http://") || lower.startsWith("https://")) return url;
+        return "https://" + url;
+    }
+
+    private static String escapeLinkText(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     private static String formatPasskey(PasskeyData p) {
