@@ -92,14 +92,21 @@
 
   // ---- Hostname matching ----
 
+  function rootDomain(hostname) {
+    const parts = hostname.split('.');
+    if (parts.length <= 2) return hostname;
+    return parts.slice(-2).join('.');
+  }
+
   function matchesHostname(item, hostname) {
     if (item.item_type !== ITEM_TYPE_LOGIN) return false;
     const websites = item.data?.websites;
     if (!websites || websites.length === 0) return false;
+    const target = rootDomain(hostname);
     return websites.some((url) => {
       try {
         const h = new URL(url.startsWith('http') ? url : 'https://' + url).hostname;
-        return h === hostname || h.endsWith('.' + hostname) || hostname.endsWith('.' + h);
+        return rootDomain(h) === target;
       } catch {
         return url.includes(hostname);
       }
