@@ -75,7 +75,23 @@ public class LoginDetailView extends AbstractDetailView<LoginItemData> {
         createTotpField();
         passkeyValue = createField(i18n("field.passkey"));
         websitesContainer = createMultiValueField(i18n("field.websites"));
-        memoValue = createField(i18n("field.memo"));
+        memoValue = createMemoField();
+    }
+
+    private Label createMemoField() {
+        Composite row = new Composite(content, SWT.NONE);
+        row.setLayout(new GridLayout(2, false));
+        row.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Label lbl = new Label(row, SWT.NONE);
+        lbl.setText(i18n("field.memo"));
+        GridData ld = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        ld.widthHint = 80;
+        lbl.setLayoutData(ld);
+
+        Label value = new Label(row, SWT.WRAP);
+        value.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        return value;
     }
 
     private void createUsernameField() {
