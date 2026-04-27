@@ -2,6 +2,7 @@ package org.puppylab.mypassword.ui;
 
 import static org.puppylab.mypassword.util.I18nUtils.i18n;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -23,6 +24,7 @@ import org.puppylab.mypassword.core.VaultManager;
 import org.puppylab.mypassword.core.data.SettingKey;
 import org.puppylab.mypassword.core.entity.ExtensionConfig;
 import org.puppylab.mypassword.core.entity.RecoveryConfig;
+import org.puppylab.mypassword.util.FileUtils;
 
 /**
  * Tab-based settings dialog opened from the tray menu.
@@ -137,6 +139,13 @@ public class SettingsDialog {
         daGd.widthHint = 180;
         deleteAfterCombo.setLayoutData(daGd);
 
+        // database file (read-only, full row):
+        Label dbLabel = new Label(c, SWT.NONE);
+        dbLabel.setText(i18n("settings.db_file") + " " + formatDbPath());
+        GridData dbGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        dbGd.horizontalSpan = 2;
+        dbLabel.setLayoutData(dbGd);
+
         // persist immediately on change:
         trayCheck.addListener(SWT.Selection,
                 _ -> VaultManager.getCurrent().setSetting(SettingKey.KEEP_TRAY_ICON, trayCheck.getSelection() ? 1 : 0));
@@ -144,6 +153,17 @@ public class SettingsDialog {
                 LANGUAGES[langCombo.getSelectionIndex()]));
         deleteAfterCombo.addListener(SWT.Selection, _ -> VaultManager.getCurrent().setSetting(SettingKey.DELETE_AFTER,
                 DELETE_AFTER_DAYS[deleteAfterCombo.getSelectionIndex()]));
+    }
+
+    private static String formatDbPath() {
+        Path db = FileUtils.getDbFile();
+        if (db == null) return "";
+        String dbStr = db.toString();
+        String homeStr = FileUtils.getUserHome().toString();
+        if (dbStr.startsWith(homeStr)) {
+            return ("~" + dbStr.substring(homeStr.length())).replace('\\', '/');
+        }
+        return dbStr;
     }
 
     // ── Security tab ─────────────────────────────────────────────────────
