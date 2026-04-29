@@ -14,8 +14,6 @@ import javax.security.auth.DestroyFailedException;
 
 import org.junit.jupiter.api.Test;
 import org.puppylab.mypassword.core.exception.EncryptException;
-import org.puppylab.mypassword.util.Base64Utils;
-import org.puppylab.mypassword.util.EncryptUtils;
 
 public class EncryptUtilsTest {
 
