@@ -1,0 +1,204 @@
+[
+  {
+    "id": 1,
+    "type": "Rect",
+    "x": 25,
+    "y": 1,
+    "style": "normal",
+    "w": 19,
+    "h": 3,
+    "transparent": false,
+    "text": "Master Password",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 2,
+    "type": "Rect",
+    "x": 31,
+    "y": 6,
+    "style": "normal",
+    "w": 7,
+    "h": 3,
+    "transparent": false,
+    "text": "KEK",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 3,
+    "type": "Line",
+    "x": 34,
+    "y": 3,
+    "style": "normal",
+    "x2": 34,
+    "y2": 6,
+    "startBinding": {
+      "nodeId": 1,
+      "side": "bottom"
+    },
+    "endBinding": {
+      "nodeId": 2,
+      "side": "top"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 4,
+    "type": "Line",
+    "x": 57,
+    "y": 7,
+    "style": "normal",
+    "x2": 68,
+    "y2": 7,
+    "startBinding": {
+      "nodeId": 7,
+      "side": "right"
+    },
+    "endBinding": {
+      "nodeId": 5,
+      "side": "left"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 5,
+    "type": "Rect",
+    "x": 68,
+    "y": 6,
+    "style": "normal",
+    "w": 9,
+    "h": 3,
+    "transparent": false,
+    "text": "Vault",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 6,
+    "type": "Rect",
+    "x": 28,
+    "y": 2,
+    "style": "none",
+    "w": 21,
+    "h": 5,
+    "transparent": true,
+    "text": "PBKDF2",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 7,
+    "type": "Rect",
+    "x": 49,
+    "y": 6,
+    "style": "normal",
+    "w": 9,
+    "h": 3,
+    "transparent": false,
+    "text": "DEK",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 8,
+    "type": "Rect",
+    "x": 52,
+    "y": 4,
+    "style": "none",
+    "w": 21,
+    "h": 5,
+    "transparent": true,
+    "text": "Encrypt",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 10,
+    "type": "Line",
+    "x": 37,
+    "y": 7,
+    "style": "normal",
+    "x2": 42,
+    "y2": 11,
+    "startBinding": {
+      "nodeId": 2,
+      "side": "right"
+    },
+    "endBinding": {
+      "nodeId": 13,
+      "side": "top"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 11,
+    "type": "Line",
+    "x": 49,
+    "y": 7,
+    "style": "normal",
+    "x2": 44,
+    "y2": 11,
+    "startBinding": {
+      "nodeId": 7,
+      "side": "left"
+    },
+    "endBinding": {
+      "nodeId": 12,
+      "side": "top"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 12,
+    "type": "Rect",
+    "x": 43,
+    "y": 11,
+    "style": "normal",
+    "w": 4,
+    "h": 4,
+    "transparent": false,
+    "text": "",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 13,
+    "type": "Rect",
+    "x": 40,
+    "y": 11,
+    "style": "normal",
+    "w": 6,
+    "h": 4,
+    "transparent": false,
+    "text": "",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 9,
+    "type": "Rect",
+    "x": 37,
+    "y": 11,
+    "style": "normal",
+    "w": 13,
+    "h": 4,
+    "transparent": false,
+    "text": "Encrypted\nDEK",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  }
+]

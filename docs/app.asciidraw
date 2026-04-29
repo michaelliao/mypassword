@@ -1,0 +1,96 @@
+[
+  {
+    "id": 1,
+    "type": "Rect",
+    "x": 27,
+    "y": 7,
+    "style": "normal",
+    "w": 13,
+    "h": 3,
+    "transparent": false,
+    "text": "Extension",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 2,
+    "type": "Rect",
+    "x": 60,
+    "y": 7,
+    "style": "normal",
+    "w": 13,
+    "h": 4,
+    "transparent": false,
+    "text": "App\nWindow",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 3,
+    "type": "Line",
+    "x": 39,
+    "y": 8,
+    "style": "normal",
+    "x2": 60,
+    "y2": 8,
+    "startBinding": {
+      "nodeId": 1,
+      "side": "right"
+    },
+    "endBinding": {
+      "nodeId": 2,
+      "side": "left"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 4,
+    "type": "Line",
+    "x": 66,
+    "y": 10,
+    "style": "normal",
+    "x2": 66,
+    "y2": 13,
+    "startBinding": {
+      "nodeId": 2,
+      "side": "bottom"
+    },
+    "endBinding": {
+      "nodeId": 6,
+      "side": "top"
+    },
+    "startStyle": "normal",
+    "endStyle": "arrow"
+  },
+  {
+    "id": 5,
+    "type": "Rect",
+    "x": 41,
+    "y": 7,
+    "style": "none",
+    "w": 18,
+    "h": 2,
+    "transparent": true,
+    "text": "http://127.0.0.1/",
+    "alignX": "left",
+    "alignY": "center",
+    "wrap": true
+  },
+  {
+    "id": 6,
+    "type": "Rect",
+    "x": 60,
+    "y": 13,
+    "style": "normal",
+    "w": 13,
+    "h": 3,
+    "transparent": false,
+    "text": "Sqlite DB",
+    "alignX": "center",
+    "alignY": "center",
+    "wrap": true
+  }
+]
