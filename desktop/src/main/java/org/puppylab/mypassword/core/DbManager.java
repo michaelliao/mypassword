@@ -10,12 +10,16 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,24 +44,21 @@ public class DbManager {
 
     Connection connection = null;
 
+    final Path dbFile;
+
     public DbManager(Path dbFile) {
+        this.dbFile = dbFile;
         String jdbcUrl = "jdbc:sqlite:" + dbFile.toUri().getPath();
         logger.info("open db at: {}", jdbcUrl);
         boolean shouldInitDb = !Files.isRegularFile(dbFile);
-        if (!shouldInitDb) {
-            Path backup = dbFile.resolveSibling(dbFile.getFileName() + ".bak");
-            try {
-                Files.copy(dbFile, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                logger.info("db backed up to: {}", backup);
-            } catch (IOException e) {
-                logger.warn("db backup failed: {}", backup, e);
-            }
-        }
         try {
             this.connection = DriverManager.getConnection(jdbcUrl);
             this.connection.setAutoCommit(true);
         } catch (SQLException e) {
             throw new DataAccessException(e);
+        }
+        if (!shouldInitDb) {
+            this.backupDb();
         }
         if (shouldInitDb) {
             logger.info("init db...");
@@ -83,6 +84,37 @@ public class DbManager {
             // close db on JVM exit:
             close();
         }));
+    }
+
+    public void backupDb() {
+        Path backup = dbFile.resolveSibling(dbFile.getFileName() + ".bak");
+        if (Files.exists(backup)) {
+            try {
+                LocalDate backupDate = Files.getLastModifiedTime(backup).toInstant().atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                if (backupDate.equals(LocalDate.now())) {
+                    logger.info("db already backed up today, skip: {}", backup);
+                    return;
+                }
+            } catch (IOException e) {
+                logger.warn("failed to read backup mtime: {}", backup, e);
+            }
+        }
+        try {
+            // rotate: .bak8 -> .bak9, ..., .bak1 -> .bak2, .bak -> .bak1
+            for (int i = 9; i >= 1; i--) {
+                Path src = (i == 1) ? backup : dbFile.resolveSibling(dbFile.getFileName() + ".bak" + (i - 1));
+                Path dst = dbFile.resolveSibling(dbFile.getFileName() + ".bak" + i);
+                if (Files.exists(src)) {
+                    Files.move(src, dst, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+            Files.copy(dbFile, backup, StandardCopyOption.REPLACE_EXISTING);
+            Files.setLastModifiedTime(backup, FileTime.fromMillis(System.currentTimeMillis()));
+            logger.info("db backed up to: {}", backup);
+        } catch (IOException e) {
+            logger.warn("db backup failed: {}", backup, e);
+        }
     }
 
     public int queryAppVersion() {

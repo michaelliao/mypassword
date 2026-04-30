@@ -193,6 +193,10 @@ public class Session {
         if (callback != null) {
             callback.run();
         }
+        VaultManager vm = VaultManager.getCurrent();
+        if (vm != null) {
+            vm.backupDb();
+        }
     }
 
     public synchronized void setKey(UnlockType unlockType, SecretKey key) {

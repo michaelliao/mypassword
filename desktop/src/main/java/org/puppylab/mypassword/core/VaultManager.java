@@ -48,6 +48,10 @@ public class VaultManager {
         return instance;
     }
 
+    public void backupDb() {
+        this.dbManager.backupDb();
+    }
+
     public boolean isInitialized() {
         return this.vaultConfig != null;
     }
