@@ -124,7 +124,8 @@ namespace MyPasswordDesktop.Core
             try
             {
                 if (!validExtension
-                    && !path.StartsWith("/oauth/") && path != "/info" && path != "/pair")
+                    && !path.StartsWith("/oauth/") && path != "/info" && path != "/pair"
+                    && path != "/activate")
                 {
                     throw new VaultException(ErrorCode.UNKNOWN_EXTENSION, "Unknown extension.");
                 }
