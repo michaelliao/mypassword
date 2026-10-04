@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using MyPasswordDesktop.Services;
 using MyPasswordDesktop.ViewModels;
 using MyPasswordDesktop.Views;
 
@@ -29,6 +30,7 @@ namespace MyPasswordDesktop
                 var vm = new MainWindowViewModel();
                 var window = new MainWindow { DataContext = vm };
                 desktop.MainWindow = window;
+                MacApplicationPolicy.Attach(desktop);
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -176,6 +176,7 @@ namespace MyPasswordDesktop.Views
 
         private void ActivateWindow()
         {
+            MacApplicationPolicy.PrepareToShowWindow();
             Show();
             WindowState = WindowState.Normal;
             Activate();
@@ -194,6 +195,8 @@ namespace MyPasswordDesktop.Views
 
         private void OpenSettings()
         {
+            MacApplicationPolicy.PrepareToShowWindow();
+
             // a settings dialog is already open — activate it instead of
             // opening a duplicate.
             if (_settingsWindow != null)
