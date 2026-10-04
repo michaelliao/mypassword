@@ -207,7 +207,19 @@ namespace MyPasswordDesktop.Views
             }
             _settingsWindow = new SettingsWindow();
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
-            _settingsWindow.Show(this);
+            // Avalonia requires a visible owner. Keep the main window hidden
+            // when settings is opened from the tray.
+            if (IsVisible)
+            {
+                _settingsWindow.Show(this);
+            }
+            else
+            {
+                _settingsWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                _settingsWindow.ShowInTaskbar = true;
+                _settingsWindow.Show();
+            }
+            _settingsWindow.Activate();
         }
 
         // ── lifecycle ────────────────────────────────────────────────────────
@@ -229,6 +241,7 @@ namespace MyPasswordDesktop.Views
                 if (keepInTray)
                 {
                     e.Cancel = true;
+                    _settingsWindow?.Close();
                     Hide();
                     return;
                 }
