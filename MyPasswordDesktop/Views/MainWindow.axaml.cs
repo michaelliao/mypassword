@@ -214,13 +214,17 @@ namespace MyPasswordDesktop.Views
 
         private void OnClosing(object sender, WindowClosingEventArgs e)
         {
+            // Only macOS application quit bypasses the close-to-tray behavior.
+            bool shuttingDown = OperatingSystem.IsMacOS()
+                && (e.CloseReason is WindowCloseReason.ApplicationShutdown
+                    or WindowCloseReason.OSShutdown);
             // desktop.Shutdown() below closes this window again, re-entering
             // OnClosing — let that pass straight through to avoid recursion.
             if (_teardownDone)
             {
                 return;
             }
-            if (!_exiting)
+            if (!_exiting && !shuttingDown)
             {
                 // a plain window close keeps the app alive in the tray unless
                 // the user disabled that setting.
@@ -238,7 +242,8 @@ namespace MyPasswordDesktop.Views
             // shut the application down.
             _teardownDone = true;
             _daemon?.Stop();
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            // Native application quit is already inside the shutdown loop.
+            if (!shuttingDown && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown();
             }
