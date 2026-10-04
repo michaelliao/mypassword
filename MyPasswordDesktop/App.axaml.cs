@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -10,6 +11,8 @@ namespace MyPasswordDesktop
     {
         public override void Initialize()
         {
+            if (OperatingSystem.IsMacOS())
+                Name = "MyPassword";
             AvaloniaXamlLoader.Load(this);
         }
 
