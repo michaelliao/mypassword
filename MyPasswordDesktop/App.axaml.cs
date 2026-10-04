@@ -1,6 +1,8 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using MyPasswordDesktop.ViewModels;
 using MyPasswordDesktop.Views;
 
@@ -29,6 +31,16 @@ namespace MyPasswordDesktop
                 var vm = new MainWindowViewModel();
                 var window = new MainWindow { DataContext = vm };
                 desktop.MainWindow = window;
+                // macOS delivers Dock/Finder reopen through the application feature.
+                if (OperatingSystem.IsMacOS()
+                    && TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
+                {
+                    activatable.Activated += (_, e) =>
+                    {
+                        if (e.Kind == ActivationKind.Reopen)
+                            Dispatcher.UIThread.Post(window.RestoreWindow);
+                    };
+                }
             }
 
             base.OnFrameworkInitializationCompleted();

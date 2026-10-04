@@ -181,6 +181,8 @@ namespace MyPasswordDesktop.Views
             Activate();
         }
 
+        public void RestoreWindow() => ActivateWindow();
+
         // ── extension pairing prompt ─────────────────────────────────────────
 
         private async void ShowPairRequestAsync(ExtensionConfig ec)
